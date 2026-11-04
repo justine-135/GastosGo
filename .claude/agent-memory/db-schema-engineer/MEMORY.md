@@ -1,0 +1,1 @@
+- [GastosGo DB Layer](project-gastosgo-db.md) — SQLite/expo-sqlite/Drizzle setup, conventions, sensitive data policy, migration numbering

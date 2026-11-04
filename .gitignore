@@ -1,0 +1,15 @@
+node_modules/
+.expo/
+dist/
+web-build/
+
+# Environment — local secrets never committed
+.env.local
+.env*.local
+
+# Drizzle generated output (regenerated from schema)
+drizzle/
+
+# OS
+.DS_Store
+Thumbs.db

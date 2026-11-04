@@ -1,0 +1,1 @@
+- [GastosGo Backend Project](project-gastosgo-backend.md) — Supabase setup, auth, sync, edge functions, DB stubs, and key design decisions for the full BE layer

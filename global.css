@@ -1,0 +1,28 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer theme {
+  :root {
+    --primary:    244 162 97;   /* #F4A261 — warm sunset orange "Handa" */
+    --secondary:  168 218 220;  /* #A8DADC — sea glass teal, Visayas ocean */
+    --accent:     233 196 106;  /* #E9C46A — golden yellow "Kayamanan" */
+    --background: 255 248 240;  /* #FFF8F0 — warm cream */
+    --surface:    255 236 210;  /* #FFECD2 — soft peach card surface */
+    --foreground: 45  48  71;   /* #2D3047 — deep navy text */
+    --destructive: 231 111 81;  /* #E76F51 — coral red */
+    --muted:      129 178 154;  /* #81B29A — sage green */
+    --muted-foreground: 107 114 128;
+    --border:     229 213 192;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --background: 26  26  46;    /* #1A1A2E — deep navy */
+      --surface:    22  33  62;    /* #16213E — dark surface */
+      --foreground: 232 232 232;   /* #E8E8E8 — light text */
+      --muted-foreground: 156 163 175;
+      --border:     45  58  90;
+    }
+  }
+}
