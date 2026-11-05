@@ -1,7 +1,7 @@
 // FE-06 + FE-10: Expenses List + Recurring Rules
 import React, { useState, useCallback, useMemo } from 'react';
 import {
-  View, Text, StyleSheet, SectionList, TouchableOpacity, SafeAreaView,
+  View, Text, StyleSheet, SectionList, ScrollView, TouchableOpacity, SafeAreaView,
   RefreshControl, Alert, type SectionListData,
 } from 'react-native';
 import { router } from 'expo-router';
@@ -141,7 +141,12 @@ export default function ExpensesScreen() {
 
           {/* Category filter chips */}
           {categories.length > 0 && (
-            <View style={styles.filterRow}>
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              style={styles.filterRowScroll}
+              contentContainerStyle={styles.filterRow}
+            >
               <TouchableOpacity
                 style={[styles.filterChip, !activeCategoryFilter && styles.filterChipActive]}
                 onPress={() => setActiveCategoryFilter(null)}
@@ -171,7 +176,7 @@ export default function ExpensesScreen() {
                   </Text>
                 </TouchableOpacity>
               ))}
-            </View>
+            </ScrollView>
           )}
 
           {isLoading ? (
@@ -371,7 +376,8 @@ const styles = StyleSheet.create({
   tabActive: { borderBottomWidth: 2, borderBottomColor: '#F4A261' },
   tabText: { fontSize: 15, color: '#6B7280', fontWeight: '500' },
   tabTextActive: { color: '#F4A261', fontWeight: '700' },
-  filterRow: { flexDirection: 'row', flexWrap: 'nowrap', gap: 8, paddingHorizontal: 16, paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: '#E5D5C0' },
+  filterRowScroll: { borderBottomWidth: 1, borderBottomColor: '#E5D5C0' },
+  filterRow: { flexDirection: 'row', gap: 8, paddingHorizontal: 16, paddingVertical: 10 },
   filterChip: { paddingHorizontal: 12, paddingVertical: 8, borderRadius: 16, borderWidth: 1.5, borderColor: '#E5D5C0', minHeight: 36 },
   filterChipActive: { backgroundColor: '#F4A261', borderColor: '#F4A261' },
   filterChipText: { fontSize: 13, color: '#6B7280', fontWeight: '500' },

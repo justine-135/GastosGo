@@ -69,12 +69,12 @@ export function useDeleteExpense() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: ({ id, date }: { id: string; date: string }) => deleteExpense(id),
-    onSuccess: async (_, { date }) => {
+    onSuccess: async (_, { id, date }) => {
       const d = new Date(date);
       await qc.invalidateQueries({ queryKey: expenseKeys(d.getMonth() + 1, d.getFullYear()) });
       await qc.invalidateQueries({ queryKey: recentExpensesKey() });
       await qc.invalidateQueries({ queryKey: ['budgets'] });
-      await enqueue('delete', 'expenses', { id: date });
+      await enqueue('delete', 'expenses', { id });
     },
   });
 }

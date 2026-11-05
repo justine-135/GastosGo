@@ -41,7 +41,7 @@ export default function OnboardingBudget() {
         })
       );
 
-      router.replace('/(tabs)');
+      router.push('/onboarding/pin-setup');
     } catch (e) {
       console.error(e);
     } finally {

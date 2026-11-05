@@ -1,15 +1,21 @@
 // Onboarding Screen 1 — Welcome
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   View, Text, TouchableOpacity, StyleSheet, SafeAreaView, StatusBar,
 } from 'react-native';
 import { router } from 'expo-router';
 import { runRestore } from '../../lib/restore';
-
-// ⚠️ BACKEND REQUIRED (BE-04): supabase.auth.getSession() to detect existing cloud account
-const hasCloudSession = false; // stub
+import { supabase } from '../../lib/supabase';
 
 export default function OnboardingWelcome() {
+  const [hasCloudSession, setHasCloudSession] = useState(false);
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data }) => {
+      setHasCloudSession(!!data.session);
+    });
+  }, []);
+
   return (
     <SafeAreaView style={styles.safe}>
       <StatusBar barStyle="dark-content" />

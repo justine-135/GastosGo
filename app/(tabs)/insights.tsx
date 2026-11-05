@@ -1,9 +1,10 @@
 // FE-08 + FE-09: Insights Screen — Pie Chart + Bar Chart
-// Victory Native XL is used for charts. Install: victory-native
 import React, { useState, useMemo } from 'react';
 import {
   View, Text, StyleSheet, ScrollView, SafeAreaView, RefreshControl, TouchableOpacity,
 } from 'react-native';
+// shortcut: victory-native not installed, replace stub once DB agent lands TASK-DB-01
+import { PolarChart, Pie } from 'victory-native';
 import { useQueries } from '@tanstack/react-query';
 import { useUIStore } from '../../stores/uiStore';
 import { useBudgets } from '../../hooks/useBudgets';
@@ -146,49 +147,39 @@ export default function InsightsScreen() {
   );
 }
 
-// Pure SVG-less pie chart using View arcs.
-// In production, replace with VictoryPie from victory-native once installed.
 function PieChartSection({
   data,
   totalSpent,
-  selectedId,
-  onSelect,
 }: {
   data: BudgetProgress[];
   totalSpent: number;
   selectedId: string | null;
   onSelect: (id: string) => void;
 }) {
-  // Render segmented circle using View-based approach (compatible without Victory Native installed)
-  // shortcut: simple segmented bar instead of real pie; upgrade to VictoryPie when victory-native is installed
+  const chartData = data.map((item) => ({
+    label: item.categoryName,
+    value: item.spent,
+    color: item.categoryColor,
+  }));
+
   return (
-    <View>
-      {/* Center amount */}
-      <View style={styles.pieCenter}>
+    <View style={styles.pieWrapper}>
+      <PolarChart
+        data={chartData}
+        labelKey="label"
+        valueKey="value"
+        colorKey="color"
+        containerStyle={styles.polarChart}
+      >
+        <Pie.Chart innerRadius="50%">
+          {() => <Pie.Slice animate={{ type: 'timing', duration: 400 }} />}
+        </Pie.Chart>
+      </PolarChart>
+
+      {/* Center label overlaid on the donut hole */}
+      <View style={styles.pieCenter} pointerEvents="none">
         <Text style={styles.pieCenterLabel}>Total</Text>
         <Text style={styles.pieCenterAmount}>{formatPeso(totalSpent)}</Text>
-      </View>
-
-      {/* Segmented bar as a pie chart stand-in */}
-      <View style={styles.segBar}>
-        {data.map((item) => {
-          const flex = totalSpent > 0 ? item.spent / totalSpent : 0;
-          const isSelected = selectedId === item.categoryId;
-          return (
-            <TouchableOpacity
-              key={item.categoryId}
-              style={[
-                styles.segBarSlice,
-                { flex, backgroundColor: item.categoryColor, opacity: isSelected ? 1 : 0.75 },
-                isSelected && { transform: [{ scaleY: 1.3 }] },
-              ]}
-              onPress={() => onSelect(item.categoryId)}
-              accessibilityRole="button"
-              accessibilityLabel={`${item.categoryName} slice`}
-              accessibilityState={{ selected: isSelected }}
-            />
-          );
-        })}
       </View>
     </View>
   );
@@ -218,8 +209,8 @@ function BarChartSection({
 
       <View style={styles.barGroup}>
         {data.map((item) => {
-          const budgetH = maxValue > 0 ? (item.totalBudget / maxValue) * 120 : 0;
-          const spentH = maxValue > 0 ? (item.totalSpent / maxValue) * 120 : 0;
+          const budgetH = maxValue > 0 ? (item.totalBudget / maxValue) * 160 : 0;
+          const spentH = maxValue > 0 ? (item.totalSpent / maxValue) * 160 : 0;
           const isOver = item.totalSpent > item.totalBudget;
           const isTooltip = tooltipMonth?.month === item.month && tooltipMonth?.year === item.year;
 
@@ -261,11 +252,14 @@ const styles = StyleSheet.create({
   emptyState: { alignItems: 'center', paddingVertical: 32, gap: 8 },
   emptyEmoji: { fontSize: 40 },
   emptyText: { fontSize: 15, color: '#6B7280', textAlign: 'center' },
-  pieCenter: { alignItems: 'center', paddingVertical: 12 },
+  pieWrapper: { alignItems: 'center', justifyContent: 'center' },
+  polarChart: { width: 220, height: 220 },
+  pieCenter: {
+    position: 'absolute', alignItems: 'center', justifyContent: 'center',
+    // pointerEvents="none" set on the View itself
+  },
   pieCenterLabel: { fontSize: 13, color: '#6B7280', textTransform: 'uppercase', letterSpacing: 0.5 },
   pieCenterAmount: { fontSize: 28, fontWeight: '700', color: '#2D3047' },
-  segBar: { flexDirection: 'row', height: 32, borderRadius: 16, overflow: 'hidden', marginHorizontal: 4 },
-  segBarSlice: { height: 32 },
   legend: { gap: 8 },
   legendRow: { flexDirection: 'row', alignItems: 'center', gap: 10, padding: 10, borderRadius: 10 },
   legendRowSelected: { backgroundColor: '#FFF3E8' },

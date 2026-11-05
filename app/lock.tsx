@@ -89,15 +89,20 @@ export default function LockScreen() {
 
   async function tryBiometric() {
     if (mode !== 'verify') return;
-    const hasHardware = await LocalAuthentication.hasHardwareAsync();
-    const enrolled = await LocalAuthentication.isEnrolledAsync();
-    if (!hasHardware || !enrolled) return;
+    try {
+      const hasHardware = await LocalAuthentication.hasHardwareAsync();
+      const enrolled = await LocalAuthentication.isEnrolledAsync();
+      if (!hasHardware || !enrolled) return;
 
-    const result = await LocalAuthentication.authenticateAsync({
-      promptMessage: 'Unlock GastosGo',
-      fallbackLabel: 'Use PIN',
-    });
-    if (result.success) navigateToApp();
+      const result = await LocalAuthentication.authenticateAsync({
+        promptMessage: 'Unlock GastosGo',
+        fallbackLabel: 'Use PIN',
+      });
+      if (result.success) navigateToApp();
+      // failure falls through — PIN pad is already visible
+    } catch {
+      // biometric unavailable or OS error — PIN pad remains for user
+    }
   }
 
   function navigateToApp() {

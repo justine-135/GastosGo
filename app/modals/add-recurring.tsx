@@ -1,5 +1,5 @@
 // FE-10: Add / Edit Recurring Rule Modal
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View, Text, TextInput, TouchableOpacity, StyleSheet, SafeAreaView,
   ScrollView, KeyboardAvoidingView, Platform, Alert, ActivityIndicator,
@@ -8,7 +8,7 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useQuery } from '@tanstack/react-query';
 import { getCategories } from '../../lib/db';
-import { useAddRecurringRule, useUpdateRecurringRule } from '../../hooks/useRecurring';
+import { useAddRecurringRule, useUpdateRecurringRule, useRecurringRules } from '../../hooks/useRecurring';
 import { CategoryChip } from '../../components/CategoryChip';
 import { formatDate } from '../../utils/format';
 import type { Frequency, PaymentMethod } from '../../lib/db/types';
@@ -30,8 +30,29 @@ export default function AddRecurringModal() {
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   const { data: categories = [] } = useQuery({ queryKey: ['categories'], queryFn: getCategories });
+  const { data: rules = [] } = useRecurringRules();
+
+  // Pre-select first category when categories load and none is set yet
+  useEffect(() => {
+    if (!isEditing && !categoryId && categories.length > 0) {
+      setCategoryId(categories[0].id);
+    }
+  }, [categories, isEditing, categoryId]);
   const addRule = useAddRecurringRule();
   const updateRule = useUpdateRecurringRule();
+
+  // Seed form state from existing rule when editing
+  useEffect(() => {
+    if (!isEditing || !params.ruleId) return;
+    const rule = rules.find((r) => r.id === params.ruleId);
+    if (!rule) return;
+    setName(rule.name);
+    setAmount(String(rule.amount));
+    setCategoryId(rule.categoryId);
+    setFrequency(rule.frequency);
+    setPaymentMethod(rule.paymentMethod);
+    setFirstDueDate(rule.nextDueDate);
+  }, [isEditing, params.ruleId, rules]);
 
   function validate(): boolean {
     const e: Record<string, string> = {};

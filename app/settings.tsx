@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import {
   View, Text, StyleSheet, ScrollView, SafeAreaView, TouchableOpacity,
-  Alert, ActivityIndicator, Switch,
+  Alert, ActivityIndicator, Switch, Modal, FlatList,
 } from 'react-native';
 import { router } from 'expo-router';
 import * as SecureStore from 'expo-secure-store';
@@ -23,6 +23,7 @@ export default function SettingsScreen() {
   const { lastSyncedAt, isSyncing, setIsSyncing } = useSyncStore();
   const [isBackingUp, setIsBackingUp] = useState(false);
   const [hasPIN, setHasPIN] = useState<boolean | null>(null);
+  const [showDayPicker, setShowDayPicker] = useState(false);
 
   const { data: profile } = useQuery({ queryKey: ['profile'], queryFn: getProfile });
 
@@ -83,14 +84,7 @@ export default function SettingsScreen() {
 
   function handleBudgetCycleStart() {
     if (!profile) return;
-    const days = Array.from({ length: 28 }, (_, i) => i + 1);
-    // On real device, use a Picker/ActionSheet; Alert as placeholder
-    Alert.alert('Budget Cycle Start Day', `Current: Day ${profile.budgetCycleStart}`, [
-      { text: 'Day 1', onPress: () => updateProfileMutation.mutate({ budgetCycleStart: 1 }) },
-      { text: 'Day 15', onPress: () => updateProfileMutation.mutate({ budgetCycleStart: 15 }) },
-      { text: 'Day 25', onPress: () => updateProfileMutation.mutate({ budgetCycleStart: 25 }) },
-      { text: 'Cancel', style: 'cancel' },
-    ]);
+    setShowDayPicker(true);
   }
 
   const appVersion = Constants.expoConfig?.version ?? '1.0.0';
@@ -146,7 +140,7 @@ export default function SettingsScreen() {
             <Text style={styles.rowLabel}>PIN Enabled</Text>
             <Switch
               value={!!hasPIN}
-              onValueChange={(v) => !v && handleDisablePIN()}
+              onValueChange={(v) => { if (!v) handleDisablePIN(); }}
               trackColor={{ false: '#E5D5C0', true: '#F4A261' }}
               thumbColor="#FFFFFF"
               accessibilityLabel="Toggle PIN lock"
@@ -222,6 +216,59 @@ export default function SettingsScreen() {
 
         <View style={{ height: 40 }} />
       </ScrollView>
+
+      <Modal
+        visible={showDayPicker}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowDayPicker(false)}
+      >
+        <TouchableOpacity
+          style={styles.modalOverlay}
+          activeOpacity={1}
+          onPress={() => setShowDayPicker(false)}
+          accessibilityLabel="Close day picker"
+        >
+          <View style={styles.dayPickerSheet}>
+            <Text style={styles.dayPickerTitle}>Budget Cycle Start Day</Text>
+            <FlatList
+              data={Array.from({ length: 28 }, (_, i) => i + 1)}
+              keyExtractor={(item) => String(item)}
+              numColumns={7}
+              renderItem={({ item }) => (
+                <TouchableOpacity
+                  style={[
+                    styles.dayCell,
+                    profile?.budgetCycleStart === item && styles.dayCellActive,
+                  ]}
+                  onPress={() => {
+                    updateProfileMutation.mutate({ budgetCycleStart: item });
+                    setShowDayPicker(false);
+                  }}
+                  accessibilityRole="button"
+                  accessibilityLabel={`Day ${item}`}
+                  accessibilityState={{ selected: profile?.budgetCycleStart === item }}
+                >
+                  <Text style={[
+                    styles.dayCellText,
+                    profile?.budgetCycleStart === item && styles.dayCellTextActive,
+                  ]}>
+                    {item}
+                  </Text>
+                </TouchableOpacity>
+              )}
+            />
+            <TouchableOpacity
+              style={styles.dayPickerCancel}
+              onPress={() => setShowDayPicker(false)}
+              accessibilityRole="button"
+              accessibilityLabel="Cancel"
+            >
+              <Text style={styles.dayPickerCancelText}>Cancel</Text>
+            </TouchableOpacity>
+          </View>
+        </TouchableOpacity>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -292,4 +339,20 @@ const styles = StyleSheet.create({
   segmentActive: { backgroundColor: '#FFFFFF', shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.1, shadowRadius: 2, elevation: 2 },
   segmentText: { fontSize: 13, color: '#6B7280', fontWeight: '500' },
   segmentTextActive: { color: '#2D3047', fontWeight: '700' },
+  modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.4)', justifyContent: 'flex-end' },
+  dayPickerSheet: {
+    backgroundColor: '#FFF8F0', borderTopLeftRadius: 24, borderTopRightRadius: 24,
+    padding: 24, paddingBottom: 40,
+  },
+  dayPickerTitle: { fontSize: 17, fontWeight: '700', color: '#2D3047', textAlign: 'center', marginBottom: 16 },
+  dayCell: {
+    flex: 1, aspectRatio: 1, margin: 4, borderRadius: 10,
+    alignItems: 'center', justifyContent: 'center',
+    backgroundColor: '#F0EAE0', minHeight: 44,
+  },
+  dayCellActive: { backgroundColor: '#F4A261' },
+  dayCellText: { fontSize: 15, fontWeight: '500', color: '#2D3047' },
+  dayCellTextActive: { color: '#FFFFFF', fontWeight: '700' },
+  dayPickerCancel: { marginTop: 16, alignItems: 'center', paddingVertical: 14, minHeight: 48 },
+  dayPickerCancelText: { fontSize: 16, color: '#6B7280' },
 });

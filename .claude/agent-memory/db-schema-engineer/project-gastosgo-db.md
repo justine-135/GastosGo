@@ -38,3 +38,27 @@ GastosGo is a Filipino personal expense tracking app (Expo + TypeScript + expo-s
 
 **Why:** React Native / Expo app needs local-first SQLite database with offline sync queue for future Supabase sync.
 **How to apply:** Always use `real` not `numeric` for money, `text` not `timestamptz` for dates, and check SQLite-specific limitations before recommending PostgreSQL patterns.
+
+## Installed versions (2026-11-05)
+- drizzle-orm ^0.38.0 (dependency)
+- drizzle-kit ^0.30.0 (devDependency)
+- expo-sqlite ~15.1.2 (dependency)
+- expo-asset ~10.0.10 (hoisted for Metro; was ^58.0.20 which was wrong)
+- @react-native-async-storage/async-storage pinned to 1.23.1 (Expo 52 compatible)
+- react-native-screens pinned to ~4.4.0 (Expo 52 compatible)
+- expo-crypto pinned to ~13.0.2 (Expo 52 compatible)
+
+## lib/db/stubs.ts — now real Drizzle implementations
+All stubs replaced with real queries. Key design decisions:
+- Profile: userId is PK; lib type maps userId→id (no surrogate id column in schema)
+- Expense reads: LEFT JOIN categories to get categoryName/categoryColor in one query
+- RecurringRule reads: LEFT JOIN categories; paymentMethod defaults to 'Cash' (not in schema)
+- getBudgetProgress: single LEFT JOIN query (categories + expenses), no per-category loop
+- getMonthlyExpenseSummary: 2 queries (expense sum + budget sum) — single-month path
+- getMultiMonthSummary (new export): collapses 6-month Insights chart from 18 → 2 DB calls; Insights screen caller must switch to this function
+- enqueue: now writes real rows to sync_queue table (was no-op stub)
+- userId for new writes: reads from getProfile(); falls back to 'local-user'
+
+## Pre-existing TS errors (not db-layer, do not fix here)
+- hooks/useExpenses.ts:77 TS18004 — shorthand 'id' in onSuccess callback
+- supabase/functions/ — Deno runtime errors, excluded from app tsconfig scope
