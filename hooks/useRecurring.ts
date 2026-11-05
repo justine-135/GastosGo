@@ -10,8 +10,9 @@ import {
   enqueue,
 } from '../lib/db';
 import type { InsertRecurringRuleInput, PaymentMethod } from '../lib/db/types';
+import { LOCAL_USER_ID } from '../lib/constants';
 
-const USER_ID = 'stub-user-001';
+const USER_ID = LOCAL_USER_ID;
 
 export const recurringKeys = {
   all: ['recurring', USER_ID] as const,

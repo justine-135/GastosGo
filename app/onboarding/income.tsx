@@ -42,8 +42,8 @@ export default function OnboardingIncome() {
       <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
         <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
           {/* Step indicator */}
-          <View style={styles.stepRow} accessibilityLabel="Step 2 of 3">
-            {[0, 1, 2].map((i) => (
+          <View style={styles.stepRow} accessibilityLabel="Step 2 of 6">
+            {[0, 1, 2, 3, 4, 5].map((i) => (
               <View key={i} style={[styles.dot, i === 1 && styles.dotActive]} />
             ))}
           </View>
@@ -87,7 +87,7 @@ export default function OnboardingIncome() {
             </View>
           )}
 
-          {(mode === 'salary' || mode === 'target') && (
+          {(mode === 'salary' || mode === 'mixed' || mode === 'target') && (
             <View style={styles.inputGroup}>
               <Text style={styles.inputLabel}>Monthly Savings Target (₱)</Text>
               <TextInput

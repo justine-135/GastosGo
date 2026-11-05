@@ -18,6 +18,10 @@ export function MonthNavigator({ month, year, onPrev, onNext }: Props) {
   const handlePrev = onPrev ?? store.navigatePreviousMonth;
   const handleNext = onNext ?? store.navigateNextMonth;
 
+  const now = new Date();
+  const isCurrentMonth = y > now.getFullYear() ||
+    (y === now.getFullYear() && m >= now.getMonth() + 1);
+
   return (
     <View style={styles.row} accessibilityRole="toolbar" accessibilityLabel="Month navigator">
       <TouchableOpacity
@@ -34,10 +38,12 @@ export function MonthNavigator({ month, year, onPrev, onNext }: Props) {
         onPress={handleNext}
         accessibilityLabel="Next month"
         accessibilityRole="button"
-        style={styles.arrow}
+        style={[styles.arrow, isCurrentMonth && styles.arrowDisabled]}
         hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+        disabled={isCurrentMonth}
+        accessibilityState={{ disabled: isCurrentMonth }}
       >
-        <Text style={styles.arrowText}>›</Text>
+        <Text style={[styles.arrowText, isCurrentMonth && styles.arrowTextDisabled]}>›</Text>
       </TouchableOpacity>
     </View>
   );
@@ -62,6 +68,8 @@ const styles = StyleSheet.create({
     color: '#F4A261',
     fontWeight: '600',
   },
+  arrowDisabled: { opacity: 0.3 },
+  arrowTextDisabled: { color: '#9CA3AF' },
   label: {
     fontSize: 17,
     fontWeight: '600',

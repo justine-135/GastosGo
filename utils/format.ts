@@ -28,12 +28,12 @@ export function formatMonthYear(month: number, year: number): string {
 
 export function formatDate(isoDate: string): string {
   const d = new Date(isoDate);
-  const today = new Date();
-  const yesterday = new Date(today);
-  yesterday.setDate(today.getDate() - 1);
+  const now = new Date();
+  const localToday = new Date(now.getTime() - now.getTimezoneOffset() * 60000).toISOString().split('T')[0];
+  const localYesterday = new Date(now.getTime() - now.getTimezoneOffset() * 60000 - 86400000).toISOString().split('T')[0];
 
-  if (isoDate === today.toISOString().split('T')[0]) return 'Today';
-  if (isoDate === yesterday.toISOString().split('T')[0]) return 'Yesterday';
+  if (isoDate === localToday) return 'Today';
+  if (isoDate === localYesterday) return 'Yesterday';
 
   return d.toLocaleDateString('en-PH', { month: 'short', day: 'numeric' });
 }

@@ -1,0 +1,1 @@
+- [Project Stack](project-stack.md) — Expo 52 / RN 0.76 app; victory-native v41 needs react-native-svg peer dep (added 2026-11-05)

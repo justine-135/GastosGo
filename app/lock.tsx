@@ -22,6 +22,10 @@ async function hashPin(pin: string): Promise<string> {
 }
 
 type Mode = 'verify' | 'setup' | 'change';
+// 'enter': old PIN (change) or new PIN (setup) or current PIN (verify)
+// 'new': new PIN entry (change only)
+// 'confirm': confirm new PIN (setup/change)
+type Step = 'enter' | 'new' | 'confirm';
 
 export default function LockScreen() {
   const { mode: paramMode } = useLocalSearchParams<{ mode?: Mode }>();
@@ -29,13 +33,13 @@ export default function LockScreen() {
 
   const [pin, setPin] = useState('');
   const [confirmPin, setConfirmPin] = useState('');
-  const [step, setStep] = useState<'enter' | 'confirm'>('enter');
+  const [step, setStep] = useState<Step>('enter');
   const [error, setError] = useState('');
   const [lockoutUntil, setLockoutUntil] = useState<number | null>(null);
   const [countdown, setCountdown] = useState(0);
   const appState = useRef(AppState.currentState);
 
-  // Check lockout on mount
+  // Check lockout and biometrics on mount
   useEffect(() => {
     checkLockout();
     tryBiometric();
@@ -90,6 +94,10 @@ export default function LockScreen() {
   async function tryBiometric() {
     if (mode !== 'verify') return;
     try {
+      // FE-09: only prompt if the user opted in during onboarding
+      const enabled = await SecureStore.getItemAsync('gastosgo-biometrics-enabled');
+      if (enabled !== 'true') return;
+
       const hasHardware = await LocalAuthentication.hasHardwareAsync();
       const enrolled = await LocalAuthentication.isEnrolledAsync();
       if (!hasHardware || !enrolled) return;
@@ -116,13 +124,13 @@ export default function LockScreen() {
   const handleDigit = useCallback((d: string) => {
     if (lockoutUntil) return;
     setError('');
-    if (mode === 'setup' || (mode === 'change' && step === 'confirm')) {
-      if (step === 'enter') setPin((p) => p.length < 6 ? p + d : p);
-      else setConfirmPin((p) => p.length < 6 ? p + d : p);
+    if (step === 'confirm') {
+      setConfirmPin((p) => p.length < 6 ? p + d : p);
     } else {
+      // 'enter' (verify/change old PIN / setup new PIN) and 'new' (change new PIN)
       setPin((p) => p.length < 6 ? p + d : p);
     }
-  }, [lockoutUntil, mode, step]);
+  }, [lockoutUntil, step]);
 
   const handleBackspace = useCallback(() => {
     if (step === 'confirm') setConfirmPin((p) => p.slice(0, -1));
@@ -134,10 +142,10 @@ export default function LockScreen() {
     else setPin('');
   }, [step]);
 
-  // Auto-submit when 4+ digits entered
+  // Auto-submit when 6 digits entered
   useEffect(() => {
     const current = step === 'confirm' ? confirmPin : pin;
-    if (current.length < 4) return;
+    if (current.length < 6) return;
 
     const timer = setTimeout(() => submitPin(current), 150);
     return () => clearTimeout(timer);
@@ -157,7 +165,8 @@ export default function LockScreen() {
       if (stored === hashed) {
         await AsyncStorage.setItem(FAIL_COUNT_KEY, '0');
         if (mode === 'change') {
-          setStep('confirm');
+          // Old PIN verified — now collect the new PIN
+          setStep('new');
           setPin('');
         } else {
           navigateToApp();
@@ -177,22 +186,22 @@ export default function LockScreen() {
         }
         setPin('');
       }
-    } else if (mode === 'setup' || (mode === 'change' && step === 'confirm')) {
-      if (step === 'enter') {
-        setStep('confirm');
+    } else if (mode === 'setup' || (mode === 'change' && step === 'new')) {
+      // 'enter' for setup means first new-PIN entry; 'new' for change is same thing
+      setStep('confirm');
+      setConfirmPin('');
+      // keep pin = entered so confirm step can compare
+    } else if (step === 'confirm') {
+      // Confirm step for both setup and change
+      if (pin !== entered) {
+        setError('PINs do not match. Try again.');
         setPin('');
+        setConfirmPin('');
+        setStep(mode === 'change' ? 'new' : 'enter');
       } else {
-        // Confirm step
-        if (pin !== entered) {
-          setError('PINs do not match. Try again.');
-          setPin('');
-          setConfirmPin('');
-          setStep('enter');
-        } else {
-          const hashed = await hashPin(entered);
-          await SecureStore.setItemAsync(PIN_KEY, hashed);
-          navigateToApp();
-        }
+        const hashed = await hashPin(entered);
+        await SecureStore.setItemAsync(PIN_KEY, hashed);
+        navigateToApp();
       }
     }
   }
@@ -202,8 +211,12 @@ export default function LockScreen() {
 
   const headerText =
     isLockedOut ? `Too many attempts` :
-    mode === 'setup' ? (step === 'enter' ? 'Create a PIN' : 'Confirm your PIN') :
-    mode === 'change' ? (step === 'enter' ? 'Enter current PIN' : 'Enter new PIN') :
+    mode === 'setup' ? (step === 'confirm' ? 'Confirm your PIN' : 'Create a PIN') :
+    mode === 'change' ? (
+      step === 'enter' ? 'Enter current PIN' :
+      step === 'new' ? 'Enter new PIN' :
+      'Confirm new PIN'
+    ) :
     'Enter PIN';
 
   return (
@@ -232,7 +245,7 @@ export default function LockScreen() {
         />
 
         {mode === 'setup' && (
-          <Text style={styles.hint}>Choose a 4–6 digit PIN to protect your financial data.</Text>
+          <Text style={styles.hint}>Choose a 6-digit PIN to protect your financial data.</Text>
         )}
       </View>
     </SafeAreaView>

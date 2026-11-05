@@ -1,6 +1,6 @@
 ---
 name: project-gastosgo-backend
-description: GastosGo backend layer — Supabase setup, auth pattern, sync architecture, edge functions, and DB-layer stubs
+description: GastosGo backend layer — Supabase setup, auth, sync, edge functions, DB stubs, recurring paymentMethod constraint, date timezone pattern
 metadata:
   type: project
 ---
@@ -31,3 +31,17 @@ GastosGo is a React Native (Expo + TypeScript) personal finance app for Philippi
 **DB-layer stubs:** `lib/sync.ts`, `lib/backup.ts`, and `lib/restore.ts` all dynamically `require()` DB helpers so they compile before DB tasks are complete. Each has `// shortcut: DB-11 not yet implemented` comments.
 
 **How to apply:** When asked to build on these files, check that DB-11 (`db/queries/syncQueue.ts`) exists before removing the dynamic-require stubs in `lib/sync.ts`.
+
+---
+
+**Schema constraint — recurringRulesTable has no paymentMethod column (as of 2026-11-05):** `rowToRecurringRule` in `lib/db/stubs.ts` accepts `paymentMethod` as a second parameter (default `'Cash'`). `insertRecurringRule` passes `input.paymentMethod`; `updateRecurringRule` passes `input.paymentMethod ?? 'Cash'`. Upgrade: db agent adds the column, remove the parameter, read from row.
+
+**Date storage convention:** Dates stored as YYYY-MM-DD local date strings. Always use `new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().split('T')[0]` — never `.toISOString().split('T')[0]` alone (that's UTC and causes off-by-one for PST before 8am).
+
+**Modal file locations:** `app/modals/add-expense.tsx` and `app/modals/add-recurring.tsx` (not at the app root).
+
+**Restore flow:** `lib/restore.ts` dynamically requires `lib/db/queries/restore.ts` (not yet implemented). It returns `{ success: false, errors: [...] }` when missing — does NOT throw. The onboarding caller (`app/onboarding/index.tsx`) now surfaces the result/error to the user via `restoreMsg` state instead of swallowing it with `.catch(console.warn)`.
+
+---
+
+**Local user identity (TASK-BE-01):** `LOCAL_USER_ID = 'local-user'` exported from `lib/constants.ts`. All hooks and DB write functions import this constant — never hardcode `'stub-user-001'` or `'local-user'` directly. The read-path previously used `'stub-user-001'` while `insertProfile` used `'local-user'`, causing every user-scoped query to return empty. Single constant is the future auth swap point.

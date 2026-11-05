@@ -13,8 +13,9 @@ import { SkeletonBox } from '../../components/SkeletonBox';
 import { formatPeso } from '../../utils/format';
 import { getProfile, insertIncomeRecord } from '../../lib/db';
 import type { IncomeMode } from '../../lib/db/types';
+import { LOCAL_USER_ID } from '../../lib/constants';
 
-const USER_ID = 'stub-user-001';
+const USER_ID = LOCAL_USER_ID;
 
 export default function SavingsScreen() {
   const qc = useQueryClient();

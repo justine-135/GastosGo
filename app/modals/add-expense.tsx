@@ -6,7 +6,7 @@ import {
 } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { router, useLocalSearchParams } from 'expo-router';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { getCategories, insertCategory } from '../../lib/db';
 import { useAddExpense, useUpdateExpense } from '../../hooks/useExpenses';
 import { CategoryChip } from '../../components/CategoryChip';
@@ -47,13 +47,14 @@ export default function AddExpenseModal() {
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>(
     (params.initialPaymentMethod as PaymentMethod) ?? 'Cash'
   );
-  const [date, setDate] = useState(params.initialDate ?? new Date().toISOString().split('T')[0]);
+  const [date, setDate] = useState(params.initialDate ?? (() => { const n = new Date(); return new Date(n.getTime() - n.getTimezoneOffset() * 60000).toISOString().split('T')[0]; })());
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [showNewCategory, setShowNewCategory] = useState(false);
   const [newCatName, setNewCatName] = useState('');
   const [newCatIcon, setNewCatIcon] = useState('📌');
   const [errors, setErrors] = useState<Record<string, string>>({});
 
+  const qc = useQueryClient();
   const { data: categories = [] } = useQuery({ queryKey: ['categories'], queryFn: getCategories });
   const addExpense = useAddExpense();
   const updateExpense = useUpdateExpense();
@@ -100,6 +101,7 @@ export default function AddExpenseModal() {
   async function handleAddCategory() {
     if (!newCatName.trim()) return;
     await insertCategory({ name: newCatName.trim(), icon: newCatIcon, color: '#F4A261', monthlyBudget: 0 });
+    await qc.invalidateQueries({ queryKey: ['categories'] });
     setShowNewCategory(false);
     setNewCatName('');
   }
@@ -271,7 +273,7 @@ export default function AddExpenseModal() {
               maximumDate={new Date()}
               onChange={(_, selected) => {
                 setShowDatePicker(Platform.OS === 'android' ? false : showDatePicker);
-                if (selected) setDate(selected.toISOString().split('T')[0]);
+                if (selected) setDate(new Date(selected.getTime() - selected.getTimezoneOffset() * 60000).toISOString().split('T')[0]);
               }}
             />
           )}

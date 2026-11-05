@@ -12,6 +12,7 @@ import { useThemeStore } from '../stores/themeStore';
 import { useSyncStore } from '../stores/syncStore';
 import { getProfile, updateProfile } from '../lib/db';
 import { runFullBackup } from '../lib/restore';
+import { supabase } from '../lib/supabase';
 import type { IncomeMode } from '../lib/db/types';
 
 const PIN_KEY = 'gastosgo-pin-hash';
@@ -38,12 +39,21 @@ export default function SettingsScreen() {
   });
 
   async function handleBackup() {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) {
+      Alert.alert('Sign In Required', 'Sign in to back up your data.');
+      return;
+    }
     setIsBackingUp(true);
     try {
       await runFullBackup();
       Alert.alert('Backup Complete', 'Your data has been backed up to the cloud.');
     } catch {
-      Alert.alert('Backup Failed', 'Please check your internet connection and try again.');
+      Alert.alert(
+        'Backup Failed',
+        'Something went wrong. Please try again.',
+        [{ text: 'Retry', onPress: handleBackup }, { text: 'Cancel', style: 'cancel' }],
+      );
     } finally {
       setIsBackingUp(false);
     }
@@ -130,12 +140,16 @@ export default function SettingsScreen() {
         {/* Security */}
         <SectionHeader title="Security" />
         <View style={styles.card}>
-          <SettingsRow
-            label="Change PIN"
-            onPress={() => router.push({ pathname: '/lock', params: { mode: 'change' } })}
-            accessibilityLabel="Change PIN"
-          />
-          <Divider />
+          {hasPIN && (
+            <>
+              <SettingsRow
+                label="Change PIN"
+                onPress={() => router.push({ pathname: '/lock', params: { mode: 'change' } })}
+                accessibilityLabel="Change PIN"
+              />
+              <Divider />
+            </>
+          )}
           <View style={styles.row}>
             <Text style={styles.rowLabel}>PIN Enabled</Text>
             <Switch

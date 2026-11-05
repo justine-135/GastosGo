@@ -5,16 +5,17 @@ import {
 } from 'react-native';
 // shortcut: victory-native not installed, replace stub once DB agent lands TASK-DB-01
 import { PolarChart, Pie } from 'victory-native';
-import { useQueries } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import { useUIStore } from '../../stores/uiStore';
 import { useBudgets } from '../../hooks/useBudgets';
 import { MonthNavigator } from '../../components/MonthNavigator';
 import { SkeletonBox } from '../../components/SkeletonBox';
 import { formatPeso, monthAbbr, getLast6Months } from '../../utils/format';
-import { getMonthlyExpenseSummary } from '../../lib/db';
+import { getMultiMonthSummary } from '../../lib/db';
 import type { BudgetProgress, MonthlyExpenseSummary } from '../../lib/db/types';
+import { LOCAL_USER_ID } from '../../lib/constants';
 
-const USER_ID = 'stub-user-001';
+const USER_ID = LOCAL_USER_ID;
 
 export default function InsightsScreen() {
   const { selectedMonth, selectedYear } = useUIStore();
@@ -23,19 +24,14 @@ export default function InsightsScreen() {
 
   const last6 = useMemo(() => getLast6Months(), []);
 
-  const monthQueries = useQueries({
-    queries: last6.map(({ month, year }) => ({
-      queryKey: ['monthly-summary', USER_ID, month, year],
-      queryFn: () => getMonthlyExpenseSummary(USER_ID, month, year),
-      staleTime: 30_000,
-    })),
+  // BE-04: single query instead of 6 individual round-trips
+  const { data: monthlyData = [], isLoading: loadingMonths, refetch: refetchMonths } = useQuery({
+    queryKey: ['multi-month-summary', USER_ID, last6],
+    queryFn: () => getMultiMonthSummary(USER_ID, last6),
+    staleTime: 30_000,
   });
 
-  const monthlyData: MonthlyExpenseSummary[] = monthQueries
-    .map((q) => q.data)
-    .filter((d): d is MonthlyExpenseSummary => !!d);
-
-  const isLoading = loadingBudgets || monthQueries.some((q) => q.isLoading);
+  const isLoading = loadingBudgets || loadingMonths;
 
   const totalSpent = budgets.reduce((sum, b) => sum + b.spent, 0);
   const slicesWithSpend = budgets.filter((b) => b.spent > 0);
@@ -52,7 +48,7 @@ export default function InsightsScreen() {
     <SafeAreaView style={styles.safe}>
       <ScrollView
         contentContainerStyle={styles.scroll}
-        refreshControl={<RefreshControl refreshing={isLoading} onRefresh={refetch} tintColor="#F4A261" />}
+        refreshControl={<RefreshControl refreshing={isLoading} onRefresh={() => { refetch(); refetchMonths(); }} tintColor="#F4A261" />}
       >
         <Text style={styles.screenTitle}>Insights</Text>
         <MonthNavigator />
@@ -86,17 +82,20 @@ export default function InsightsScreen() {
             {slicesWithSpend.map((item) => {
               const pct = totalSpent > 0 ? ((item.spent / totalSpent) * 100).toFixed(1) : '0';
               const isSelected = selectedSliceId === item.categoryId;
+              // FE-12: null guard for uncategorised expenses
+              const label = item.categoryName || 'Uncategorised';
+              const color = item.categoryColor || '#9CA3AF';
               return (
                 <TouchableOpacity
                   key={item.categoryId}
                   style={[styles.legendRow, isSelected && styles.legendRowSelected]}
                   onPress={() => setSelectedSliceId(isSelected ? null : item.categoryId)}
                   accessibilityRole="button"
-                  accessibilityLabel={`${item.categoryName}: ${formatPeso(item.spent)}, ${pct}%`}
+                  accessibilityLabel={`${label}: ${formatPeso(item.spent)}, ${pct}%`}
                   accessibilityState={{ selected: isSelected }}
                 >
-                  <View style={[styles.legendDot, { backgroundColor: item.categoryColor }]} />
-                  <Text style={styles.legendName} numberOfLines={1}>{item.categoryName}</Text>
+                  <View style={[styles.legendDot, { backgroundColor: color }]} />
+                  <Text style={styles.legendName} numberOfLines={1}>{label}</Text>
                   <Text style={styles.legendAmount}>{formatPeso(item.spent)}</Text>
                   <Text style={styles.legendPct}>{pct}%</Text>
                 </TouchableOpacity>
@@ -107,10 +106,10 @@ export default function InsightsScreen() {
 
         {/* Selected slice detail */}
         {selectedSlice && (
-          <View style={[styles.sliceDetail, { borderLeftColor: selectedSlice.categoryColor }]}>
+          <View style={[styles.sliceDetail, { borderLeftColor: selectedSlice.categoryColor || '#9CA3AF' }]}>
             <Text style={styles.sliceDetailIcon}>{selectedSlice.categoryIcon}</Text>
             <View style={{ flex: 1 }}>
-              <Text style={styles.sliceDetailName}>{selectedSlice.categoryName}</Text>
+              <Text style={styles.sliceDetailName}>{selectedSlice.categoryName || 'Uncategorised'}</Text>
               <Text style={styles.sliceDetailAmount}>{formatPeso(selectedSlice.spent)}</Text>
               <Text style={styles.sliceDetailPct}>
                 {totalSpent > 0 ? ((selectedSlice.spent / totalSpent) * 100).toFixed(1) : '0'}% of total
@@ -122,7 +121,7 @@ export default function InsightsScreen() {
         {/* --- Bar Chart Section --- */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>6-Month Overview</Text>
-          {monthQueries.some((q) => q.isLoading) ? (
+          {loadingMonths ? (
             <SkeletonBox height={160} borderRadius={12} />
           ) : (
             <BarChartSection data={monthlyData} maxValue={maxBarValue} />
@@ -150,16 +149,20 @@ export default function InsightsScreen() {
 function PieChartSection({
   data,
   totalSpent,
+  selectedId,
+  onSelect,
 }: {
   data: BudgetProgress[];
   totalSpent: number;
   selectedId: string | null;
   onSelect: (id: string) => void;
 }) {
+  // FE-12: null guard for categoryName/categoryColor on uncategorised expenses
   const chartData = data.map((item) => ({
-    label: item.categoryName,
+    label: item.categoryName || 'Uncategorised',
     value: item.spent,
-    color: item.categoryColor,
+    color: item.categoryColor || '#9CA3AF',
+    id: item.categoryId,
   }));
 
   return (
@@ -172,7 +175,14 @@ function PieChartSection({
         containerStyle={styles.polarChart}
       >
         <Pie.Chart innerRadius="50%">
-          {() => <Pie.Slice animate={{ type: 'timing', duration: 400 }} />}
+          {({ slice }) => (
+            <Pie.Slice
+              animate={{ type: 'timing', duration: 400 }}
+              // FE-10: dim unselected slices when one is active
+              style={selectedId && slice.data.id !== selectedId ? { opacity: 0.4 } : undefined}
+              onPress={() => onSelect(slice.data.id as string)}
+            />
+          )}
         </Pie.Chart>
       </PolarChart>
 
@@ -194,7 +204,9 @@ function BarChartSection({
 }) {
   const [tooltipMonth, setTooltipMonth] = useState<{ month: number; year: number } | null>(null);
 
-  if (data.length === 0) {
+  const allZero = data.every((d) => d.totalSpent === 0 && d.totalBudget === 0);
+
+  if (data.length === 0 || allZero) {
     return <Text style={styles.emptyText}>No data available</Text>;
   }
 

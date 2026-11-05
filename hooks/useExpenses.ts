@@ -8,8 +8,9 @@ import {
   enqueue,
 } from '../lib/db';
 import type { InsertExpenseInput } from '../lib/db/types';
+import { LOCAL_USER_ID } from '../lib/constants';
 
-const USER_ID = 'stub-user-001'; // replaced when auth is wired
+const USER_ID = LOCAL_USER_ID;
 
 export function expenseKeys(month: number, year: number) {
   return ['expenses', USER_ID, month, year] as const;

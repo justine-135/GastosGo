@@ -1,7 +1,8 @@
 // Real Drizzle + expo-sqlite implementations.
 // Function signatures are unchanged so callers (via lib/db/index.ts) need no edits.
 
-import { and, desc, eq, gte, lte, sql, sum } from 'drizzle-orm';
+import { and, desc, eq, gte, isNull, lte, or, sql, sum } from 'drizzle-orm';
+import { LOCAL_USER_ID } from '../constants';
 import { db } from '../../db/client';
 import {
   categoriesTable,
@@ -28,7 +29,7 @@ import type {
 // --- helpers ---
 
 function newId(): string {
-  return `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+  return crypto.randomUUID();
 }
 
 function isoNow(): string {
@@ -69,7 +70,7 @@ export async function getProfile(): Promise<Profile | null> {
 export async function insertProfile(input: InsertProfileInput): Promise<Profile> {
   // The app has at most one profile row; use upsert keyed on a fixed userId.
   // Real multi-user version: caller passes userId.
-  const userId = 'local-user';
+  const userId = LOCAL_USER_ID;
   await db
     .insert(profilesTable)
     .values({
@@ -94,7 +95,7 @@ export async function insertProfile(input: InsertProfileInput): Promise<Profile>
 
 export async function updateProfile(input: Partial<InsertProfileInput>): Promise<Profile> {
   const [existing] = await db.select().from(profilesTable).limit(1);
-  const userId = existing?.userId ?? 'local-user';
+  const userId = existing?.userId ?? LOCAL_USER_ID;
   const patch: Partial<typeof profilesTable.$inferInsert> = { updatedAt: isoNow() };
   if (input.incomeMode !== undefined) patch.incomeMode = input.incomeMode;
   if (input.savingsTarget !== undefined) patch.savingsTarget = input.savingsTarget;
@@ -231,7 +232,7 @@ export async function getRecentExpenses(userId: string, limit: number): Promise<
 }
 
 export async function insertExpense(input: InsertExpenseInput): Promise<Expense> {
-  const userId = (await getProfile())?.userId ?? 'local-user';
+  const userId = (await getProfile())?.userId ?? LOCAL_USER_ID;
   const id = newId();
   await db.insert(expensesTable).values({
     id,
@@ -301,7 +302,7 @@ export async function getBudgetProgress(
         monthFilter(month, year)
       )
     )
-    .where(eq(categoriesTable.userId, userId))
+    .where(or(eq(categoriesTable.userId, userId), isNull(categoriesTable.userId)))
     .groupBy(categoriesTable.id);
 
   return rows.map((r) => {
@@ -361,14 +362,15 @@ export async function getSavingsGap(
 }
 
 // --- Recurring Rules ---
-// shortcut: recurringRulesTable has no paymentMethod column; default to 'Cash'.
-//           Upgrade when migration adds the column.
+// shortcut: recurringRulesTable has no paymentMethod column; callers pass the value explicitly.
+//           Upgrade when migration adds the column (db agent: add paymentMethod to recurring_rules).
 
 function rowToRecurringRule(
   row: typeof recurringRulesTable.$inferSelect & {
     categoryName: string | null;
     categoryColor: string | null;
-  }
+  },
+  paymentMethod: RecurringRule['paymentMethod'] = 'Cash'
 ): RecurringRule {
   return {
     id: row.id,
@@ -381,7 +383,7 @@ function rowToRecurringRule(
     frequency: row.frequency,
     nextDueDate: row.nextDueDate,
     isActive: row.isActive,
-    paymentMethod: 'Cash',
+    paymentMethod,
   };
 }
 
@@ -428,7 +430,7 @@ export async function getRulesDueWithin(userId: string, days: number): Promise<R
 }
 
 export async function insertRecurringRule(input: InsertRecurringRuleInput): Promise<RecurringRule> {
-  const userId = (await getProfile())?.userId ?? 'local-user';
+  const userId = (await getProfile())?.userId ?? LOCAL_USER_ID;
   const id = newId();
   await db.insert(recurringRulesTable).values({
     id,
@@ -446,7 +448,7 @@ export async function insertRecurringRule(input: InsertRecurringRuleInput): Prom
     .from(recurringRulesTable)
     .leftJoin(categoriesTable, eq(recurringRulesTable.categoryId, categoriesTable.id))
     .where(eq(recurringRulesTable.id, id));
-  return rowToRecurringRule(row);
+  return rowToRecurringRule(row, input.paymentMethod);
 }
 
 export async function updateRecurringRule(
@@ -466,7 +468,7 @@ export async function updateRecurringRule(
     .from(recurringRulesTable)
     .leftJoin(categoriesTable, eq(recurringRulesTable.categoryId, categoriesTable.id))
     .where(eq(recurringRulesTable.id, id));
-  return rowToRecurringRule(row);
+  return rowToRecurringRule(row, input.paymentMethod ?? 'Cash');
 }
 
 export async function advanceNextDueDate(ruleId: string): Promise<RecurringRule> {
@@ -502,7 +504,7 @@ export async function deactivateRule(ruleId: string): Promise<RecurringRule> {
 export async function insertIncomeRecord(
   input: Omit<IncomeRecord, 'id' | 'userId' | 'createdAt'>
 ): Promise<IncomeRecord> {
-  const userId = (await getProfile())?.userId ?? 'local-user';
+  const userId = (await getProfile())?.userId ?? LOCAL_USER_ID;
   const id = newId();
   await db.insert(incomeRecordsTable).values({ id, userId, ...input });
   const [row] = await db.select().from(incomeRecordsTable).where(eq(incomeRecordsTable.id, id));
@@ -584,13 +586,13 @@ export async function getMultiMonthSummary(
   const totalBudget = Number(budgetRow?.total ?? 0);
   const spentByKey: Record<string, number> = {};
   for (const r of expenseRows) {
-    spentByKey[`${r.year}-${r.month}`] = Number(r.total ?? 0);
+    spentByKey[`${r.year}-${String(r.month).padStart(2, '0')}`] = Number(r.total ?? 0);
   }
 
   return months.map(({ month, year }) => ({
     month,
     year,
-    totalSpent: spentByKey[`${year}-${month}`] ?? 0,
+    totalSpent: spentByKey[`${year}-${String(month).padStart(2, '0')}`] ?? 0,
     totalBudget,
   }));
 }

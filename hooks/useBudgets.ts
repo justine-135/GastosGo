@@ -1,7 +1,8 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { getBudgetProgress, updateCategory } from '../lib/db';
+import { LOCAL_USER_ID } from '../lib/constants';
 
-const USER_ID = 'stub-user-001';
+const USER_ID = LOCAL_USER_ID;
 
 export function budgetKeys(month: number, year: number) {
   return ['budgets', USER_ID, month, year] as const;

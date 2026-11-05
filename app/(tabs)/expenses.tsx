@@ -29,12 +29,19 @@ export default function ExpensesScreen() {
 
   const isLoading = activeTab === 'expenses' ? loadingExpenses : loadingRecurring;
 
+  const [refreshing, setRefreshing] = useState(false);
+
   const onRefresh = useCallback(async () => {
-    if (activeTab === 'expenses') {
-      await refetchExpenses();
-      await qc.invalidateQueries({ queryKey: ['budgets'] });
-    } else {
-      await refetchRecurring();
+    setRefreshing(true);
+    try {
+      if (activeTab === 'expenses') {
+        await refetchExpenses();
+        await qc.invalidateQueries({ queryKey: ['budgets'] });
+      } else {
+        await refetchRecurring();
+      }
+    } finally {
+      setRefreshing(false);
     }
   }, [activeTab, refetchExpenses, refetchRecurring, qc]);
 
@@ -203,7 +210,7 @@ export default function ExpensesScreen() {
               sections={sections}
               keyExtractor={(item) => item.id}
               stickySectionHeadersEnabled
-              refreshControl={<RefreshControl refreshing={false} onRefresh={onRefresh} tintColor="#F4A261" />}
+              refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#F4A261" />}
               renderSectionHeader={({ section: { title } }) => (
                 <View style={styles.sectionHeader}>
                   <Text style={styles.sectionHeaderText}>{title}</Text>

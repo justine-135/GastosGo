@@ -21,10 +21,12 @@ export default function OnboardingBudget() {
 
   const [budgets, setBudgets] = useState<Record<string, string>>({});
   const [saving, setSaving] = useState(false);
+  const [error, setError] = useState('');
 
   async function handleDone() {
     setSaving(true);
     try {
+      setError('');
       // ⚠️ DB-02: insertProfile stub — replace with real drizzle insert
       await insertProfile({
         incomeMode: incomeMode ?? 'salary',
@@ -44,6 +46,7 @@ export default function OnboardingBudget() {
       router.push('/onboarding/pin-setup');
     } catch (e) {
       console.error(e);
+      setError('Could not save your budget. Please try again.');
     } finally {
       setSaving(false);
     }
@@ -71,8 +74,8 @@ export default function OnboardingBudget() {
   return (
     <SafeAreaView style={styles.safe}>
       {/* Step indicator */}
-      <View style={styles.stepRow} accessibilityLabel="Step 3 of 3">
-        {[0, 1, 2].map((i) => (
+      <View style={styles.stepRow} accessibilityLabel="Step 3 of 6">
+        {[0, 1, 2, 3, 4, 5].map((i) => (
           <View key={i} style={[styles.dot, i === 2 && styles.dotActive]} />
         ))}
       </View>
@@ -91,6 +94,7 @@ export default function OnboardingBudget() {
         />
       )}
 
+      {error ? <Text style={styles.errorText}>{error}</Text> : null}
       <TouchableOpacity
         style={[styles.doneBtn, saving && styles.doneBtnDisabled]}
         onPress={handleDone}
@@ -133,4 +137,5 @@ const styles = StyleSheet.create({
   },
   doneBtnDisabled: { backgroundColor: '#E5D5C0' },
   doneBtnText: { fontSize: 17, fontWeight: '700', color: '#FFFFFF' },
+  errorText: { fontSize: 14, color: '#E76F51', fontWeight: '500', textAlign: 'center', marginBottom: 8 },
 });

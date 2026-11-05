@@ -9,6 +9,8 @@ import { supabase } from '../../lib/supabase';
 
 export default function OnboardingWelcome() {
   const [hasCloudSession, setHasCloudSession] = useState(false);
+  const [restoring, setRestoring] = useState(false);
+  const [restoreMsg, setRestoreMsg] = useState<string | null>(null);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
@@ -16,13 +18,30 @@ export default function OnboardingWelcome() {
     });
   }, []);
 
+  async function handleRestore() {
+    setRestoring(true);
+    setRestoreMsg(null);
+    try {
+      const result = await runRestore();
+      if (result.success) {
+        setRestoreMsg(`Restored ${result.rowsRestored} records. You're all set!`);
+      } else {
+        setRestoreMsg(`Restore failed: ${result.errors.join(', ')}`);
+      }
+    } catch (err) {
+      setRestoreMsg(`Restore failed: ${err instanceof Error ? err.message : String(err)}`);
+    } finally {
+      setRestoring(false);
+    }
+  }
+
   return (
     <SafeAreaView style={styles.safe}>
       <StatusBar barStyle="dark-content" />
       <View style={styles.container}>
         {/* Step indicator */}
-        <View style={styles.stepRow} accessibilityLabel="Step 1 of 3">
-          {[0, 1, 2].map((i) => (
+        <View style={styles.stepRow} accessibilityLabel="Step 1 of 6">
+          {[0, 1, 2, 3, 4, 5].map((i) => (
             <View key={i} style={[styles.dot, i === 0 && styles.dotActive]} />
           ))}
         </View>
@@ -37,14 +56,20 @@ export default function OnboardingWelcome() {
         </View>
 
         <View style={styles.actions}>
+          {restoreMsg ? (
+            <Text style={[styles.restoreMsg, restoreMsg.startsWith('Restore failed') && styles.restoreMsgError]}>
+              {restoreMsg}
+            </Text>
+          ) : null}
           {hasCloudSession && (
             <TouchableOpacity
-              style={styles.secondaryBtn}
-              onPress={() => runRestore().catch(console.warn)}
+              style={[styles.secondaryBtn, restoring && styles.btnDisabled]}
+              onPress={handleRestore}
+              disabled={restoring}
               accessibilityRole="button"
               accessibilityLabel="Restore data from cloud backup"
             >
-              <Text style={styles.secondaryBtnText}>☁️ Restore from cloud</Text>
+              <Text style={styles.secondaryBtnText}>{restoring ? 'Restoring...' : '☁️ Restore from cloud'}</Text>
             </TouchableOpacity>
           )}
           <TouchableOpacity
@@ -83,4 +108,7 @@ const styles = StyleSheet.create({
     alignItems: 'center', minHeight: 56,
   },
   secondaryBtnText: { fontSize: 16, fontWeight: '500', color: '#2D3047' },
+  btnDisabled: { opacity: 0.5 },
+  restoreMsg: { fontSize: 14, textAlign: 'center', color: '#2D3047', paddingHorizontal: 8 },
+  restoreMsgError: { color: '#D62828' },
 });

@@ -25,7 +25,7 @@ export default function AddRecurringModal() {
   const [categoryId, setCategoryId] = useState('');
   const [frequency, setFrequency] = useState<Frequency>('monthly');
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('Cash');
-  const [firstDueDate, setFirstDueDate] = useState(new Date().toISOString().split('T')[0]);
+  const [firstDueDate, setFirstDueDate] = useState((() => { const n = new Date(); return new Date(n.getTime() - n.getTimezoneOffset() * 60000).toISOString().split('T')[0]; })());
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
@@ -214,7 +214,7 @@ export default function AddRecurringModal() {
               display={Platform.OS === 'ios' ? 'spinner' : 'default'}
               onChange={(_, selected) => {
                 setShowDatePicker(Platform.OS === 'android' ? false : showDatePicker);
-                if (selected) setFirstDueDate(selected.toISOString().split('T')[0]);
+                if (selected) setFirstDueDate(new Date(selected.getTime() - selected.getTimezoneOffset() * 60000).toISOString().split('T')[0]);
               }}
             />
           )}
