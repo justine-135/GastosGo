@@ -1,7 +1,8 @@
 // Real Drizzle + expo-sqlite implementations.
 // Function signatures are unchanged so callers (via lib/db/index.ts) need no edits.
 
-import { and, desc, eq, gte, isNull, lte, or, sql, sum } from 'drizzle-orm';
+import { randomUUID } from 'expo-crypto';
+import { and, desc, eq, gte, lte, sql, sum } from 'drizzle-orm';
 import { LOCAL_USER_ID } from '../constants';
 import { db } from '../../db/client';
 import {
@@ -29,7 +30,7 @@ import type {
 // --- helpers ---
 
 function newId(): string {
-  return crypto.randomUUID();
+  return randomUUID();
 }
 
 function isoNow(): string {
@@ -139,7 +140,7 @@ export async function insertCategory(input: Omit<Category, 'id' | 'userId'>): Pr
   const id = newId();
   await db.insert(categoriesTable).values({
     id,
-    userId: null,
+    userId: LOCAL_USER_ID,
     name: input.name,
     icon: input.icon,
     color: input.color,
@@ -302,7 +303,7 @@ export async function getBudgetProgress(
         monthFilter(month, year)
       )
     )
-    .where(or(eq(categoriesTable.userId, userId), isNull(categoriesTable.userId)))
+    .where(eq(categoriesTable.userId, userId))
     .groupBy(categoriesTable.id);
 
   return rows.map((r) => {

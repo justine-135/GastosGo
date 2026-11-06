@@ -6,6 +6,7 @@ import { Stack, router, usePathname, useRootNavigationState } from 'expo-router'
 import * as SecureStore from 'expo-secure-store';
 import { useThemeStore } from '../stores/themeStore';
 import { getOrFetchPushToken } from '../lib/notifications';
+import { runMigrations } from '../db/migrate';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -24,6 +25,7 @@ export default function RootLayout() {
     mode === 'system' ? (systemScheme === 'dark' ? 'dark' : 'light') : mode;
 
   useEffect(() => {
+    runMigrations().catch(console.error);
     // Request push token once — subsequent launches hit AsyncStorage cache
     getOrFetchPushToken().catch(console.warn);
   }, []);

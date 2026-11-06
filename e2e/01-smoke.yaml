@@ -1,0 +1,10 @@
+appId: com.gastosgo.app
+---
+# Smoke: app launches and dashboard renders without crash
+# stopApp:false avoids cold bundle reload (dev builds load from Metro, taking 30s+)
+- launchApp:
+    stopApp: false
+- extendedWaitUntil:
+    visible: "Recent Transactions"
+    timeout: 90000
+- takeScreenshot: smoke-launch

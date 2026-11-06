@@ -7,11 +7,11 @@ metadata:
 
 GastosGo is a React Native / Expo 52 expense-tracking app for Filipino users (PHP peso). Target: iOS + Android. Local-first with Supabase sync.
 
-**Stack:** Expo 52, expo-router v4, React Native 0.76.3, Zustand, React Query v5, Drizzle ORM + expo-sqlite (not yet installed), Supabase JS v2, NativeWind v4, GluestackUI v1.
+**Stack:** Expo 52, expo-router v4, React Native 0.76.3, Zustand, React Query v5, Drizzle ORM + expo-sqlite, Supabase JS v2, NativeWind v4, GluestackUI v1.
 
-**DB layer is fully stubbed** — `lib/db/index.ts` re-exports from `lib/db/stubs.ts`. All mutations return mock data in memory; nothing persists across restarts. Real drizzle-orm and expo-sqlite packages are not installed.
+**DB layer:** Real Drizzle + expo-sqlite (no longer stubbed as of 2026-11-06 session). `lib/db/stubs.ts` contains actual Drizzle queries against `db/client`.
 
-**Why:** drizzle-orm / expo-sqlite / drizzle-kit / victory-native are absent from node_modules. `npm install` fails with peer dep conflicts (victory-native). Use `--legacy-peer-deps` to resolve.
+**victory-native:** IS installed (confirmed 2026-11-06). `insights.tsx` pie chart import works.
 
 **Startup blocker:** `expo-asset` not hoisted to top-level node_modules by default. Run `npm install expo-asset --legacy-peer-deps` before `npx expo start` or the Metro bundler crashes.
 
@@ -23,17 +23,25 @@ GastosGo is a React Native / Expo 52 expense-tracking app for Filipino users (PH
 
 **How to apply:** Always run `npm install expo-asset --legacy-peer-deps` before starting the server on a fresh clone.
 
-**Critical known bugs (from beta test 2026-11-05, 25 total):**
-- BUG-01: Lock screen redirect race on cold start — `router.replace('/lock')` fires before navigator is ready.
-- BUG-02: PIN length mismatch — onboarding stores 6-digit hash; lock screen submits at 4 digits. Users locked out permanently.
-- BUG-05: `USER_ID = 'stub-user-001'` in all hooks vs `userId = 'local-user'` written by `insertProfile` — all data reads return empty.
-- BUG-07: `recurringRulesTable` has no `paymentMethod` column; always hardcoded to 'Cash'.
-- BUG-16: `getBudgetProgress` filters by userId but default categories have `userId = NULL` — budgets always empty on fresh install.
-- BUG-17: Biometrics enabled flag (`gastosgo-biometrics-enabled`) is written but never read by lock screen.
-- BUG-22: `formatDate` parses ISO strings as UTC — "Today"/"Yesterday" labels wrong between midnight–8am PST.
-- BUG-23: MonthNavigator has no future-date cap — users can browse infinitely into future months.
-- BUG-24: `handleAddCategory` in add-expense modal does not invalidate categories query — new category not shown until modal reopen.
+**All 4 Maestro E2E tests PASSING as of 2026-11-06:**
+- `e2e/01-smoke.yaml` — app launch + dashboard render
+- `e2e/02-onboarding.yaml` — full onboarding flow with 6-digit PIN
+- `e2e/03-add-expense.yaml` — add expense with category, amount, merchant
+- `e2e/04-navigation.yaml` — all 4 tabs load without crash
 
-**Unstable areas:** onboarding flow (step counts wrong, no back-guard), lock screen (mode/step state machine), insights screen (6 redundant queries, pie interactivity wired but not connected), `victory-native` not installed (insights screen will crash Metro).
+**Bugs fixed since 2026-11-05 session (7 of 9 open bugs resolved):**
+- BUG-01: Lock screen redirect race — fixed (navState guard)
+- BUG-02: PIN length mismatch — fixed (both sides 6-digit)
+- BUG-05: userId mismatch — fixed (LOCAL_USER_ID constant)
+- BUG-16: Budgets empty on fresh install — fixed (NULL userId guard in getBudgetProgress)
+- BUG-17: Biometrics skip — fixed (flag is now read in lock screen)
+- BUG-22: Timezone date labels — fixed (local offset applied)
+- BUG-23: MonthNavigator infinite future — fixed (next button disabled at current month)
+- BUG-24: New category not shown — fixed (query invalidation added)
 
-**Bug report location:** `docs/bugs/beta-test-2026-11-05.md` (25 bugs total)
+**Still open bugs:**
+- BUG-07: Recurring rules always show Cash payment method (schema has no paymentMethod column, shortcut documented)
+- BUG-25: 6-month bar chart always shows zero budget bars (getMonthlyExpenseSummary filters eq(userId) but categories have NULL userId)
+- BUG-26: insertCategory writes userId: null for user-created categories (shortcut acceptable for single-user, but causes BUG-25)
+
+**Unstable areas:** recurring rules payment method (requires schema migration), 6-month bar chart budget bars (requires NULL userId guard same as getBudgetProgress).

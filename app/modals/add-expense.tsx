@@ -94,6 +94,7 @@ export default function AddExpenseModal() {
       }
       router.back();
     } catch (e) {
+      console.error('[AddExpense] save failed:', e);
       Alert.alert('Error', 'Failed to save expense. Please try again.');
     }
   }

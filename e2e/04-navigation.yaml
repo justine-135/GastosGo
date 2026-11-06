@@ -1,0 +1,34 @@
+appId: com.gastosgo.app
+---
+# Tab navigation: all 4 tabs load without crash
+- launchApp:
+    stopApp: false
+- tapOn:
+    text: "Cancel"
+    optional: true
+- assertVisible: "Recent Transactions"
+- takeScreenshot: nav-dashboard
+
+- tapOn: "Expenses"
+- extendedWaitUntil:
+    visible: "Expenses"
+    timeout: 15000
+- takeScreenshot: nav-expenses
+
+- tapOn: "Budgets"
+- extendedWaitUntil:
+    visible: "Budgets"
+    timeout: 15000
+- takeScreenshot: nav-budgets
+
+- tapOn: "Insights"
+- extendedWaitUntil:
+    visible: "Insights"
+    timeout: 15000
+- takeScreenshot: nav-insights
+
+- tapOn: "Home"
+- extendedWaitUntil:
+    visible: "Recent Transactions"
+    timeout: 15000
+- takeScreenshot: nav-back-home

@@ -15,12 +15,13 @@ export default function OnboardingNotifications() {
       await requestNotificationPermission();
     } finally {
       setLoading(false);
-      router.replace('/(tabs)');
+      // setTimeout defers the replace to avoid react-native-screens fragment race
+      setTimeout(() => router.replace('/(tabs)'), 0);
     }
   }
 
   function handleSkip() {
-    router.replace('/(tabs)');
+    setTimeout(() => router.replace('/(tabs)'), 0);
   }
 
   return (

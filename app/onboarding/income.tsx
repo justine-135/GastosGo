@@ -76,6 +76,7 @@ export default function OnboardingIncome() {
             <View style={styles.inputGroup}>
               <Text style={styles.inputLabel}>Monthly Salary (₱)</Text>
               <TextInput
+                testID="income-salary-input"
                 style={styles.input}
                 value={salary}
                 onChangeText={setSalary}

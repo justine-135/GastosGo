@@ -73,45 +73,49 @@ export default function OnboardingBudget() {
 
   return (
     <SafeAreaView style={styles.safe}>
-      {/* Step indicator */}
-      <View style={styles.stepRow} accessibilityLabel="Step 3 of 6">
-        {[0, 1, 2, 3, 4, 5].map((i) => (
-          <View key={i} style={[styles.dot, i === 2 && styles.dotActive]} />
-        ))}
+      <View style={styles.container}>
+        {/* Step indicator */}
+        <View style={styles.stepRow} accessibilityLabel="Step 3 of 6">
+          {[0, 1, 2, 3, 4, 5].map((i) => (
+            <View key={i} style={[styles.dot, i === 2 && styles.dotActive]} />
+          ))}
+        </View>
+
+        <Text style={styles.title}>Set Your Budgets</Text>
+        <Text style={styles.subtitle}>Tap a category to set a monthly limit. You can skip and edit later.</Text>
+
+        {isLoading ? (
+          <ActivityIndicator color="#F4A261" style={{ marginTop: 32 }} />
+        ) : (
+          <FlatList
+            data={categories}
+            keyExtractor={(item) => item.id}
+            renderItem={renderCategory}
+            contentContainerStyle={styles.list}
+          />
+        )}
+
+        {error ? <Text style={styles.errorText}>{error}</Text> : null}
+        <TouchableOpacity
+          testID="budget-done-btn"
+          style={[styles.doneBtn, saving && styles.doneBtnDisabled]}
+          onPress={handleDone}
+          disabled={saving}
+          accessibilityRole="button"
+          accessibilityLabel="Finish onboarding and go to dashboard"
+        >
+          {saving
+            ? <ActivityIndicator color="#FFFFFF" />
+            : <Text style={styles.doneBtnText}>Done — Let's Go! 🚀</Text>}
+        </TouchableOpacity>
       </View>
-
-      <Text style={styles.title}>Set Your Budgets</Text>
-      <Text style={styles.subtitle}>Tap a category to set a monthly limit. You can skip and edit later.</Text>
-
-      {isLoading ? (
-        <ActivityIndicator color="#F4A261" style={{ marginTop: 32 }} />
-      ) : (
-        <FlatList
-          data={categories}
-          keyExtractor={(item) => item.id}
-          renderItem={renderCategory}
-          contentContainerStyle={styles.list}
-        />
-      )}
-
-      {error ? <Text style={styles.errorText}>{error}</Text> : null}
-      <TouchableOpacity
-        style={[styles.doneBtn, saving && styles.doneBtnDisabled]}
-        onPress={handleDone}
-        disabled={saving}
-        accessibilityRole="button"
-        accessibilityLabel="Finish onboarding and go to dashboard"
-      >
-        {saving
-          ? <ActivityIndicator color="#FFFFFF" />
-          : <Text style={styles.doneBtnText}>Done — Let's Go! 🚀</Text>}
-      </TouchableOpacity>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: '#FFF8F0', paddingHorizontal: 24, paddingTop: 32 },
+  safe: { flex: 1, backgroundColor: '#FFF8F0' },
+  container: { flex: 1, paddingHorizontal: 24, paddingTop: 32, paddingBottom: 48 },
   stepRow: { flexDirection: 'row', gap: 8, justifyContent: 'center', marginBottom: 20 },
   dot: { width: 8, height: 8, borderRadius: 4, backgroundColor: '#E5D5C0' },
   dotActive: { backgroundColor: '#F4A261', width: 24 },

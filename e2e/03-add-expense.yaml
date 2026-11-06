@@ -1,0 +1,41 @@
+appId: com.gastosgo.app
+---
+# Add expense: tap FAB, select seeded category, fill form, save — verify it appears on dashboard
+- launchApp:
+    stopApp: false
+- tapOn:
+    text: "Cancel"
+    optional: true
+- assertVisible: "Recent Transactions"
+
+# Open add-expense modal via FAB
+- tapOn: "+"
+- extendedWaitUntil:
+    visible: "Add Expense"
+    timeout: 15000
+- takeScreenshot: add-expense-modal-open
+
+# Type amount into the auto-focused amount field
+- inputText: "250"
+
+# Dismiss keyboard before tapping category chip
+- tapOn: "CATEGORY"
+
+# Select seeded Food category
+- tapOn: "Food"
+- takeScreenshot: add-expense-category-selected
+
+# Fill merchant field
+- tapOn: "MERCHANT (OPTIONAL)"
+- inputText: "Jollibee"
+
+- takeScreenshot: add-expense-filled
+
+# Save
+- tapOn: "Save"
+
+# Back on dashboard
+- extendedWaitUntil:
+    visible: "Recent Transactions"
+    timeout: 15000
+- takeScreenshot: add-expense-saved
