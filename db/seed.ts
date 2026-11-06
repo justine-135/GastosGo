@@ -1,5 +1,10 @@
 import { db } from "./client";
-import { categoriesTable } from "./schema";
+import { categoriesTable, usersTable } from "./schema";
+import { LOCAL_USER_ID } from "../lib/constants";
+
+export async function seedLocalUser(): Promise<void> {
+  await db.insert(usersTable).values({ id: LOCAL_USER_ID }).onConflictDoNothing();
+}
 
 const DEFAULT_CATEGORIES = [
   { id: "cat_food",          name: "Food",          icon: "🍔", color: "#FFD6A5" },

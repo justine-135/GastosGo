@@ -1,7 +1,7 @@
 import { migrate } from "drizzle-orm/expo-sqlite/migrator";
 import { db } from "./client";
 import migrations from "../drizzle/migrations";
-import { seedDefaultCategories } from "./seed";
+import { seedDefaultCategories, seedLocalUser } from "./seed";
 
 /**
  * Run migrations then seed. Call this before first render (e.g. in useMigrations
@@ -9,5 +9,6 @@ import { seedDefaultCategories } from "./seed";
  */
 export async function runMigrations(): Promise<void> {
   await migrate(db, migrations);
+  await seedLocalUser();
   await seedDefaultCategories();
 }

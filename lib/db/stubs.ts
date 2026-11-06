@@ -2,7 +2,7 @@
 // Function signatures are unchanged so callers (via lib/db/index.ts) need no edits.
 
 import { randomUUID } from 'expo-crypto';
-import { and, desc, eq, gte, lte, sql, sum } from 'drizzle-orm';
+import { and, desc, eq, gte, isNull, lte, or, sql, sum } from 'drizzle-orm';
 import { LOCAL_USER_ID } from '../constants';
 import { db } from '../../db/client';
 import {
@@ -52,8 +52,7 @@ function rowToProfile(row: typeof profilesTable.$inferSelect): Profile {
   return {
     id: row.userId,
     userId: row.userId,
-    // shortcut: schema has no monthlySalary / expoPushToken columns yet
-    monthlySalary: null,
+    monthlySalary: row.monthlySalary ?? null,
     expoPushToken: null,
     incomeMode: row.incomeMode,
     savingsTarget: row.savingsTarget,
@@ -79,6 +78,7 @@ export async function insertProfile(input: InsertProfileInput): Promise<Profile>
       incomeMode: input.incomeMode,
       savingsTarget: input.savingsTarget ?? 0,
       budgetCycleStart: input.budgetCycleStart ?? 1,
+      monthlySalary: input.monthlySalary ?? null,
       updatedAt: isoNow(),
     })
     .onConflictDoUpdate({
@@ -87,6 +87,7 @@ export async function insertProfile(input: InsertProfileInput): Promise<Profile>
         incomeMode: input.incomeMode,
         savingsTarget: input.savingsTarget ?? 0,
         budgetCycleStart: input.budgetCycleStart ?? 1,
+        monthlySalary: input.monthlySalary ?? null,
         updatedAt: isoNow(),
       },
     });
@@ -101,6 +102,7 @@ export async function updateProfile(input: Partial<InsertProfileInput>): Promise
   if (input.incomeMode !== undefined) patch.incomeMode = input.incomeMode;
   if (input.savingsTarget !== undefined) patch.savingsTarget = input.savingsTarget;
   if (input.budgetCycleStart !== undefined) patch.budgetCycleStart = input.budgetCycleStart;
+  if (input.monthlySalary !== undefined) patch.monthlySalary = input.monthlySalary;
   await db.update(profilesTable).set(patch).where(eq(profilesTable.userId, userId));
   const [row] = await db.select().from(profilesTable).where(eq(profilesTable.userId, userId));
   return rowToProfile(row);
@@ -303,7 +305,7 @@ export async function getBudgetProgress(
         monthFilter(month, year)
       )
     )
-    .where(eq(categoriesTable.userId, userId))
+    .where(or(eq(categoriesTable.userId, userId), isNull(categoriesTable.userId)))
     .groupBy(categoriesTable.id);
 
   return rows.map((r) => {
@@ -363,15 +365,12 @@ export async function getSavingsGap(
 }
 
 // --- Recurring Rules ---
-// shortcut: recurringRulesTable has no paymentMethod column; callers pass the value explicitly.
-//           Upgrade when migration adds the column (db agent: add paymentMethod to recurring_rules).
 
 function rowToRecurringRule(
   row: typeof recurringRulesTable.$inferSelect & {
     categoryName: string | null;
     categoryColor: string | null;
-  },
-  paymentMethod: RecurringRule['paymentMethod'] = 'Cash'
+  }
 ): RecurringRule {
   return {
     id: row.id,
@@ -384,7 +383,7 @@ function rowToRecurringRule(
     frequency: row.frequency,
     nextDueDate: row.nextDueDate,
     isActive: row.isActive,
-    paymentMethod,
+    paymentMethod: row.paymentMethod as RecurringRule['paymentMethod'],
   };
 }
 
@@ -399,6 +398,7 @@ const ruleWithCategory = {
   frequency: recurringRulesTable.frequency,
   nextDueDate: recurringRulesTable.nextDueDate,
   isActive: recurringRulesTable.isActive,
+  paymentMethod: recurringRulesTable.paymentMethod,
   createdAt: recurringRulesTable.createdAt,
   updatedAt: recurringRulesTable.updatedAt,
 };
@@ -442,6 +442,7 @@ export async function insertRecurringRule(input: InsertRecurringRuleInput): Prom
     frequency: input.frequency,
     nextDueDate: input.firstDueDate,
     isActive: true,
+    paymentMethod: input.paymentMethod as typeof recurringRulesTable.$inferInsert['paymentMethod'],
     updatedAt: isoNow(),
   });
   const [row] = await db
@@ -449,7 +450,7 @@ export async function insertRecurringRule(input: InsertRecurringRuleInput): Prom
     .from(recurringRulesTable)
     .leftJoin(categoriesTable, eq(recurringRulesTable.categoryId, categoriesTable.id))
     .where(eq(recurringRulesTable.id, id));
-  return rowToRecurringRule(row, input.paymentMethod);
+  return rowToRecurringRule(row);
 }
 
 export async function updateRecurringRule(
@@ -463,13 +464,14 @@ export async function updateRecurringRule(
   if (input.frequency !== undefined) patch.frequency = input.frequency;
   if (input.firstDueDate !== undefined) patch.nextDueDate = input.firstDueDate;
   if (input.isActive !== undefined) patch.isActive = input.isActive;
+  if (input.paymentMethod !== undefined) patch.paymentMethod = input.paymentMethod as typeof recurringRulesTable.$inferInsert['paymentMethod'];
   await db.update(recurringRulesTable).set(patch).where(eq(recurringRulesTable.id, id));
   const [row] = await db
     .select(ruleWithCategory)
     .from(recurringRulesTable)
     .leftJoin(categoriesTable, eq(recurringRulesTable.categoryId, categoriesTable.id))
     .where(eq(recurringRulesTable.id, id));
-  return rowToRecurringRule(row, input.paymentMethod ?? 'Cash');
+  return rowToRecurringRule(row);
 }
 
 export async function advanceNextDueDate(ruleId: string): Promise<RecurringRule> {
@@ -530,7 +532,7 @@ export async function getMonthlyExpenseSummary(
   const [budgetRow] = await db
     .select({ total: sum(categoriesTable.monthlyBudget) })
     .from(categoriesTable)
-    .where(eq(categoriesTable.userId, userId));
+    .where(or(eq(categoriesTable.userId, userId), isNull(categoriesTable.userId)));
 
   return {
     month,
@@ -582,7 +584,7 @@ export async function getMultiMonthSummary(
   const [budgetRow] = await db
     .select({ total: sum(categoriesTable.monthlyBudget) })
     .from(categoriesTable)
-    .where(eq(categoriesTable.userId, userId));
+    .where(or(eq(categoriesTable.userId, userId), isNull(categoriesTable.userId)));
 
   const totalBudget = Number(budgetRow?.total ?? 0);
   const spentByKey: Record<string, number> = {};

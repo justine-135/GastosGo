@@ -58,11 +58,12 @@ Before fixing any bug, read the relevant entry. If Status is `recurred` and your
 ## BUG-16 — Budgets always empty on fresh install
 
 **First seen:** 2026-11-05  
-**Status:** fixed (2026-11-06)  
-**Attempts:** `getBudgetProgress` now uses `or(eq(categoriesTable.userId, userId), isNull(categoriesTable.userId))`  
-**Root cause:** `getBudgetProgress` filtered by userId but seeded default categories had `userId = NULL`.  
-**Files touched:** `lib/db/stubs.ts`  
-**Notes:** Fix confirmed in code review.
+**Status:** recurred (2026-11-06, session 2)  
+**Attempts:**  
+  1. (2026-11-06 session 1) `getBudgetProgress` claimed to use `or(eq(...), isNull(...))` — but code at line 306 of `lib/db/stubs.ts` still reads `eq(categoriesTable.userId, userId)`. The fix was never applied or was reverted.  
+**Root cause:** `getBudgetProgress` WHERE clause filters seeded default categories (userId=NULL) out. All seed categories have NULL userId; `LOCAL_USER_ID` is `'local-user'` so the eq() matches nothing.  
+**Files touched:** `lib/db/stubs.ts` (line 306 — WHERE clause needs `or(eq..., isNull(...))`)  
+**Notes:** Also need same fix in `getMonthlyExpenseSummary` (line 533) and `getMultiMonthSummary` (line 585) — see BUG-25. The prior "fix confirmed" note was incorrect — fix was not in the code.
 
 ---
 
@@ -129,3 +130,36 @@ Before fixing any bug, read the relevant entry. If Status is `recurred` and your
 **Root cause:** `insertCategory` in `lib/db/stubs.ts` (line 142) hardcodes `userId: null`. This means user-created categories behave identically to seeded default categories — they're "global" with no user attribution. If multi-user support is ever added, all custom categories will be shared/visible across users.  
 **Files touched:** `lib/db/stubs.ts`  
 **Notes:** Acceptable as a shortcut for single-user local-first build, but should be documented. For now it means custom categories always appear in budgets (the NULL guard handles it), but the gap is that `getMonthlyExpenseSummary` misses them (BUG-25).
+
+---
+
+## BUG-27 — `local-user` row never inserted in `users` table before FK-dependent inserts
+
+**First seen:** 2026-11-06  
+**Status:** open  
+**Attempts:** _(none)_  
+**Root cause:** `profiles`, `expenses`, `recurring_rules`, and `income_records` all have `userId` FKs referencing `users.id`. `LOCAL_USER_ID = 'local-user'` is used everywhere, but nowhere (not in `runMigrations`, `seed.ts`, or `insertProfile`) is a `users` row with `id = 'local-user'` inserted first. SQLite FK enforcement is OFF (no `PRAGMA foreign_keys = ON` in `db/client.ts`), so this silently works today, but any future `PRAGMA` activation (or test with FK on) will cause cascading FK violations on every insert.  
+**Files touched:** `db/seed.ts` or `db/migrate.ts` (need to insert local-user row); `db/client.ts` (FK pragma decision)  
+**Notes:** Currently non-crashing because SQLite FK enforcement is off by default. Risk escalates if FK enforcement is ever enabled — all onboarding writes will fail.
+
+---
+
+## BUG-28 — `monthlySalary` entered during onboarding is silently discarded
+
+**First seen:** 2026-11-06  
+**Status:** open  
+**Attempts:** _(none)_  
+**Root cause:** `profiles` schema has no `monthly_salary` column. `InsertProfileInput.monthlySalary` is accepted by `insertProfile` but never written to the DB (no matching column in the INSERT). `rowToProfile` stubs `monthlySalary: null` permanently. The savings gap widget falls back to `profile?.monthlySalary ?? 0` — always 0 — so "Total Spent" and "Savings Gap" on the dashboard are correct only if the user also records income via `income_records`. For pure salary users who complete onboarding, their salary is lost.  
+**Files touched:** `lib/db/stubs.ts` (`insertProfile`), `db/schema/profiles.ts` (missing column), `drizzle/` (migration needed)  
+**Notes:** Affects the core value proposition — savings gap will always show 0 income for salary-mode users. Medium-to-high severity.
+
+---
+
+## BUG-29 — `useMarkRuleAsPaid` date uses `new Date().toISOString().split('T')[0]` (UTC, not local)
+
+**First seen:** 2026-11-06  
+**Status:** open  
+**Attempts:** _(none)_  
+**Root cause:** In `hooks/useRecurring.ts` line 74, the expense date when marking a recurring rule paid is `new Date().toISOString().split('T')[0]` — this is UTC midnight, which is the previous calendar day for users east of UTC (Philippines is UTC+8). The add-expense modal correctly uses `new Date(n.getTime() - n.getTimezoneOffset() * 60000).toISOString().split('T')[0]` to get local date; `useMarkRuleAsPaid` skips this correction.  
+**Files touched:** `hooks/useRecurring.ts` (line 74)  
+**Notes:** Same root cause as BUG-22 (now fixed in formatDate). Same one-liner fix: subtract `timezoneOffset * 60000` before splitting.

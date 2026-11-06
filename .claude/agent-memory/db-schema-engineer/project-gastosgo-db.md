@@ -28,11 +28,11 @@ GastosGo is a Filipino personal expense tracking app (Expo + TypeScript + expo-s
 **Sensitive columns:**
 - `users.supabase_id` — external auth ID, do not log or expose in API responses
 - `expenses.amount`, `income_records.amount` — financial data
-- `profiles.savings_target` — financial data
+- `profiles.savings_target`, `profiles.monthly_salary` — financial data
 
 **Seed:** `db/seed.ts` seeds 8 default categories (null userId = global) idempotently via `onConflictDoNothing()`.
 
-**Migrate runner:** `db/migrate.ts` exports `runMigrations()` — calls `migrate()` then `seedDefaultCategories()`. Consumer must call before first render; throws on failure (not silenced).
+**Migrate runner:** `db/migrate.ts` exports `runMigrations()` — calls `migrate()`, then `seedLocalUser()`, then `seedDefaultCategories()`. Consumer must call before first render; throws on failure (not silenced). Both seed functions are idempotent via `onConflictDoNothing`.
 
 **babel/metro:** `babel.config.js` has `inline-import` plugin for `.sql`; `metro.config.js` pushes `sql` to sourceExts. Required for Drizzle expo migrations to bundle correctly.
 

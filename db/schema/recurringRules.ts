@@ -19,6 +19,9 @@ export const recurringRulesTable = sqliteTable("recurring_rules", {
   }).notNull(),
   nextDueDate: text("next_due_date").notNull(),
   isActive: integer("is_active", { mode: "boolean" }).notNull().default(true),
+  paymentMethod: text("payment_method", {
+    enum: ["cash", "gcash", "card", "bank_transfer"],
+  }).notNull().default("cash"),
   createdAt: text("created_at")
     .notNull()
     .default(sql`(strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))`),

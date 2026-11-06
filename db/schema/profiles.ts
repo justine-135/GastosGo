@@ -13,6 +13,7 @@ export const profilesTable = sqliteTable("profiles", {
   // 1–28 to stay within every month's valid day range
   budgetCycleStart: integer("budget_cycle_start").notNull().default(1),
   currency: text("currency").notNull().default("PHP"),
+  monthlySalary: real("monthly_salary"),
   updatedAt: text("updated_at")
     .notNull()
     .default(sql`(strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))`),
