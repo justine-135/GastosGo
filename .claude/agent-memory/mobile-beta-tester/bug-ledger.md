@@ -158,8 +158,41 @@ Before fixing any bug, read the relevant entry. If Status is `recurred` and your
 ## BUG-29 — `useMarkRuleAsPaid` date uses `new Date().toISOString().split('T')[0]` (UTC, not local)
 
 **First seen:** 2026-11-06  
+**Status:** fixed (2026-11-06, session 3)  
+**Attempts:** `hooks/useRecurring.ts` line 74 now uses local date components (`getFullYear`, `getMonth+1`, `getDate` with zero-padding) — no longer uses `toISOString()`.  
+**Root cause:** Was using UTC ISO string; fixed to use local date components.  
+**Files touched:** `hooks/useRecurring.ts`  
+**Notes:** Confirmed in code — IIFE at line 74 uses `now.getFullYear()`, `now.getMonth() + 1`, `now.getDate()`.
+
+---
+
+## BUG-30 — `recurringRulesTable` schema paymentMethod enum mismatches UI type
+
+**First seen:** 2026-11-06  
 **Status:** open  
 **Attempts:** _(none)_  
-**Root cause:** In `hooks/useRecurring.ts` line 74, the expense date when marking a recurring rule paid is `new Date().toISOString().split('T')[0]` — this is UTC midnight, which is the previous calendar day for users east of UTC (Philippines is UTC+8). The add-expense modal correctly uses `new Date(n.getTime() - n.getTimezoneOffset() * 60000).toISOString().split('T')[0]` to get local date; `useMarkRuleAsPaid` skips this correction.  
-**Files touched:** `hooks/useRecurring.ts` (line 74)  
-**Notes:** Same root cause as BUG-22 (now fixed in formatDate). Same one-liner fix: subtract `timezoneOffset * 60000` before splitting.
+**Root cause:** `db/schema/recurringRules.ts` declares the `paymentMethod` column enum as `["cash", "gcash", "card", "bank_transfer"]` (lowercase, includes `bank_transfer`). The TypeScript type `PaymentMethod` in `lib/db/types.ts` is `'Cash' | 'GCash' | 'Card' | 'Others'` (title-case, `Others` instead of `bank_transfer`). The UI writes title-case values (`Cash`) to the DB. Drizzle does not enforce SQLite enums at runtime — the cast `as typeof recurringRulesTable.$inferInsert['paymentMethod']` silently accepts the wrong-cased strings. If strict enum enforcement is ever added (or Supabase sync validates the column), all existing recurring rule paymentMethod values will fail validation.  
+**Files touched:** `db/schema/recurringRules.ts` (enum needs to match `PaymentMethod` type, or vice versa)  
+**Notes:** `expenses` table has no enum constraint on `paymentMethod` (plain `text()`), so expenses are unaffected. Only recurring rules have this mismatch. `bank_transfer` is in the schema but `Others` is in the UI — these two values have no overlap.
+
+---
+
+## BUG-31 — `advanceNextDueDate` uses UTC ISO string for new nextDueDate
+
+**First seen:** 2026-11-06  
+**Status:** open  
+**Attempts:** _(none)_  
+**Root cause:** `advanceNextDueDate` in `lib/db/stubs.ts` (line 498) calls `d.toISOString().slice(0, 10)` to compute the next due date after advancing. This yields a UTC date. For UTC+8 users (Philippines), dates computed after midnight local time will be one day behind — a bill paid at 11pm on Nov 30 would advance its due date to `Dec 29` (UTC) instead of `Dec 30` (local). Same root cause as BUG-22.  
+**Files touched:** `lib/db/stubs.ts` (line 498, `advanceNextDueDate`)  
+**Notes:** Fix: replace `d.toISOString().slice(0, 10)` with local date string using getFullYear/getMonth/getDate.
+
+---
+
+## BUG-32 — `getRulesDueWithin` cutoff date computed in UTC
+
+**First seen:** 2026-11-06  
+**Status:** open  
+**Attempts:** _(none)_  
+**Root cause:** `getRulesDueWithin` in `lib/db/stubs.ts` (line 418) computes the cutoff as `cutoff.toISOString().slice(0, 10)` — this is a UTC date. For UTC+8 users, the 7-day lookahead window may miss bills due on the 7th day in local time (the cutoff would be day 6 in UTC). Bills that should appear in "due soon" won't show until the next day.  
+**Files touched:** `lib/db/stubs.ts` (line 418, `getRulesDueWithin`)  
+**Notes:** Fix: same local date string approach as BUG-29/BUG-22.

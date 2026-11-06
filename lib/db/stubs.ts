@@ -37,6 +37,11 @@ function isoNow(): string {
   return new Date().toISOString();
 }
 
+/** YYYY-MM-DD in local time (toISOString() gives UTC, wrong for UTC+offset users). */
+function toLocalDate(d: Date): string {
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+
 function monthFilter(month: number, year: number) {
   return and(
     eq(sql`cast(strftime('%m', ${expensesTable.date}) as integer)`, month),
@@ -383,7 +388,7 @@ function rowToRecurringRule(
     frequency: row.frequency,
     nextDueDate: row.nextDueDate,
     isActive: row.isActive,
-    paymentMethod: row.paymentMethod as RecurringRule['paymentMethod'],
+    paymentMethod: row.paymentMethod,
   };
 }
 
@@ -415,7 +420,7 @@ export async function getRecurringRules(userId: string): Promise<RecurringRule[]
 export async function getRulesDueWithin(userId: string, days: number): Promise<RecurringRule[]> {
   const cutoff = new Date();
   cutoff.setDate(cutoff.getDate() + days);
-  const cutoffIso = cutoff.toISOString().slice(0, 10);
+  const cutoffIso = toLocalDate(cutoff);
   const rows = await db
     .select(ruleWithCategory)
     .from(recurringRulesTable)
@@ -442,7 +447,7 @@ export async function insertRecurringRule(input: InsertRecurringRuleInput): Prom
     frequency: input.frequency,
     nextDueDate: input.firstDueDate,
     isActive: true,
-    paymentMethod: input.paymentMethod as typeof recurringRulesTable.$inferInsert['paymentMethod'],
+    paymentMethod: input.paymentMethod,
     updatedAt: isoNow(),
   });
   const [row] = await db
@@ -464,7 +469,7 @@ export async function updateRecurringRule(
   if (input.frequency !== undefined) patch.frequency = input.frequency;
   if (input.firstDueDate !== undefined) patch.nextDueDate = input.firstDueDate;
   if (input.isActive !== undefined) patch.isActive = input.isActive;
-  if (input.paymentMethod !== undefined) patch.paymentMethod = input.paymentMethod as typeof recurringRulesTable.$inferInsert['paymentMethod'];
+  if (input.paymentMethod !== undefined) patch.paymentMethod = input.paymentMethod;
   await db.update(recurringRulesTable).set(patch).where(eq(recurringRulesTable.id, id));
   const [row] = await db
     .select(ruleWithCategory)
@@ -495,7 +500,7 @@ export async function advanceNextDueDate(ruleId: string): Promise<RecurringRule>
     }
     case 'yearly': d.setFullYear(d.getFullYear() + 1); break;
   }
-  return updateRecurringRule(ruleId, { firstDueDate: d.toISOString().slice(0, 10) });
+  return updateRecurringRule(ruleId, { firstDueDate: toLocalDate(d) });
 }
 
 export async function deactivateRule(ruleId: string): Promise<RecurringRule> {

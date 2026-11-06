@@ -86,5 +86,6 @@ function computeNextDate(
       d.setFullYear(d.getFullYear() + 1);
       break;
   }
-  return d.toISOString().slice(0, 10); // YYYY-MM-DD
+  // local date, not UTC — toISOString() is off by one for UTC+offset users before midnight
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 }

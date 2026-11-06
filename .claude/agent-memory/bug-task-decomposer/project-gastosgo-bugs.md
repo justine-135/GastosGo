@@ -21,6 +21,11 @@ Written to `docs/tasks/beta-test-2026-11-5-12-48/`. 4 disciplines: FE, BE, DB, D
 Written to `docs/tasks/beta-test-2026-11-6-14-30/`. 4 disciplines: FE, BE, DB, DEVOPS. Static analysis of commit f38cd44.
 Key bugs: NULL-userId mismatch still in getBudgetProgress (BUG-16 — fix was ledgered but never applied), same NULL issue in Insights summary functions (BUG-25), monthlySalary never persisted to DB (BUG-28), local-user seed row missing (BUG-27), UTC date in Mark-as-Paid (BUG-29), paymentMethod missing from recurring_rules schema (BUG-07).
 
+## Batch 4 — 2026-11-06 13:11 (3 bugs, 4 tasks)
+Written to `docs/tasks/beta-test-2026-11-6-13-11/`. 4 disciplines (FE and DEVOPS empty this batch). Static analysis of commit 379bcf2.
+Key bugs: BUG-30 (paymentMethod enum lowercase vs. title-case type mismatch — supersedes BUG-07), BUG-31 (advanceNextDueDate UTC offset), BUG-32 (getRulesDueWithin cutoff UTC offset).
+10 bugs confirmed fixed: BUG-01, 02, 05, 16, 17, 22, 23, 24, 25, 29.
+
 ## Hotspot files (appeared in multiple tasks across both batches)
 
 - `app/lock.tsx` — PIN logic (BUG-02, BUG-12, BUG-17, BUG-21): 4 bugs; always check all when touching this file
@@ -33,8 +38,11 @@ Key bugs: NULL-userId mismatch still in getBudgetProgress (BUG-16 — fix was le
 Hooks used `'stub-user-001'`; DB layer wrote `'local-user'`. All data queries returned empty. Fix: export `LOCAL_USER_ID` from `lib/constants.ts`. Any new hook or query must import from this constant. This was Wave 0 (blocker) in both batches.
 Batch 3 variant: WHERE clause on categoriesTable also needs `or(eq(...userId), isNull(...userId))` because seeded categories have userId = null. The drizzle-orm `isNull` and `or` imports must be added to stubs.ts whenever touching category queries.
 
-## Pattern: schema lags TypeScript type layer (Batch 3)
-BUG-28 (monthlySalary) and BUG-07 (paymentMethod on recurring_rules): InsertXInput type carried a field the Drizzle schema never received. Convention needed: schema column and TS type must be updated in the same PR.
+## Pattern: schema lags TypeScript type layer (Batch 3 + 4)
+BUG-28 (monthlySalary) and BUG-07/BUG-30 (paymentMethod on recurring_rules): InsertXInput type carried a field the Drizzle schema never received, or schema enum values diverged from the TS type values. Convention needed: schema column, Drizzle enum, and TS type must be updated in the same PR. Drizzle migrations must include a backfill UPDATE for existing rows when enum values change.
+
+## Pattern: UTC date strings vs. local date (Batch 3 + 4, recurring)
+BUG-29 (Batch 3), BUG-31, BUG-32 (Batch 4): any `d.toISOString().slice(0,10)` in BE logic is a UTC-offset bug for UTC+8 users. Established fix: `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`. Both `lib/db/stubs.ts` and `db/queries/recurringRules.ts` have duplicate implementations of `advanceNextDueDate` and `getRulesDueWithin` — always fix both files together. `db/queries/recurringRules.ts`'s `getRulesDueWithin` uses SQLite `date('now', ...)` and is safe; only the JS-side cutoff in stubs.ts is affected.
 
 ## Pattern: incomplete seed (recurring)
 seedDefaultCategories runs but seedLocalUser does not (BUG-27, Batch 3). Third seed-related gap across batches. Always check that the users table has a local-user row before seeding categories.
