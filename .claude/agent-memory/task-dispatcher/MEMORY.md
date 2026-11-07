@@ -1,0 +1,4 @@
+- [Agent Teams Reference Guide](agent-teams-reference.md) — Master reference for building agent teams: decision tree, architecture, subagent frontmatter, hooks, best practices, limitations, and troubleshooting
+- [No Auto-Commit](feedback-no-auto-commit.md) — Never commit after edits; leave staging/committing to the user
+- [Beta Testing Status](project-beta-testing.md) — Maestro E2E test results (3/4 passing), Metro multipart patch applied, 02-onboarding still failing
+- [Beta Batch 5 Wave Plan](project-beta-batch5.md) — 2026-11-06 batch: wave order, agent routing, file-conflict handling, DB agent idle this batch

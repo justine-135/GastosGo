@@ -26,6 +26,12 @@ Written to `docs/tasks/beta-test-2026-11-6-13-11/`. 4 disciplines (FE and DEVOPS
 Key bugs: BUG-30 (paymentMethod enum lowercase vs. title-case type mismatch — supersedes BUG-07), BUG-31 (advanceNextDueDate UTC offset), BUG-32 (getRulesDueWithin cutoff UTC offset).
 10 bugs confirmed fixed: BUG-01, 02, 05, 16, 17, 22, 23, 24, 25, 29.
 
+## Batch 5 — 2026-11-06 14:00 (4 bugs from full E2E Maestro run, 8 tasks)
+Written to `docs/tasks/beta-test-2026-11-6-14-0/`. 4 disciplines; DB empty this batch.
+Key bugs: BUG-01 (tab nav broken — all tabs render Dashboard, P0 blocker), BUG-02 (PIN security gap — content visible before lock screen, P1 security), BUG-03 (reclassified — payment method field IS present in add-expense.tsx but below fold, Maestro flow never scrolled), BUG-04 (Expo LogBox banner in all screenshots, P3).
+Analyst reclassification: BUG-03 is NOT a missing field. Code inspection confirmed the field exists at lines 241-256 of add-expense.tsx. The Maestro 03-add-expense.yaml flow never scrolls the modal, so the field was invisible in screenshots. Filed as INVESTIGATION (TASK-FE-04) + Maestro flow update (TASK-BE-02).
+Maestro flow flaw: 04-navigation.yaml assertions match tab bar labels (always visible), not screen content — caused false pass during BUG-01. Fix: add assertNotVisible: "Recent Transactions" after each tab tap.
+
 ## Hotspot files (appeared in multiple tasks across both batches)
 
 - `app/lock.tsx` — PIN logic (BUG-02, BUG-12, BUG-17, BUG-21): 4 bugs; always check all when touching this file

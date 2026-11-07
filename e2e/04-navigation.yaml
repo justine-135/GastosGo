@@ -11,20 +11,23 @@ appId: com.gastosgo.app
 
 - tapOn: "Expenses"
 - extendedWaitUntil:
-    visible: "Expenses"
+    visible: "🔁 Recurring"
     timeout: 15000
+- assertNotVisible: "Recent Transactions"
 - takeScreenshot: nav-expenses
 
 - tapOn: "Budgets"
 - extendedWaitUntil:
     visible: "Budgets"
     timeout: 15000
+- assertNotVisible: "Recent Transactions"
 - takeScreenshot: nav-budgets
 
 - tapOn: "Insights"
 - extendedWaitUntil:
-    visible: "Insights"
+    visible: "Spending by Category"
     timeout: 15000
+- assertNotVisible: "Recent Transactions"
 - takeScreenshot: nav-insights
 
 - tapOn: "Home"

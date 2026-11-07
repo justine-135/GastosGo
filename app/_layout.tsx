@@ -1,5 +1,5 @@
-import React, { useEffect } from 'react';
-import { useColorScheme } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { useColorScheme, LogBox } from 'react-native';
 import { GluestackUIProvider } from '@gluestack-ui/themed';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Stack, router, usePathname, useRootNavigationState } from 'expo-router';
@@ -7,6 +7,8 @@ import * as SecureStore from 'expo-secure-store';
 import { useThemeStore } from '../stores/themeStore';
 import { getOrFetchPushToken } from '../lib/notifications';
 import { runMigrations } from '../db/migrate';
+
+if (process.env.EXPO_E2E === 'true') LogBox.ignoreAllLogs(true);
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -19,6 +21,7 @@ export default function RootLayout() {
   const { mode } = useThemeStore();
   const pathname = usePathname();
   const navState = useRootNavigationState();
+  const [isAuthChecking, setIsAuthChecking] = useState(true);
 
   // Resolve effective color mode: store override > system default
   const effectiveMode: 'light' | 'dark' =
@@ -38,10 +41,19 @@ export default function RootLayout() {
       if (hash && pathname !== '/lock') {
         router.replace('/lock');
       }
-    });
+      setIsAuthChecking(false);
+    }).catch(() => setIsAuthChecking(false));
     // Only run once navigator is ready — pathname intentionally excluded
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [navState?.key]);
+
+  // Fallback: if navState never initializes (e.g. deadlock), unblock render after 3s
+  useEffect(() => {
+    const t = setTimeout(() => setIsAuthChecking(false), 3000);
+    return () => clearTimeout(t);
+  }, []);
+
+  if (isAuthChecking) return null;
 
   return (
     <QueryClientProvider client={queryClient}>
