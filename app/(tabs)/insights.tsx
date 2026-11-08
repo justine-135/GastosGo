@@ -5,6 +5,7 @@ import {
 } from 'react-native';
 // shortcut: victory-native not installed, replace stub once DB agent lands TASK-DB-01
 import { PolarChart, Pie } from 'victory-native';
+import { runOnJS } from 'react-native-reanimated';
 import { useQuery } from '@tanstack/react-query';
 import { useUIStore } from '../../stores/uiStore';
 import { useBudgets } from '../../hooks/useBudgets';
@@ -180,7 +181,7 @@ function PieChartSection({
               animate={{ type: 'timing', duration: 400 }}
               // FE-10: dim unselected slices when one is active
               style={selectedId && slice.data.id !== selectedId ? { opacity: 0.4 } : undefined}
-              onPress={() => onSelect(slice.data.id as string)}
+              onPress={() => { 'worklet'; runOnJS(onSelect)(slice.data.id as string); }}
             />
           )}
         </Pie.Chart>
