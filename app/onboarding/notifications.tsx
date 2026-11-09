@@ -58,9 +58,9 @@ export default function OnboardingNotifications() {
             style={styles.skipBtn}
             onPress={handleSkip}
             accessibilityRole="button"
-            accessibilityLabel="Skip notifications setup"
+            accessibilityLabel="Not now"
           >
-            <Text style={styles.skipBtnText}>Skip</Text>
+            <Text style={styles.skipBtnText}>Not now</Text>
           </TouchableOpacity>
         </View>
       </View>

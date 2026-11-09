@@ -8,6 +8,16 @@ appId: com.gastosgo.app
     optional: true
 - assertVisible: "Recent Transactions"
 - takeScreenshot: nav-dashboard
+# dismiss Metro dev-tools warning banner before tapping the tab bar
+- tapOn:
+    text: "DISMISS"
+    optional: true
+- tapOn:
+    text: "DISMISS ALL"
+    optional: true
+- tapOn:
+    point: "50%, 3%"
+    optional: true
 
 - tapOn: "Expenses"
 - extendedWaitUntil:

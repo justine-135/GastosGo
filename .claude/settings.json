@@ -9,5 +9,8 @@
       "Bash(git diff *)",
       "PowerShell(& \"C:\\Users\\Win 10\\.maestro\\maestro\\bin\\maestro.bat\" *)"
     ]
+  },
+  "enabledPlugins": {
+    "figma@claude-plugins-official": true
   }
 }

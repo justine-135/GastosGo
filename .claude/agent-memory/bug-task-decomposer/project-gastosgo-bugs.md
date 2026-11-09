@@ -32,6 +32,12 @@ Key bugs: BUG-01 (tab nav broken — all tabs render Dashboard, P0 blocker), BUG
 Analyst reclassification: BUG-03 is NOT a missing field. Code inspection confirmed the field exists at lines 241-256 of add-expense.tsx. The Maestro 03-add-expense.yaml flow never scrolls the modal, so the field was invisible in screenshots. Filed as INVESTIGATION (TASK-FE-04) + Maestro flow update (TASK-BE-02).
 Maestro flow flaw: 04-navigation.yaml assertions match tab bar labels (always visible), not screen content — caused false pass during BUG-01. Fix: add assertNotVisible: "Recent Transactions" after each tab tap.
 
+## Batch 6 — 2026-11-09 07:30 (3 bugs from full E2E Maestro run, 5 tasks)
+Written to `docs/tasks/beta-test-2026-11-9-7-30/`. 4 disciplines; DB empty this batch. 3/4 flows passed.
+Key bugs: BUG-01 (Metro dev banner intercepts tab bar tap in 04-navigation — DEVOPS YAML fix), BUG-02 (merchant field null in Recent Transactions — 03-add-expense.yaml never scrolls to merchant field, same pattern as Batch 5 BUG-03), BUG-03 (OnboardingNotifications renders "Skip" not "Not now" — Maestro 02-onboarding.yaml expects "Not now" text, PRD violation).
+Analyst note: BUG-02 merchant display is correct in app code (stubs.ts includes merchant, dashboard does merchant ?? category). Root cause is the Maestro flow never filling the merchant field (null in DB). TASK-BE-01 is an investigation before TASK-FE-02 can be confirmed.
+Pattern confirmed recurring: Maestro flows not scrolling to below-fold form fields (03-add-expense.yaml). Filed across Batch 5 and Batch 6.
+
 ## Hotspot files (appeared in multiple tasks across both batches)
 
 - `app/lock.tsx` — PIN logic (BUG-02, BUG-12, BUG-17, BUG-21): 4 bugs; always check all when touching this file
