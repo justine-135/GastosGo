@@ -1,5 +1,6 @@
 import React, { useCallback } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, TouchableOpacity } from 'react-native';
+import { styles } from './PinPad.styles';
 
 interface Props {
   onDigit: (digit: string) => void;
@@ -48,23 +49,3 @@ export function PinPad({ onDigit, onBackspace, onClear, disabled = false }: Prop
   );
 }
 
-const styles = StyleSheet.create({
-  grid: { gap: 12 },
-  row: { flexDirection: 'row', justifyContent: 'center', gap: 16 },
-  key: {
-    width: 72,
-    height: 72,
-    borderRadius: 36,
-    backgroundColor: '#FFF8F0',
-    alignItems: 'center',
-    justifyContent: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
-    elevation: 2,
-  },
-  keyDisabled: { backgroundColor: '#F0EAE0', opacity: 0.5 },
-  keyText: { fontSize: 22, fontWeight: '600', color: '#2D3047' },
-  keyTextDisabled: { color: '#9CA3AF' },
-});

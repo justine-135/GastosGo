@@ -1,9 +1,11 @@
 // FE-07: Category Budgets Screen
 import React, { useState } from 'react';
 import {
-  View, Text, StyleSheet, FlatList, TouchableOpacity, SafeAreaView,
+  View, Text, FlatList, TouchableOpacity, SafeAreaView,
   RefreshControl, TextInput, Alert,
 } from 'react-native';
+import styles from './budgets.styles';
+import { colors } from '../../theme/index';
 import { router } from 'expo-router';
 import { useUIStore } from '../../stores/uiStore';
 import { useBudgets, useUpdateBudget } from '../../hooks/useBudgets';
@@ -19,20 +21,27 @@ export default function BudgetsScreen() {
   const updateBudget = useUpdateBudget();
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editValue, setEditValue] = useState('');
+  const [refreshing, setRefreshing] = useState(false);
 
   function startEdit(item: BudgetProgress) {
     setEditingId(item.categoryId);
     setEditValue(item.monthlyBudget > 0 ? String(item.monthlyBudget) : '');
   }
 
+  function handleRefresh() {
+    setRefreshing(true);
+    refetch().finally(() => setRefreshing(false));
+  }
+
   async function commitEdit(item: BudgetProgress) {
+    if (editingId !== item.categoryId) return; // guard: second call after state already cleared
     const val = parseFloat(editValue);
     if (isNaN(val) || val < 0) {
       Alert.alert('Invalid amount', 'Please enter a valid budget amount.');
       return;
     }
     setEditingId(null);
-    // Optimistic update: mutate immediately
+    // Sends mutation and waits for server + cache refresh
     updateBudget.mutate({ categoryId: item.categoryId, monthlyBudget: val });
   }
 
@@ -80,7 +89,7 @@ export default function BudgetsScreen() {
                   onBlur={() => commitEdit(item)}
                   accessibilityLabel={`Edit budget for ${item.categoryName}`}
                   placeholder="0"
-                  placeholderTextColor="#9CA3AF"
+                  placeholderTextColor={colors.light.mutedForeground}
                 />
               </View>
             ) : (
@@ -128,7 +137,7 @@ export default function BudgetsScreen() {
           keyExtractor={(item) => item.categoryId}
           renderItem={renderItem}
           contentContainerStyle={styles.list}
-          refreshControl={<RefreshControl refreshing={isLoading} onRefresh={refetch} tintColor="#F4A261" />}
+          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor={colors.light.primary} />}
           ListEmptyComponent={
             <View style={styles.emptyState}>
               <Text style={styles.emptyEmoji}>📊</Text>
@@ -142,36 +151,3 @@ export default function BudgetsScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: '#FFF8F0' },
-  headerBar: { paddingHorizontal: 16, paddingTop: 8, paddingBottom: 4 },
-  screenTitle: { fontSize: 28, fontWeight: '700', color: '#2D3047' },
-  skeletonContainer: { gap: 10, paddingTop: 10 },
-  list: { padding: 16, gap: 12, paddingBottom: 40 },
-  row: {
-    backgroundColor: '#FFFFFF', borderRadius: 16, padding: 16, gap: 10,
-    borderWidth: 1, borderColor: '#E5D5C0',
-    shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.05, shadowRadius: 3, elevation: 1,
-  },
-  rowHeader: { flexDirection: 'row', alignItems: 'center', gap: 10 },
-  catIcon: { fontSize: 24 },
-  catInfo: { flex: 1 },
-  catName: { fontSize: 16, fontWeight: '600', color: '#2D3047' },
-  catAmount: { fontSize: 13, color: '#6B7280', marginTop: 2 },
-  rowActions: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  warningIcon: { fontSize: 18 },
-  editRow: { flexDirection: 'row', alignItems: 'center' },
-  editInput: {
-    borderWidth: 1.5, borderColor: '#F4A261', borderRadius: 8, paddingHorizontal: 10,
-    paddingVertical: 6, fontSize: 15, color: '#2D3047', width: 80, textAlign: 'right', minHeight: 36,
-  },
-  editBtn: { backgroundColor: '#FFF3E8', borderRadius: 8, paddingHorizontal: 10, paddingVertical: 6, minHeight: 36, justifyContent: 'center' },
-  editBtnText: { fontSize: 13, color: '#F4A261', fontWeight: '500' },
-  noLimit: { fontSize: 13, color: '#9CA3AF', fontStyle: 'italic' },
-  warningText: { fontSize: 13, color: '#E76F51', fontWeight: '600' },
-  nearText: { fontSize: 13, color: '#E9C46A', fontWeight: '600' },
-  emptyState: { alignItems: 'center', paddingVertical: 60, gap: 10 },
-  emptyEmoji: { fontSize: 48 },
-  emptyTitle: { fontSize: 18, fontWeight: '600', color: '#2D3047' },
-  emptySub: { fontSize: 15, color: '#6B7280', textAlign: 'center', paddingHorizontal: 24 },
-});

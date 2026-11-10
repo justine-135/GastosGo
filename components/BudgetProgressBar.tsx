@@ -1,5 +1,7 @@
 import React, { useEffect, useRef } from 'react';
-import { View, Animated, StyleSheet } from 'react-native';
+import { View, Animated } from 'react-native';
+import { styles } from './BudgetProgressBar.styles';
+import { colors } from '../theme/index';
 
 interface Props {
   percent: number; // 0–100+
@@ -7,9 +9,9 @@ interface Props {
 }
 
 function barColor(percent: number): string {
-  if (percent >= 100) return '#E76F51'; // destructive/red
-  if (percent >= 80) return '#E9C46A';  // accent/amber
-  return '#81B29A';                     // muted/green
+  if (percent >= 100) return colors.light.destructive;
+  if (percent >= 80) return colors.light.accent;
+  return colors.light.muted;
 }
 
 export function BudgetProgressBar({ percent, height = 8 }: Props) {
@@ -37,13 +39,3 @@ export function BudgetProgressBar({ percent, height = 8 }: Props) {
   );
 }
 
-const styles = StyleSheet.create({
-  track: {
-    backgroundColor: '#E5D5C0',
-    borderRadius: 4,
-    overflow: 'hidden',
-  },
-  fill: {
-    borderRadius: 4,
-  },
-});

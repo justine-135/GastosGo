@@ -12,6 +12,5 @@ export function useSavings(month: number, year: number) {
   return useQuery({
     queryKey: savingsKeys(month, year),
     queryFn: () => getSavingsGap(USER_ID, month, year),
-    staleTime: 30_000,
   });
 }

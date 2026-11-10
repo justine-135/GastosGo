@@ -38,6 +38,13 @@ Key bugs: BUG-01 (Metro dev banner intercepts tab bar tap in 04-navigation — D
 Analyst note: BUG-02 merchant display is correct in app code (stubs.ts includes merchant, dashboard does merchant ?? category). Root cause is the Maestro flow never filling the merchant field (null in DB). TASK-BE-01 is an investigation before TASK-FE-02 can be confirmed.
 Pattern confirmed recurring: Maestro flows not scrolling to below-fold form fields (03-add-expense.yaml). Filed across Batch 5 and Batch 6.
 
+## Batch 7 — 2026-11-10 11:18 (5 review items, 4 tasks)
+Written to `docs/tasks/beta-test-2026-11-10-11-18/`. FE only — BE/DB/DEVOPS empty this batch. Static code review of HEAD~5..HEAD.
+Key items: design-token violation (opacity: 0.4 hardcoded in insights.tsx — TASK-FE-01), dim style inline in .tsx instead of .styles.ts (TASK-FE-01), slice.data.id null-pass through as-string cast (TASK-FE-02, P1), _layout.tsx dangling fallback timer (TASK-FE-04, P3), splash/null-render window investigation (TASK-FE-03, P3).
+No critical bugs. FE-01 + FE-02 share insights.tsx (conflict). FE-03 + FE-04 share _layout.tsx (conflict).
+Wave 0: none. Wave 1: FE-01, FE-03 (parallel). Wave 2: FE-02 (after FE-01), FE-04 (after FE-03).
+New pattern confirmed: `theme/index.ts` has no `opacity` export — add `opacity.dim = 0.4` there, never inline a raw 0.x value in component or style files.
+
 ## Hotspot files (appeared in multiple tasks across both batches)
 
 - `app/lock.tsx` — PIN logic (BUG-02, BUG-12, BUG-17, BUG-21): 4 bugs; always check all when touching this file

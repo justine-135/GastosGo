@@ -51,7 +51,9 @@
 ## What Is Paused
 
 ### Component Mockups — NOT YET BUILT
-Paused reason: **Figma MCP starter-plan tool-call rate limit hit.** The script was fully written from real source files and is ready to execute. One `use_figma` call will create the entire Components page.
+Paused reason: **Figma MCP starter-plan tool-call rate limit hit (again, 2026-11-10).** `whoami` confirms the account (`tintin`) is on **starter tier across all three teams** — there is no higher-tier plan to switch to. The limit resets on a rolling time window that cannot be accelerated, OR requires a plan upgrade: https://www.figma.com/files/team/964370190402276542/all-projects?upgrade=mcp_rate_limit_paywall
+
+The component source files have been re-read and specced (props + states below). The build is a single batched `use_figma` call once quota is available. **Do not retry until the quota window resets or the plan is upgraded** — a retry inside the window just burns the first available call on an error.
 
 Components to build on a new **"Components"** Figma page:
 
@@ -88,17 +90,27 @@ Say: **"Add dark variants for the Expenses and Settings screens in the GastosGo 
 
 ---
 
-## Before Implementation Starts — Blocking Decision
+## Before Implementation Starts — Blocking Decision — RESOLVED 2026-11-10
 
-**Primary button contrast fails WCAG AA.**  
-White text (`#FFFFFF`) on `#F4A261` = ~2.1:1 contrast ratio. WCAG AA minimum for normal text is 4.5:1. This affects every primary CTA across the entire app (onboarding buttons, Save, Get Started, etc.).
+**Decision: Option B — navy text (`foreground` `#2D3047`) on the unchanged `primary` `#F4A261`.**
 
-Pick one before any screen is coded:
+Verified contrast ratios (WCAG 2.1 relative-luminance formula):
 
-| Option | Button color | Text color | Contrast | Look |
-|--------|-------------|------------|---------|------|
-| A — Darken button | `#B5621C` | `#FFFFFF` white | ~4.6:1 ✅ | Deeper burnt orange |
-| B — Dark text | `#F4A261` orange | `#2D3047` navy | ~4.8:1 ✅ | Current orange, navy label |
+| Option | Button color | Text color | Measured contrast | Verdict |
+|--------|-------------|------------|-------------------|---------|
+| A — Darken button | `#B5621C` | `#FFFFFF` white | **4.44:1** | ✗ below 4.5:1 AA for normal text; only passes as large/bold text (3:1). Fragile. |
+| **B — Dark text (chosen)** | `#F4A261` orange | `#2D3047` navy | **6.27:1** | ✅ passes AA for all text sizes with margin |
+
+**Why Option B:**
+- Passes AA comfortably at every text size; Option A fails the strict 4.5:1 threshold for normal text (4.44:1).
+- Preserves the brand accent color (`primary` `#F4A261`) everywhere it appears as a fill.
+- Reuses the existing `foreground` token — no new color needed.
+- Generalizes to the **identical bug in `CategoryChip`**, which currently sets white (`#FFFFFF`) text on a filled category-color background when selected (`components/CategoryChip.tsx` → `labelSelected`). Navy on every category color also passes AA (yellow `#E9C46A` 7.73:1, teal `#A8DADC` 8.45:1, sage `#81B29A` 5.39:1). Option A would not fix this without also darkening every category color — a cascade.
+
+**Code follow-ups for the implementation phase (NOT done in this design task):**
+- Introduce a shared `onPrimary` / `onAccent` text token = `foreground` (`#2D3047`), and replace scattered white (`#FFFFFF`) button labels across `app/onboarding/*.tsx`, Save/CTA buttons, etc.
+- Change `CategoryChip`'s `labelSelected` from `#FFFFFF` to `#2D3047` (and `labelSelected` for the selected `CategoryChip` background should keep the category color; contrast now holds).
+- These edits were deliberately deferred: buttons are not yet tokenized (hardcoded `#F4A261` fills per screen), several target files are already modified in the working tree, and this is a design-handoff task — token/shared-component work belongs to the implementation phase per the spec's implementation order.
 
 ---
 

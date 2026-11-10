@@ -1,8 +1,10 @@
 // Onboarding Screen 6 — Push Notification Opt-in
 import React, { useState } from 'react';
 import {
-  View, Text, TouchableOpacity, StyleSheet, SafeAreaView, ActivityIndicator,
+  View, Text, TouchableOpacity, SafeAreaView, ActivityIndicator,
 } from 'react-native';
+import styles from './notifications.styles';
+import { white } from '../../theme/index';
 import { router } from 'expo-router';
 import { requestNotificationPermission } from '../../lib/notifications';
 
@@ -51,7 +53,7 @@ export default function OnboardingNotifications() {
             accessibilityLabel="Enable push notifications"
           >
             {loading
-              ? <ActivityIndicator color="#FFFFFF" />
+              ? <ActivityIndicator color={white} />
               : <Text style={styles.primaryBtnText}>Enable Notifications</Text>}
           </TouchableOpacity>
           <TouchableOpacity
@@ -68,25 +70,3 @@ export default function OnboardingNotifications() {
   );
 }
 
-const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: '#FFF8F0' },
-  container: { flex: 1, paddingHorizontal: 24, justifyContent: 'space-between', paddingTop: 32, paddingBottom: 48 },
-  stepRow: { flexDirection: 'row', gap: 8, justifyContent: 'center' },
-  dot: { width: 8, height: 8, borderRadius: 4, backgroundColor: '#E5D5C0' },
-  dotActive: { backgroundColor: '#F4A261', width: 24 },
-  hero: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 16 },
-  emoji: { fontSize: 72 },
-  title: { fontSize: 28, fontWeight: '700', color: '#2D3047', textAlign: 'center' },
-  subtitle: { fontSize: 16, color: '#6B7280', textAlign: 'center', lineHeight: 24 },
-  actions: { gap: 12 },
-  primaryBtn: {
-    backgroundColor: '#F4A261', borderRadius: 16, paddingVertical: 18,
-    alignItems: 'center', minHeight: 56,
-  },
-  primaryBtnText: { fontSize: 17, fontWeight: '700', color: '#FFFFFF' },
-  skipBtn: {
-    borderRadius: 16, paddingVertical: 16, alignItems: 'center', minHeight: 56,
-    justifyContent: 'center',
-  },
-  skipBtnText: { fontSize: 16, color: '#6B7280' },
-});

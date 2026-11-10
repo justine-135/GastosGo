@@ -1,5 +1,6 @@
 import React from 'react';
-import { View, TouchableOpacity, Text, StyleSheet } from 'react-native';
+import { View, TouchableOpacity, Text } from 'react-native';
+import { styles } from './MonthNavigator.styles';
 import { useUIStore } from '../stores/uiStore';
 import { formatMonthYear } from '../utils/format';
 
@@ -49,32 +50,3 @@ export function MonthNavigator({ month, year, onPrev, onNext }: Props) {
   );
 }
 
-const styles = StyleSheet.create({
-  row: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 8,
-    gap: 16,
-  },
-  arrow: {
-    minWidth: 44,
-    minHeight: 44,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  arrowText: {
-    fontSize: 24,
-    color: '#F4A261',
-    fontWeight: '600',
-  },
-  arrowDisabled: { opacity: 0.3 },
-  arrowTextDisabled: { color: '#9CA3AF' },
-  label: {
-    fontSize: 17,
-    fontWeight: '600',
-    color: '#2D3047',
-    minWidth: 160,
-    textAlign: 'center',
-  },
-});

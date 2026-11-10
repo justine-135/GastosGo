@@ -1,11 +1,13 @@
 // Onboarding Screen 4 — PIN Setup
 import React, { useState } from 'react';
 import {
-  View, Text, TouchableOpacity, StyleSheet, SafeAreaView, ActivityIndicator,
+  View, Text, TouchableOpacity, SafeAreaView, ActivityIndicator,
 } from 'react-native';
+import styles from './pin-setup.styles';
+import { colors } from '../../theme/index';
 import { router } from 'expo-router';
 import * as SecureStore from 'expo-secure-store';
-import * as Crypto from 'expo-crypto';
+import { hashPin } from '../../utils/pinSecurity';
 
 const PIN_KEY = 'gastosgo-pin-hash';
 const DIGITS = [1, 2, 3, 4, 5, 6, 7, 8, 9, null, 0, 'del'] as const;
@@ -43,10 +45,7 @@ export default function OnboardingPINSetup() {
     }
     setSaving(true);
     try {
-      const hash = await Crypto.digestStringAsync(
-        Crypto.CryptoDigestAlgorithm.SHA256,
-        confirmPin,
-      );
+      const hash = await hashPin(confirmPin);
       await SecureStore.setItemAsync(PIN_KEY, hash);
       router.push('/onboarding/biometrics');
     } finally {
@@ -82,7 +81,7 @@ export default function OnboardingPINSetup() {
           </View>
 
           {error ? <Text style={styles.errorText}>{error}</Text> : null}
-          {saving && <ActivityIndicator color="#F4A261" style={{ marginTop: 8 }} />}
+          {saving && <ActivityIndicator color={colors.light.primary} style={{ marginTop: 8 }} />}
         </View>
 
         {/* Keypad */}
@@ -105,27 +104,3 @@ export default function OnboardingPINSetup() {
   );
 }
 
-const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: '#FFF8F0' },
-  container: { flex: 1, paddingHorizontal: 24, justifyContent: 'space-between', paddingTop: 32, paddingBottom: 48 },
-  stepRow: { flexDirection: 'row', gap: 8, justifyContent: 'center' },
-  dot: { width: 8, height: 8, borderRadius: 4, backgroundColor: '#E5D5C0' },
-  dotActive: { backgroundColor: '#F4A261', width: 24 },
-  hero: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 16 },
-  title: { fontSize: 28, fontWeight: '700', color: '#2D3047', textAlign: 'center' },
-  subtitle: { fontSize: 15, color: '#6B7280', textAlign: 'center' },
-  pinRow: { flexDirection: 'row', gap: 16, marginTop: 8 },
-  pinDot: {
-    width: 18, height: 18, borderRadius: 9,
-    borderWidth: 2, borderColor: '#E5D5C0', backgroundColor: 'transparent',
-  },
-  pinDotFilled: { backgroundColor: '#F4A261', borderColor: '#F4A261' },
-  errorText: { fontSize: 14, color: '#E76F51', fontWeight: '500', textAlign: 'center' },
-  keypad: { flexDirection: 'row', flexWrap: 'wrap', gap: 12 },
-  key: {
-    width: '30%', aspectRatio: 1.4, alignItems: 'center', justifyContent: 'center',
-    backgroundColor: '#FFFFFF', borderRadius: 16, borderWidth: 1, borderColor: '#E5D5C0', minHeight: 56,
-  },
-  keyInvisible: { backgroundColor: 'transparent', borderColor: 'transparent' },
-  keyText: { fontSize: 24, fontWeight: '500', color: '#2D3047' },
-});

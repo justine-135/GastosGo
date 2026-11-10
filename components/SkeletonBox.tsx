@@ -1,5 +1,6 @@
 import React, { useEffect, useRef } from 'react';
-import { Animated, StyleSheet, View, type ViewStyle } from 'react-native';
+import { Animated, View, type ViewStyle } from 'react-native';
+import { styles } from './SkeletonBox.styles';
 
 interface Props {
   width?: number | `${number}%`;
@@ -30,8 +31,3 @@ export function SkeletonBox({ width = '100%', height = 20, borderRadius = 8, sty
   );
 }
 
-const styles = StyleSheet.create({
-  box: {
-    backgroundColor: '#E5D5C0',
-  },
-});

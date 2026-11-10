@@ -1,9 +1,11 @@
 // FE-13: Settings Screen
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
-  View, Text, StyleSheet, ScrollView, SafeAreaView, TouchableOpacity,
+  View, Text, ScrollView, SafeAreaView, TouchableOpacity,
   Alert, ActivityIndicator, Switch, Modal, FlatList,
 } from 'react-native';
+import { styles } from './settings.styles';
+import { colors, white } from '../theme/index';
 import { router } from 'expo-router';
 import * as SecureStore from 'expo-secure-store';
 import Constants from 'expo-constants';
@@ -18,6 +20,12 @@ import type { IncomeMode } from '../lib/db/types';
 const PIN_KEY = 'gastosgo-pin-hash';
 type ThemeMode = 'system' | 'light' | 'dark';
 
+const INCOME_MODE_LABELS: Record<string, string> = {
+  salary: 'Fixed Salary',
+  mixed: 'Salary + Freelance',
+  target: 'Savings Target',
+};
+
 export default function SettingsScreen() {
   const qc = useQueryClient();
   const { mode: themeMode, setMode: setThemeMode } = useThemeStore();
@@ -29,7 +37,7 @@ export default function SettingsScreen() {
   const { data: profile } = useQuery({ queryKey: ['profile'], queryFn: getProfile });
 
   // Check PIN on mount
-  React.useEffect(() => {
+  useEffect(() => {
     SecureStore.getItemAsync(PIN_KEY).then((v) => setHasPIN(!!v));
   }, []);
 
@@ -49,11 +57,7 @@ export default function SettingsScreen() {
       await runFullBackup();
       Alert.alert('Backup Complete', 'Your data has been backed up to the cloud.');
     } catch {
-      Alert.alert(
-        'Backup Failed',
-        'Something went wrong. Please try again.',
-        [{ text: 'Retry', onPress: handleBackup }, { text: 'Cancel', style: 'cancel' }],
-      );
+      Alert.alert('Backup Failed', 'Something went wrong. Please try again.');
     } finally {
       setIsBackingUp(false);
     }
@@ -77,16 +81,11 @@ export default function SettingsScreen() {
   function handleIncomeMode() {
     if (!profile) return;
     const modes: IncomeMode[] = ['salary', 'mixed', 'target'];
-    const labels: Record<IncomeMode, string> = {
-      salary: 'Fixed Salary',
-      mixed: 'Salary + Freelance',
-      target: 'Savings Target',
-    };
     Alert.alert(
       'Income Mode',
-      `Current: ${labels[profile.incomeMode]}`,
+      `Current: ${INCOME_MODE_LABELS[profile.incomeMode]}`,
       modes.map((m) => ({
-        text: labels[m],
+        text: INCOME_MODE_LABELS[m],
         onPress: () => updateProfileMutation.mutate({ incomeMode: m }),
       }))
     );
@@ -154,9 +153,9 @@ export default function SettingsScreen() {
             <Text style={styles.rowLabel}>PIN Enabled</Text>
             <Switch
               value={!!hasPIN}
-              onValueChange={(v) => { if (!v) handleDisablePIN(); }}
-              trackColor={{ false: '#E5D5C0', true: '#F4A261' }}
-              thumbColor="#FFFFFF"
+              onValueChange={(v) => { if (v) router.push('/lock?mode=setup'); else handleDisablePIN(); }}
+              trackColor={{ false: colors.light.border, true: colors.light.primary }}
+              thumbColor={white}
               accessibilityLabel="Toggle PIN lock"
             />
           </View>
@@ -167,7 +166,7 @@ export default function SettingsScreen() {
         <View style={styles.card}>
           <SettingsRow
             label="Income Mode"
-            value={profile ? { salary: 'Fixed Salary', mixed: 'Salary + Freelance', target: 'Target' }[profile.incomeMode] : '—'}
+            value={profile ? INCOME_MODE_LABELS[profile.incomeMode] : '—'}
             onPress={handleIncomeMode}
             accessibilityLabel="Change income mode"
           />
@@ -192,7 +191,7 @@ export default function SettingsScreen() {
           >
             <Text style={styles.rowLabel}>Backup Now</Text>
             {isBackingUp
-              ? <ActivityIndicator size="small" color="#F4A261" />
+              ? <ActivityIndicator size="small" color={colors.light.primary} />
               : <Text style={styles.rowAction}>☁️ Backup</Text>}
           </TouchableOpacity>
           {lastSyncedAt && (
@@ -322,51 +321,3 @@ function SettingsRow({
   );
 }
 
-const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: '#FFF8F0' },
-  headerBar: {
-    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
-    paddingHorizontal: 16, paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: '#E5D5C0',
-  },
-  backBtn: { minWidth: 70, minHeight: 44, justifyContent: 'center' },
-  backBtnText: { fontSize: 17, color: '#F4A261' },
-  screenTitle: { fontSize: 17, fontWeight: '700', color: '#2D3047' },
-  scroll: { padding: 16, gap: 8 },
-  sectionHeader: {
-    fontSize: 13, fontWeight: '700', color: '#6B7280', textTransform: 'uppercase',
-    letterSpacing: 0.5, paddingHorizontal: 4, marginTop: 8, marginBottom: 4,
-  },
-  card: {
-    backgroundColor: '#FFFFFF', borderRadius: 16, overflow: 'hidden',
-    borderWidth: 1, borderColor: '#E5D5C0',
-  },
-  row: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingVertical: 14, minHeight: 52 },
-  rowBtn: {},
-  rowLabel: { fontSize: 16, color: '#2D3047', flex: 1 },
-  rowValue: { fontSize: 15, color: '#6B7280' },
-  rowAction: { fontSize: 15, color: '#F4A261', fontWeight: '600' },
-  rowRight: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  chevron: { fontSize: 20, color: '#9CA3AF', marginRight: -4 },
-  divider: { height: 1, backgroundColor: '#F0EAE0', marginHorizontal: 16 },
-  segmentRow: { flexDirection: 'row', backgroundColor: '#F0EAE0', borderRadius: 10, padding: 2, flex: 1, maxWidth: 200 },
-  segment: { flex: 1, paddingVertical: 8, alignItems: 'center', borderRadius: 8, minHeight: 36, justifyContent: 'center' },
-  segmentActive: { backgroundColor: '#FFFFFF', shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.1, shadowRadius: 2, elevation: 2 },
-  segmentText: { fontSize: 13, color: '#6B7280', fontWeight: '500' },
-  segmentTextActive: { color: '#2D3047', fontWeight: '700' },
-  modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.4)', justifyContent: 'flex-end' },
-  dayPickerSheet: {
-    backgroundColor: '#FFF8F0', borderTopLeftRadius: 24, borderTopRightRadius: 24,
-    padding: 24, paddingBottom: 40,
-  },
-  dayPickerTitle: { fontSize: 17, fontWeight: '700', color: '#2D3047', textAlign: 'center', marginBottom: 16 },
-  dayCell: {
-    flex: 1, aspectRatio: 1, margin: 4, borderRadius: 10,
-    alignItems: 'center', justifyContent: 'center',
-    backgroundColor: '#F0EAE0', minHeight: 44,
-  },
-  dayCellActive: { backgroundColor: '#F4A261' },
-  dayCellText: { fontSize: 15, fontWeight: '500', color: '#2D3047' },
-  dayCellTextActive: { color: '#FFFFFF', fontWeight: '700' },
-  dayPickerCancel: { marginTop: 16, alignItems: 'center', paddingVertical: 14, minHeight: 48 },
-  dayPickerCancelText: { fontSize: 16, color: '#6B7280' },
-});

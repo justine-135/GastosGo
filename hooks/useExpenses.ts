@@ -24,7 +24,6 @@ export function useExpenses(month: number, year: number) {
   return useQuery({
     queryKey: expenseKeys(month, year),
     queryFn: () => getExpensesByMonth(USER_ID, month, year),
-    staleTime: 30_000,
   });
 }
 
@@ -32,7 +31,6 @@ export function useRecentExpenses(limit = 5) {
   return useQuery({
     queryKey: recentExpensesKey(),
     queryFn: () => getRecentExpenses(USER_ID, limit),
-    staleTime: 30_000,
   });
 }
 
@@ -42,11 +40,11 @@ export function useAddExpense() {
     mutationFn: (input: InsertExpenseInput) => insertExpense(input),
     onSuccess: async (_, input) => {
       const d = new Date(input.date);
+      await enqueue('insert', 'expenses', input);
       await qc.invalidateQueries({ queryKey: expenseKeys(d.getMonth() + 1, d.getFullYear()) });
       await qc.invalidateQueries({ queryKey: recentExpensesKey() });
       await qc.invalidateQueries({ queryKey: ['budgets'] });
       await qc.invalidateQueries({ queryKey: ['savings'] });
-      await enqueue('insert', 'expenses', input);
     },
   });
 }
@@ -54,14 +52,19 @@ export function useAddExpense() {
 export function useUpdateExpense() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: ({ id, input }: { id: string; input: Partial<InsertExpenseInput> }) =>
+    mutationFn: ({ id, input }: { id: string; input: Partial<InsertExpenseInput>; oldDate?: string }) =>
       updateExpense(id, input),
-    onSuccess: async (expense) => {
+    onSuccess: async (expense, { oldDate }) => {
       const d = new Date(expense.date);
+      await enqueue('update', 'expenses', expense);
       await qc.invalidateQueries({ queryKey: expenseKeys(d.getMonth() + 1, d.getFullYear()) });
+      // invalidate old month too if the date changed
+      if (oldDate && oldDate !== expense.date) {
+        const od = new Date(oldDate);
+        await qc.invalidateQueries({ queryKey: expenseKeys(od.getMonth() + 1, od.getFullYear()) });
+      }
       await qc.invalidateQueries({ queryKey: recentExpensesKey() });
       await qc.invalidateQueries({ queryKey: ['budgets'] });
-      await enqueue('update', 'expenses', expense);
     },
   });
 }
@@ -69,7 +72,7 @@ export function useUpdateExpense() {
 export function useDeleteExpense() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: ({ id, date }: { id: string; date: string }) => deleteExpense(id),
+    mutationFn: ({ id, date }: { id: string; date: string }) => deleteExpense(id), // date not needed by mutationFn; used in onSuccess for targeted invalidation
     onSuccess: async (_, { id, date }) => {
       const d = new Date(date);
       await qc.invalidateQueries({ queryKey: expenseKeys(d.getMonth() + 1, d.getFullYear()) });

@@ -1,9 +1,11 @@
 // FE-06 + FE-10: Expenses List + Recurring Rules
 import React, { useState, useCallback, useMemo } from 'react';
 import {
-  View, Text, StyleSheet, SectionList, ScrollView, TouchableOpacity, SafeAreaView,
+  View, Text, SectionList, ScrollView, TouchableOpacity, SafeAreaView,
   RefreshControl, Alert, type SectionListData,
 } from 'react-native';
+import styles from './expenses.styles';
+import { colors } from '../../theme/index';
 import { router } from 'expo-router';
 import { useQueryClient } from '@tanstack/react-query';
 import { useUIStore } from '../../stores/uiStore';
@@ -210,7 +212,7 @@ export default function ExpensesScreen() {
               sections={sections}
               keyExtractor={(item) => item.id}
               stickySectionHeadersEnabled
-              refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#F4A261" />}
+              refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.light.primary} />}
               renderSectionHeader={({ section: { title } }) => (
                 <View style={styles.sectionHeader}>
                   <Text style={styles.sectionHeaderText}>{title}</Text>
@@ -236,7 +238,7 @@ export default function ExpensesScreen() {
           ]}
           keyExtractor={(item) => item.id}
           stickySectionHeadersEnabled
-          refreshControl={<RefreshControl refreshing={loadingRecurring} onRefresh={onRefresh} tintColor="#F4A261" />}
+          refreshControl={<RefreshControl refreshing={loadingRecurring} onRefresh={onRefresh} tintColor={colors.light.primary} />}
           ListEmptyComponent={
             <View style={styles.emptyState}>
               <Text style={styles.emptyEmoji}>🔁</Text>
@@ -375,55 +377,3 @@ function RecurringRow({
     </TouchableOpacity>
   );
 }
-
-const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: '#FFF8F0' },
-  tabRow: { flexDirection: 'row', backgroundColor: '#FFFFFF', borderBottomWidth: 1, borderBottomColor: '#E5D5C0' },
-  tab: { flex: 1, paddingVertical: 14, alignItems: 'center' },
-  tabActive: { borderBottomWidth: 2, borderBottomColor: '#F4A261' },
-  tabText: { fontSize: 15, color: '#6B7280', fontWeight: '500' },
-  tabTextActive: { color: '#F4A261', fontWeight: '700' },
-  filterRowScroll: { borderBottomWidth: 1, borderBottomColor: '#E5D5C0' },
-  filterRow: { flexDirection: 'row', gap: 8, paddingHorizontal: 16, paddingVertical: 10 },
-  filterChip: { paddingHorizontal: 12, paddingVertical: 8, borderRadius: 16, borderWidth: 1.5, borderColor: '#E5D5C0', minHeight: 36 },
-  filterChipActive: { backgroundColor: '#F4A261', borderColor: '#F4A261' },
-  filterChipText: { fontSize: 13, color: '#6B7280', fontWeight: '500' },
-  filterChipTextActive: { color: '#FFFFFF' },
-  sectionHeader: { backgroundColor: '#FFF8F0', paddingHorizontal: 16, paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: '#E5D5C0' },
-  sectionHeaderText: { fontSize: 13, fontWeight: '700', color: '#6B7280', textTransform: 'uppercase', letterSpacing: 0.5 },
-  listContent: { paddingBottom: 80 },
-  expenseRow: {
-    flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 14,
-    backgroundColor: '#FFFFFF', borderBottomWidth: 1, borderBottomColor: '#F5EDE0',
-  },
-  categoryDot: { width: 12, height: 12, borderRadius: 6, marginRight: 12 },
-  expenseInfo: { flex: 1 },
-  expenseMerchant: { fontSize: 15, fontWeight: '500', color: '#2D3047' },
-  expenseSub: { fontSize: 12, color: '#9CA3AF', marginTop: 2 },
-  expenseRight: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  expenseAmount: { fontSize: 15, fontWeight: '700', color: '#2D3047' },
-  deleteBtn: { width: 36, height: 36, alignItems: 'center', justifyContent: 'center' },
-  deleteBtnText: { fontSize: 16 },
-  recurringRow: {
-    flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 14,
-    backgroundColor: '#FFFFFF', borderBottomWidth: 1, borderBottomColor: '#F5EDE0',
-  },
-  recurringMeta: { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 4 },
-  badge: { backgroundColor: '#E9C46A', borderRadius: 6, paddingHorizontal: 6, paddingVertical: 2 },
-  badgeText: { fontSize: 11, fontWeight: '700', color: '#2D3047' },
-  recurringActions: { alignItems: 'flex-end', gap: 4 },
-  paidBtn: { backgroundColor: '#81B29A', borderRadius: 10, paddingHorizontal: 10, paddingVertical: 6 },
-  paidBtnText: { fontSize: 12, fontWeight: '600', color: '#FFFFFF' },
-  skeletonContainer: { gap: 10, paddingTop: 10 },
-  emptyState: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingVertical: 60, gap: 12 },
-  emptyEmoji: { fontSize: 48 },
-  emptyTitle: { fontSize: 17, fontWeight: '600', color: '#2D3047' },
-  addBtn: { backgroundColor: '#F4A261', borderRadius: 14, paddingVertical: 14, paddingHorizontal: 24, minHeight: 50, justifyContent: 'center' },
-  addBtnText: { fontSize: 16, fontWeight: '600', color: '#FFFFFF', textAlign: 'center' },
-  fab: {
-    position: 'absolute', bottom: 24, right: 24, width: 60, height: 60,
-    borderRadius: 30, backgroundColor: '#F4A261', alignItems: 'center', justifyContent: 'center',
-    shadowColor: '#F4A261', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.4, shadowRadius: 8, elevation: 8,
-  },
-  fabText: { fontSize: 30, color: '#FFFFFF', lineHeight: 34, marginTop: -2 },
-});

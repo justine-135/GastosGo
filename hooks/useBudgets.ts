@@ -12,7 +12,6 @@ export function useBudgets(month: number, year: number) {
   return useQuery({
     queryKey: budgetKeys(month, year),
     queryFn: () => getBudgetProgress(USER_ID, month, year),
-    staleTime: 30_000,
   });
 }
 
@@ -23,6 +22,7 @@ export function useUpdateBudget() {
       updateCategory(categoryId, { monthlyBudget }),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['budgets'] });
+      qc.invalidateQueries({ queryKey: ['savings'] });
     },
   });
 }

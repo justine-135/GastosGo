@@ -9,10 +9,16 @@ export const colors = {
     accent: '#E9C46A',     // golden yellow "Kayamanan"
     background: '#FFF8F0', // warm cream
     surface: '#FFECD2',    // soft peach card
+    surfaceMuted: '#F0EAE0',   // segment/tab/key backgrounds, dividers
+    surfaceInput: '#F9F5F0',   // text input background (slightly warm)
+    primaryTint: '#FFF3E8',    // selected row/chip highlight on primary
+    borderSoft: '#F5EDE0',     // softer row divider (lighter than border)
     foreground: '#2D3047', // deep navy text
     destructive: '#E76F51',// coral red
     muted: '#81B29A',      // sage green
     mutedForeground: '#6B7280',
+    subtleForeground: '#9CA3AF', // secondary sub-labels, disabled text, placeholders
+    disabledForeground: '#C4B4A0', // placeholder on large input fields
     border: '#E5D5C0',
     success: '#81B29A',
     warning: '#E9C46A',
@@ -24,10 +30,16 @@ export const colors = {
     accent: '#E9C46A',
     background: '#1A1A2E',  // deep navy
     surface: '#16213E',     // dark surface
+    surfaceMuted: '#1E2A3A',
+    surfaceInput: '#1A2235',
+    primaryTint: '#2A1F14',
+    borderSoft: '#24334A',
     foreground: '#E8E8E8',  // light text
     destructive: '#E76F51',
     muted: '#81B29A',
     mutedForeground: '#9CA3AF',
+    subtleForeground: '#6B7280',
+    disabledForeground: '#4A5568',
     border: '#2D3A5A',
     success: '#81B29A',
     warning: '#E9C46A',
@@ -70,6 +82,14 @@ export const typography = {
     bold: '700' as const,
   },
 } as const;
+
+export const opacity = {
+  dim: 0.4,
+  disabled: 0.5,
+} as const;
+
+// Pure white — use for text/icons rendered on a colored background (e.g. primary buttons)
+export const white = '#FFFFFF' as const;
 
 // Category colors — matches default seed categories
 export const categoryColors = [

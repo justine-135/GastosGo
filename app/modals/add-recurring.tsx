@@ -1,9 +1,11 @@
 // FE-10: Add / Edit Recurring Rule Modal
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
-  View, Text, TextInput, TouchableOpacity, StyleSheet, SafeAreaView,
+  View, Text, TextInput, TouchableOpacity, SafeAreaView,
   ScrollView, KeyboardAvoidingView, Platform, Alert, ActivityIndicator,
 } from 'react-native';
+import { styles } from './add-recurring.styles';
+import { colors } from '../../theme/index';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useQuery } from '@tanstack/react-query';
@@ -31,8 +33,10 @@ export default function AddRecurringModal() {
 
   const { data: categories = [] } = useQuery({ queryKey: ['categories'], queryFn: getCategories });
   const { data: rules = [] } = useRecurringRules();
+  const hasSeeded = useRef(false);
 
-  // Pre-select first category when categories load and none is set yet
+  // Pre-select first category when categories load and none is set yet.
+  // Mutually exclusive with the seed effect below: only runs when !isEditing.
   useEffect(() => {
     if (!isEditing && !categoryId && categories.length > 0) {
       setCategoryId(categories[0].id);
@@ -41,9 +45,11 @@ export default function AddRecurringModal() {
   const addRule = useAddRecurringRule();
   const updateRule = useUpdateRecurringRule();
 
-  // Seed form state from existing rule when editing
+  // Seed form state from existing rule when entering edit mode.
+  // hasSeeded guards against background refetches of `rules` clobbering in-progress edits.
+  // Mutually exclusive with the category pre-select effect above: only runs when isEditing.
   useEffect(() => {
-    if (!isEditing || !params.ruleId) return;
+    if (!isEditing || hasSeeded.current) return;
     const rule = rules.find((r) => r.id === params.ruleId);
     if (!rule) return;
     setName(rule.name);
@@ -52,7 +58,8 @@ export default function AddRecurringModal() {
     setFrequency(rule.frequency);
     setPaymentMethod(rule.paymentMethod);
     setFirstDueDate(rule.nextDueDate);
-  }, [isEditing, params.ruleId, rules]);
+    hasSeeded.current = true;
+  }, [isEditing, rules, params.ruleId]);
 
   function validate(): boolean {
     const e: Record<string, string> = {};
@@ -111,7 +118,7 @@ export default function AddRecurringModal() {
             style={styles.headerBtn}
           >
             {isSaving
-              ? <ActivityIndicator size="small" color="#F4A261" />
+              ? <ActivityIndicator size="small" color={colors.light.primary} />
               : <Text style={styles.saveText}>Save</Text>}
           </TouchableOpacity>
         </View>
@@ -124,7 +131,7 @@ export default function AddRecurringModal() {
             value={name}
             onChangeText={setName}
             placeholder="e.g. Netflix, Electric Bill"
-            placeholderTextColor="#9CA3AF"
+            placeholderTextColor={colors.light.mutedForeground}
             accessibilityLabel="Recurring bill name"
             autoFocus
           />
@@ -137,10 +144,10 @@ export default function AddRecurringModal() {
             <TextInput
               style={[styles.input, { flex: 1 }, errors.amount && styles.inputError]}
               value={amount}
-              onChangeText={(v) => setAmount(v.replace(/[^0-9.]/g, ''))}
+              onChangeText={(v) => setAmount(v.replace(/[^0-9.]/g, '').replace(/^(\d*\.?\d*).*/, '$1'))}
               keyboardType="decimal-pad"
               placeholder="0.00"
-              placeholderTextColor="#9CA3AF"
+              placeholderTextColor={colors.light.mutedForeground}
               accessibilityLabel="Recurring amount"
             />
           </View>
@@ -229,38 +236,3 @@ export default function AddRecurringModal() {
   );
 }
 
-const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: '#FFF8F0' },
-  header: {
-    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
-    paddingHorizontal: 16, paddingVertical: 14, borderBottomWidth: 1, borderBottomColor: '#E5D5C0',
-  },
-  headerBtn: { minWidth: 60, minHeight: 44, justifyContent: 'center' },
-  headerTitle: { fontSize: 17, fontWeight: '600', color: '#2D3047', textAlign: 'center', flex: 1 },
-  cancelText: { fontSize: 16, color: '#6B7280' },
-  saveText: { fontSize: 16, fontWeight: '700', color: '#F4A261', textAlign: 'right' },
-  scroll: { padding: 20, gap: 10 },
-  fieldLabel: { fontSize: 14, fontWeight: '600', color: '#6B7280', textTransform: 'uppercase', letterSpacing: 0.5, marginTop: 8 },
-  input: {
-    backgroundColor: '#FFFFFF', borderRadius: 12, borderWidth: 1.5,
-    borderColor: '#E5D5C0', paddingHorizontal: 14, paddingVertical: 12,
-    fontSize: 16, color: '#2D3047', minHeight: 48,
-  },
-  inputError: { borderColor: '#E76F51' },
-  errorText: { fontSize: 13, color: '#E76F51', marginTop: -4 },
-  amountRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  pesoSign: { fontSize: 20, fontWeight: '700', color: '#F4A261' },
-  chipRow: { flexDirection: 'row', gap: 8, paddingVertical: 4 },
-  segmentRow: { flexDirection: 'row', backgroundColor: '#F0EAE0', borderRadius: 12, padding: 3 },
-  segment: { flex: 1, paddingVertical: 10, alignItems: 'center', borderRadius: 10, minHeight: 44, justifyContent: 'center' },
-  segmentActive: { backgroundColor: '#FFFFFF', shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.1, shadowRadius: 2, elevation: 2 },
-  segmentText: { fontSize: 13, color: '#6B7280', fontWeight: '500' },
-  segmentTextActive: { color: '#2D3047', fontWeight: '700' },
-  dateBtn: {
-    backgroundColor: '#FFFFFF', borderRadius: 12, borderWidth: 1.5, borderColor: '#E5D5C0',
-    paddingHorizontal: 16, paddingVertical: 14, minHeight: 48,
-  },
-  dateBtnText: { fontSize: 16, color: '#2D3047' },
-  doneDateBtn: { alignItems: 'center', paddingVertical: 12 },
-  doneDateBtnText: { fontSize: 16, color: '#F4A261', fontWeight: '600' },
-});

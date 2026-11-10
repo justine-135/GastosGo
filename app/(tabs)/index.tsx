@@ -1,9 +1,11 @@
 // FE-04: Dashboard Screen
 import React, { useCallback } from 'react';
 import {
-  View, Text, StyleSheet, ScrollView, RefreshControl,
+  View, Text, ScrollView, RefreshControl,
   TouchableOpacity, SafeAreaView, StatusBar,
 } from 'react-native';
+import styles from './index.styles';
+import { colors } from '../../theme/index';
 import { router } from 'expo-router';
 import { useQueryClient } from '@tanstack/react-query';
 import { useUIStore } from '../../stores/uiStore';
@@ -47,7 +49,7 @@ export default function DashboardScreen() {
       <ScrollView
         contentContainerStyle={styles.scroll}
         refreshControl={
-          <RefreshControl refreshing={isLoading} onRefresh={onRefresh} tintColor="#F4A261" />
+          <RefreshControl refreshing={isLoading} onRefresh={onRefresh} tintColor={colors.light.primary} />
         }
       >
         {/* Header */}
@@ -214,54 +216,3 @@ function SkeletonLoader() {
   );
 }
 
-const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: '#FFF8F0' },
-  scroll: { padding: 16, paddingBottom: 100, gap: 20 },
-  header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 },
-  greeting: { fontSize: 22, fontWeight: '700', color: '#2D3047' },
-  monthLabel: { fontSize: 14, color: '#6B7280', marginTop: 2 },
-  settingsBtn: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
-  widgetsGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 12 },
-  card: {
-    flex: 1, minWidth: '45%', backgroundColor: '#FFFFFF', borderRadius: 16, padding: 16,
-    gap: 6, borderWidth: 1, borderColor: '#E5D5C0',
-    shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.06, shadowRadius: 4, elevation: 2,
-  },
-  cardWide: { minWidth: '100%' },
-  cardLabel: { fontSize: 12, fontWeight: '600', color: '#6B7280', textTransform: 'uppercase', letterSpacing: 0.5 },
-  cardAmount: { fontSize: 26, fontWeight: '700', color: '#2D3047' },
-  cardSubtitle: { fontSize: 14, fontWeight: '600', color: '#2D3047' },
-  cardSub: { fontSize: 13, color: '#6B7280' },
-  overBudget: { color: '#E76F51' },
-  positive: { color: '#81B29A' },
-  negative: { color: '#E76F51' },
-  billRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  billName: { flex: 1, fontSize: 13, color: '#2D3047' },
-  billAmount: { fontSize: 13, fontWeight: '600', color: '#F4A261' },
-  section: { gap: 12 },
-  sectionTitle: { fontSize: 18, fontWeight: '700', color: '#2D3047' },
-  skeletonList: { gap: 12 },
-  skeletonRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
-  emptyState: { alignItems: 'center', paddingVertical: 32, gap: 8 },
-  emptyEmoji: { fontSize: 48 },
-  emptyTitle: { fontSize: 18, fontWeight: '600', color: '#2D3047' },
-  emptySubtitle: { fontSize: 15, color: '#6B7280', textAlign: 'center' },
-  ctaBtn: { backgroundColor: '#F4A261', borderRadius: 14, paddingVertical: 14, paddingHorizontal: 24, marginTop: 8 },
-  ctaBtnText: { fontSize: 16, fontWeight: '600', color: '#FFFFFF' },
-  transRow: {
-    flexDirection: 'row', alignItems: 'center', gap: 12,
-    backgroundColor: '#FFFFFF', borderRadius: 14, padding: 14,
-    borderWidth: 1, borderColor: '#E5D5C0',
-  },
-  categoryDot: { width: 12, height: 12, borderRadius: 6 },
-  transInfo: { flex: 1 },
-  transMerchant: { fontSize: 15, fontWeight: '500', color: '#2D3047' },
-  transDate: { fontSize: 12, color: '#9CA3AF', marginTop: 2 },
-  transAmount: { fontSize: 16, fontWeight: '700', color: '#2D3047' },
-  fab: {
-    position: 'absolute', bottom: 24, right: 24, width: 60, height: 60,
-    borderRadius: 30, backgroundColor: '#F4A261', alignItems: 'center', justifyContent: 'center',
-    shadowColor: '#F4A261', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.4, shadowRadius: 8, elevation: 8,
-  },
-  fabText: { fontSize: 30, color: '#FFFFFF', lineHeight: 34, marginTop: -2 },
-});

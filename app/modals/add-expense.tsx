@@ -1,9 +1,11 @@
 // FE-05: Add / Edit Expense Modal
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import {
-  View, Text, TextInput, TouchableOpacity, StyleSheet, SafeAreaView,
+  View, Text, TextInput, TouchableOpacity, SafeAreaView,
   ScrollView, KeyboardAvoidingView, Platform, Alert, Modal,
 } from 'react-native';
+import { styles } from './add-expense.styles';
+import { colors } from '../../theme/index';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
@@ -155,7 +157,7 @@ export default function AddExpenseModal() {
               onChangeText={handleAmountChange}
               keyboardType="decimal-pad"
               placeholder="0.00"
-              placeholderTextColor="#C4B4A0"
+              placeholderTextColor={colors.light.disabledForeground}
               accessibilityLabel="Expense amount"
               maxLength={10}
             />
@@ -194,7 +196,7 @@ export default function AddExpenseModal() {
                   value={newCatName}
                   onChangeText={setNewCatName}
                   placeholder="Category name"
-                  placeholderTextColor="#9CA3AF"
+                  placeholderTextColor={colors.light.mutedForeground}
                   accessibilityLabel="New category name"
                 />
                 <TextInput
@@ -202,7 +204,7 @@ export default function AddExpenseModal() {
                   value={newCatIcon}
                   onChangeText={setNewCatIcon}
                   placeholder="🏷️"
-                  placeholderTextColor="#9CA3AF"
+                  placeholderTextColor={colors.light.mutedForeground}
                   accessibilityLabel="Category icon emoji"
                   maxLength={2}
                 />
@@ -220,7 +222,7 @@ export default function AddExpenseModal() {
             value={merchant}
             onChangeText={setMerchant}
             placeholder="e.g. Jollibee, GrabFood"
-            placeholderTextColor="#9CA3AF"
+            placeholderTextColor={colors.light.mutedForeground}
             accessibilityLabel="Merchant name"
           />
 
@@ -231,7 +233,7 @@ export default function AddExpenseModal() {
             value={notes}
             onChangeText={(v) => setNotes(v.slice(0, 200))}
             placeholder="Add a note…"
-            placeholderTextColor="#9CA3AF"
+            placeholderTextColor={colors.light.mutedForeground}
             multiline
             maxLength={200}
             accessibilityLabel="Expense notes"
@@ -289,55 +291,3 @@ export default function AddExpenseModal() {
   );
 }
 
-const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: '#FFF8F0' },
-  header: {
-    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
-    paddingHorizontal: 16, paddingVertical: 14, borderBottomWidth: 1, borderBottomColor: '#E5D5C0',
-  },
-  headerBtn: { minWidth: 60, minHeight: 44, justifyContent: 'center' },
-  headerTitle: { fontSize: 17, fontWeight: '600', color: '#2D3047' },
-  cancelText: { fontSize: 16, color: '#6B7280' },
-  saveText: { fontSize: 16, fontWeight: '700', color: '#F4A261', textAlign: 'right' },
-  saveTextDisabled: { color: '#C4B4A0' },
-  scroll: { padding: 20, gap: 10 },
-  amountContainer: {
-    flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
-    paddingVertical: 16, gap: 4,
-  },
-  pesoSign: { fontSize: 36, fontWeight: '700', color: '#F4A261' },
-  amountInput: { fontSize: 52, fontWeight: '700', color: '#2D3047', minWidth: 160, textAlign: 'center' },
-  errorText: { fontSize: 13, color: '#E76F51', marginTop: -4 },
-  fieldLabel: { fontSize: 14, fontWeight: '600', color: '#6B7280', textTransform: 'uppercase', letterSpacing: 0.5, marginTop: 8 },
-  chipRow: { flexDirection: 'row', gap: 8, paddingVertical: 4 },
-  newCatChip: {
-    paddingHorizontal: 14, paddingVertical: 10, borderRadius: 20, borderWidth: 1.5,
-    borderColor: '#E5D5C0', borderStyle: 'dashed', minHeight: 44, justifyContent: 'center',
-  },
-  newCatChipText: { fontSize: 14, color: '#6B7280', fontWeight: '500' },
-  newCatForm: {
-    backgroundColor: '#FFFFFF', borderRadius: 14, padding: 14, borderWidth: 1, borderColor: '#E5D5C0', gap: 10,
-  },
-  row: { flexDirection: 'row', gap: 8 },
-  addCatBtn: { backgroundColor: '#F4A261', borderRadius: 10, paddingHorizontal: 14, justifyContent: 'center', minHeight: 44 },
-  addCatBtnText: { color: '#FFFFFF', fontWeight: '600' },
-  input: {
-    backgroundColor: '#FFFFFF', borderRadius: 12, borderWidth: 1.5,
-    borderColor: '#E5D5C0', paddingHorizontal: 14, paddingVertical: 12,
-    fontSize: 16, color: '#2D3047', minHeight: 48,
-  },
-  notesInput: { height: 80, textAlignVertical: 'top', paddingTop: 12 },
-  charCount: { fontSize: 12, color: '#9CA3AF', textAlign: 'right', marginTop: -4 },
-  segmentRow: { flexDirection: 'row', backgroundColor: '#F0EAE0', borderRadius: 12, padding: 3 },
-  segment: { flex: 1, paddingVertical: 10, alignItems: 'center', borderRadius: 10, minHeight: 44, justifyContent: 'center' },
-  segmentActive: { backgroundColor: '#FFFFFF', shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.1, shadowRadius: 2, elevation: 2 },
-  segmentText: { fontSize: 14, color: '#6B7280', fontWeight: '500' },
-  segmentTextActive: { color: '#2D3047', fontWeight: '700' },
-  dateBtn: {
-    backgroundColor: '#FFFFFF', borderRadius: 12, borderWidth: 1.5, borderColor: '#E5D5C0',
-    paddingHorizontal: 16, paddingVertical: 14, minHeight: 48,
-  },
-  dateBtnText: { fontSize: 16, color: '#2D3047' },
-  doneDateBtn: { alignItems: 'center', paddingVertical: 12 },
-  doneDateBtnText: { fontSize: 16, color: '#F4A261', fontWeight: '600' },
-});

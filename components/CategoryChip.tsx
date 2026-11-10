@@ -1,5 +1,6 @@
 import React from 'react';
-import { TouchableOpacity, Text, StyleSheet, type ViewStyle } from 'react-native';
+import { TouchableOpacity, Text, type ViewStyle } from 'react-native';
+import { styles } from './CategoryChip.styles';
 import type { Category } from '../lib/db/types';
 
 interface Props {
@@ -28,18 +29,3 @@ export function CategoryChip({ category, selected = false, onPress, style }: Pro
   );
 }
 
-const styles = StyleSheet.create({
-  chip: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 20,
-    borderWidth: 1.5,
-    minHeight: 44,
-  },
-  icon: { fontSize: 16 },
-  label: { fontSize: 14, fontWeight: '500', color: '#2D3047' },
-  labelSelected: { color: '#FFFFFF' },
-});

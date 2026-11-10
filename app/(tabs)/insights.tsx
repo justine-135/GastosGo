@@ -1,9 +1,10 @@
 // FE-08 + FE-09: Insights Screen — Pie Chart + Bar Chart
 import React, { useState, useMemo } from 'react';
 import {
-  View, Text, StyleSheet, ScrollView, SafeAreaView, RefreshControl, TouchableOpacity,
+  View, Text, ScrollView, SafeAreaView, RefreshControl, TouchableOpacity,
 } from 'react-native';
-// shortcut: victory-native not installed, replace stub once DB agent lands TASK-DB-01
+import styles from './insights.styles';
+import { colors } from '../../theme/index';
 import { PolarChart, Pie } from 'victory-native';
 import { runOnJS } from 'react-native-reanimated';
 import { useQuery } from '@tanstack/react-query';
@@ -49,7 +50,7 @@ export default function InsightsScreen() {
     <SafeAreaView style={styles.safe}>
       <ScrollView
         contentContainerStyle={styles.scroll}
-        refreshControl={<RefreshControl refreshing={isLoading} onRefresh={() => { refetch(); refetchMonths(); }} tintColor="#F4A261" />}
+        refreshControl={<RefreshControl refreshing={isLoading} onRefresh={() => { refetch(); refetchMonths(); }} tintColor={colors.light.primary} />}
       >
         <Text style={styles.screenTitle}>Insights</Text>
         <MonthNavigator />
@@ -85,7 +86,7 @@ export default function InsightsScreen() {
               const isSelected = selectedSliceId === item.categoryId;
               // FE-12: null guard for uncategorised expenses
               const label = item.categoryName || 'Uncategorised';
-              const color = item.categoryColor || '#9CA3AF';
+              const color = item.categoryColor || colors.light.mutedForeground;
               return (
                 <TouchableOpacity
                   key={item.categoryId}
@@ -107,7 +108,7 @@ export default function InsightsScreen() {
 
         {/* Selected slice detail */}
         {selectedSlice && (
-          <View style={[styles.sliceDetail, { borderLeftColor: selectedSlice.categoryColor || '#9CA3AF' }]}>
+          <View style={[styles.sliceDetail, { borderLeftColor: selectedSlice.categoryColor || colors.light.mutedForeground }]}>
             <Text style={styles.sliceDetailIcon}>{selectedSlice.categoryIcon}</Text>
             <View style={{ flex: 1 }}>
               <Text style={styles.sliceDetailName}>{selectedSlice.categoryName || 'Uncategorised'}</Text>
@@ -129,15 +130,15 @@ export default function InsightsScreen() {
           )}
           <View style={styles.barLegendRow}>
             <View style={styles.barLegendItem}>
-              <View style={[styles.barLegendDot, { backgroundColor: '#F4A261' }]} />
+              <View style={[styles.barLegendDot, { backgroundColor: colors.light.primary }]} />
               <Text style={styles.barLegendText}>Budget</Text>
             </View>
             <View style={styles.barLegendItem}>
-              <View style={[styles.barLegendDot, { backgroundColor: '#81B29A' }]} />
+              <View style={[styles.barLegendDot, { backgroundColor: colors.light.muted }]} />
               <Text style={styles.barLegendText}>Spent (under)</Text>
             </View>
             <View style={styles.barLegendItem}>
-              <View style={[styles.barLegendDot, { backgroundColor: '#E76F51' }]} />
+              <View style={[styles.barLegendDot, { backgroundColor: colors.light.destructive }]} />
               <Text style={styles.barLegendText}>Spent (over)</Text>
             </View>
           </View>
@@ -162,7 +163,7 @@ function PieChartSection({
   const chartData = data.map((item) => ({
     label: item.categoryName || 'Uncategorised',
     value: item.spent,
-    color: item.categoryColor || '#9CA3AF',
+    color: item.categoryColor || colors.light.mutedForeground,
     id: item.categoryId,
   }));
 
@@ -180,8 +181,8 @@ function PieChartSection({
             <Pie.Slice
               animate={{ type: 'timing', duration: 400 }}
               // FE-10: dim unselected slices when one is active
-              style={selectedId && slice.data.id !== selectedId ? { opacity: 0.4 } : undefined}
-              onPress={() => { 'worklet'; runOnJS(onSelect)(slice.data.id as string); }}
+              style={selectedId && slice.data.id !== selectedId ? styles.sliceDimmed : undefined}
+              onPress={() => { 'worklet'; if (slice.data.id) runOnJS(onSelect)(slice.data.id); }}
             />
           )}
         </Pie.Chart>
@@ -242,8 +243,8 @@ function BarChartSection({
                 </View>
               )}
               <View style={styles.barPair}>
-                <View style={[styles.bar, { height: budgetH, backgroundColor: '#F4A261' }]} />
-                <View style={[styles.bar, { height: spentH, backgroundColor: isOver ? '#E76F51' : '#81B29A' }]} />
+                <View style={[styles.bar, { height: budgetH, backgroundColor: colors.light.primary }]} />
+                <View style={[styles.bar, { height: spentH, backgroundColor: isOver ? colors.light.destructive : colors.light.muted }]} />
               </View>
               <Text style={styles.barLabel}>{monthAbbr(item.month)}</Text>
             </TouchableOpacity>
@@ -253,57 +254,3 @@ function BarChartSection({
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: '#FFF8F0' },
-  scroll: { padding: 16, paddingBottom: 40, gap: 20 },
-  screenTitle: { fontSize: 28, fontWeight: '700', color: '#2D3047' },
-  section: { gap: 12 },
-  sectionTitle: { fontSize: 18, fontWeight: '700', color: '#2D3047' },
-  chartPlaceholder: { alignItems: 'center', paddingVertical: 16 },
-  skeletonCircle: { alignSelf: 'center' },
-  emptyState: { alignItems: 'center', paddingVertical: 32, gap: 8 },
-  emptyEmoji: { fontSize: 40 },
-  emptyText: { fontSize: 15, color: '#6B7280', textAlign: 'center' },
-  pieWrapper: { alignItems: 'center', justifyContent: 'center' },
-  polarChart: { width: 220, height: 220 },
-  pieCenter: {
-    position: 'absolute', alignItems: 'center', justifyContent: 'center',
-    // pointerEvents="none" set on the View itself
-  },
-  pieCenterLabel: { fontSize: 13, color: '#6B7280', textTransform: 'uppercase', letterSpacing: 0.5 },
-  pieCenterAmount: { fontSize: 28, fontWeight: '700', color: '#2D3047' },
-  legend: { gap: 8 },
-  legendRow: { flexDirection: 'row', alignItems: 'center', gap: 10, padding: 10, borderRadius: 10 },
-  legendRowSelected: { backgroundColor: '#FFF3E8' },
-  legendDot: { width: 12, height: 12, borderRadius: 6 },
-  legendName: { flex: 1, fontSize: 14, color: '#2D3047', fontWeight: '500' },
-  legendAmount: { fontSize: 14, fontWeight: '600', color: '#2D3047' },
-  legendPct: { fontSize: 13, color: '#6B7280', width: 48, textAlign: 'right' },
-  sliceDetail: {
-    flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: '#FFFFFF',
-    borderRadius: 14, padding: 14, borderLeftWidth: 4,
-    shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.05, shadowRadius: 3, elevation: 1,
-  },
-  sliceDetailIcon: { fontSize: 32 },
-  sliceDetailName: { fontSize: 16, fontWeight: '700', color: '#2D3047' },
-  sliceDetailAmount: { fontSize: 20, fontWeight: '700', color: '#F4A261' },
-  sliceDetailPct: { fontSize: 13, color: '#6B7280' },
-  barChart: { flexDirection: 'row', height: 180, alignItems: 'flex-end' },
-  barYAxis: { width: 56, justifyContent: 'space-between', alignItems: 'flex-end', height: 160, paddingRight: 4 },
-  barYLabel: { fontSize: 10, color: '#9CA3AF' },
-  barGroup: { flex: 1, flexDirection: 'row', alignItems: 'flex-end', height: 160 },
-  barColumn: { flex: 1, alignItems: 'center', gap: 4 },
-  barPair: { flexDirection: 'row', alignItems: 'flex-end', gap: 2 },
-  bar: { width: 10, borderRadius: 4, minHeight: 2 },
-  barLabel: { fontSize: 10, color: '#6B7280', marginTop: 4 },
-  tooltip: {
-    position: 'absolute', top: -48, backgroundColor: '#2D3047', borderRadius: 8,
-    padding: 6, zIndex: 10,
-  },
-  tooltipText: { fontSize: 10, color: '#FFFFFF' },
-  barLegendRow: { flexDirection: 'row', gap: 16, justifyContent: 'center', flexWrap: 'wrap' },
-  barLegendItem: { flexDirection: 'row', alignItems: 'center', gap: 6 },
-  barLegendDot: { width: 10, height: 10, borderRadius: 5 },
-  barLegendText: { fontSize: 12, color: '#6B7280' },
-});

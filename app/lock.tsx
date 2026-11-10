@@ -1,15 +1,15 @@
 // FE-03: PIN / Biometric Lock Screen
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
-  View, Text, StyleSheet, SafeAreaView, TouchableOpacity,
+  View, Text, SafeAreaView, TouchableOpacity,
   AppState, type AppStateStatus, Alert,
 } from 'react-native';
+import { styles } from './lock.styles';
 import * as SecureStore from 'expo-secure-store';
-import * as Crypto from 'expo-crypto';
 import * as LocalAuthentication from 'expo-local-authentication';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { router, useLocalSearchParams } from 'expo-router';
 import { PinPad } from '../components/PinPad';
+import { hashPin, verifyPin } from '../utils/pinSecurity';
 
 const PIN_KEY = 'gastosgo-pin-hash';
 const FAIL_COUNT_KEY = 'gastosgo-pin-fail-count';
@@ -17,9 +17,6 @@ const LOCKOUT_UNTIL_KEY = 'gastosgo-pin-lockout-until';
 const MAX_ATTEMPTS = 5;
 const LOCKOUT_SECONDS = 30;
 
-async function hashPin(pin: string): Promise<string> {
-  return Crypto.digestStringAsync(Crypto.CryptoDigestAlgorithm.SHA256, pin);
-}
 
 type Mode = 'verify' | 'setup' | 'change';
 // 'enter': old PIN (change) or new PIN (setup) or current PIN (verify)
@@ -53,8 +50,8 @@ export default function LockScreen() {
       if (remaining <= 0) {
         setLockoutUntil(null);
         setCountdown(0);
-        AsyncStorage.removeItem(LOCKOUT_UNTIL_KEY);
-        AsyncStorage.setItem(FAIL_COUNT_KEY, '0');
+        SecureStore.deleteItemAsync(LOCKOUT_UNTIL_KEY);
+        SecureStore.setItemAsync(FAIL_COUNT_KEY, '0');
         clearInterval(interval);
       } else {
         setCountdown(remaining);
@@ -78,15 +75,15 @@ export default function LockScreen() {
   }, []);
 
   async function checkLockout() {
-    const until = await AsyncStorage.getItem(LOCKOUT_UNTIL_KEY);
+    const until = await SecureStore.getItemAsync(LOCKOUT_UNTIL_KEY);
     if (until) {
       const ts = parseInt(until, 10);
       if (ts > Date.now()) {
         setLockoutUntil(ts);
         setCountdown(Math.ceil((ts - Date.now()) / 1000));
       } else {
-        await AsyncStorage.removeItem(LOCKOUT_UNTIL_KEY);
-        await AsyncStorage.setItem(FAIL_COUNT_KEY, '0');
+        await SecureStore.deleteItemAsync(LOCKOUT_UNTIL_KEY);
+        await SecureStore.setItemAsync(FAIL_COUNT_KEY, '0');
       }
     }
   }
@@ -154,7 +151,6 @@ export default function LockScreen() {
   async function submitPin(entered: string) {
     if (mode === 'verify' || (mode === 'change' && step === 'enter')) {
       const stored = await SecureStore.getItemAsync(PIN_KEY);
-      const hashed = await hashPin(entered);
 
       if (!stored && mode === 'verify') {
         // No PIN set — go straight to app
@@ -162,8 +158,9 @@ export default function LockScreen() {
         return;
       }
 
-      if (stored === hashed) {
-        await AsyncStorage.setItem(FAIL_COUNT_KEY, '0');
+      const match = stored ? await verifyPin(entered, stored) : false;
+      if (match) {
+        await SecureStore.setItemAsync(FAIL_COUNT_KEY, '0');
         if (mode === 'change') {
           // Old PIN verified — now collect the new PIN
           setStep('new');
@@ -172,13 +169,13 @@ export default function LockScreen() {
           navigateToApp();
         }
       } else {
-        const countStr = await AsyncStorage.getItem(FAIL_COUNT_KEY);
+        const countStr = await SecureStore.getItemAsync(FAIL_COUNT_KEY);
         const count = parseInt(countStr ?? '0', 10) + 1;
-        await AsyncStorage.setItem(FAIL_COUNT_KEY, String(count));
+        await SecureStore.setItemAsync(FAIL_COUNT_KEY, String(count));
 
         if (count >= MAX_ATTEMPTS) {
           const until = Date.now() + LOCKOUT_SECONDS * 1000;
-          await AsyncStorage.setItem(LOCKOUT_UNTIL_KEY, String(until));
+          await SecureStore.setItemAsync(LOCKOUT_UNTIL_KEY, String(until));
           setLockoutUntil(until);
           setCountdown(LOCKOUT_SECONDS);
         } else {
@@ -252,18 +249,3 @@ export default function LockScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: '#FFF8F0' },
-  container: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 24, paddingHorizontal: 32 },
-  appName: { fontSize: 24, fontWeight: '700', color: '#F4A261' },
-  header: { fontSize: 20, fontWeight: '600', color: '#2D3047', textAlign: 'center' },
-  dotsRow: { flexDirection: 'row', gap: 16 },
-  pinDot: {
-    width: 16, height: 16, borderRadius: 8,
-    borderWidth: 2, borderColor: '#E5D5C0', backgroundColor: 'transparent',
-  },
-  pinDotFilled: { backgroundColor: '#F4A261', borderColor: '#F4A261' },
-  error: { fontSize: 14, color: '#E76F51', textAlign: 'center' },
-  lockout: { fontSize: 15, color: '#E76F51', fontWeight: '600' },
-  hint: { fontSize: 13, color: '#9CA3AF', textAlign: 'center', marginTop: 8 },
-});

@@ -23,7 +23,6 @@ export function useRecurringRules() {
   return useQuery({
     queryKey: recurringKeys.all,
     queryFn: () => getRecurringRules(USER_ID),
-    staleTime: 30_000,
   });
 }
 
@@ -31,7 +30,6 @@ export function useRulesDueSoon(days = 7) {
   return useQuery({
     queryKey: recurringKeys.dueSoon(days),
     queryFn: () => getRulesDueWithin(USER_ID, days),
-    staleTime: 30_000,
   });
 }
 
@@ -86,6 +84,7 @@ export function useMarkRuleAsPaid() {
       qc.invalidateQueries({ queryKey: recurringKeys.all });
       qc.invalidateQueries({ queryKey: ['expenses'] });
       qc.invalidateQueries({ queryKey: ['budgets'] });
+      qc.invalidateQueries({ queryKey: ['savings'] });
     },
   });
 }

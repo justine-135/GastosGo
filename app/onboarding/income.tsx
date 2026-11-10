@@ -1,9 +1,11 @@
 // Onboarding Screen 2 — Income Setup
 import React, { useState } from 'react';
 import {
-  View, Text, TouchableOpacity, TextInput, StyleSheet, SafeAreaView,
+  View, Text, TouchableOpacity, TextInput, SafeAreaView,
   ScrollView, KeyboardAvoidingView, Platform,
 } from 'react-native';
+import styles from './income.styles';
+import { colors } from '../../theme/index';
 import { router } from 'expo-router';
 import type { IncomeMode } from '../../lib/db/types';
 
@@ -82,7 +84,7 @@ export default function OnboardingIncome() {
                 onChangeText={setSalary}
                 keyboardType="numeric"
                 placeholder="e.g. 25000"
-                placeholderTextColor="#9CA3AF"
+                placeholderTextColor={colors.light.mutedForeground}
                 accessibilityLabel="Monthly salary amount"
               />
             </View>
@@ -97,7 +99,7 @@ export default function OnboardingIncome() {
                 onChangeText={setSavingsTarget}
                 keyboardType="numeric"
                 placeholder="e.g. 5000"
-                placeholderTextColor="#9CA3AF"
+                placeholderTextColor={colors.light.mutedForeground}
                 accessibilityLabel="Monthly savings target amount"
               />
             </View>
@@ -119,41 +121,3 @@ export default function OnboardingIncome() {
   );
 }
 
-const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: '#FFF8F0' },
-  scroll: { padding: 24, paddingBottom: 48, gap: 20 },
-  stepRow: { flexDirection: 'row', gap: 8, justifyContent: 'center', marginBottom: 8 },
-  dot: { width: 8, height: 8, borderRadius: 4, backgroundColor: '#E5D5C0' },
-  dotActive: { backgroundColor: '#F4A261', width: 24 },
-  title: { fontSize: 28, fontWeight: '700', color: '#2D3047' },
-  subtitle: { fontSize: 15, color: '#6B7280', marginTop: -8 },
-  radioGroup: { gap: 12 },
-  radioCard: {
-    flexDirection: 'row', alignItems: 'center', gap: 12,
-    backgroundColor: '#FFFFFF', borderRadius: 16, padding: 16,
-    borderWidth: 1.5, borderColor: '#E5D5C0', minHeight: 72,
-  },
-  radioCardSelected: { borderColor: '#F4A261', backgroundColor: '#FFF3E8' },
-  radioCircle: {
-    width: 24, height: 24, borderRadius: 12, borderWidth: 2,
-    borderColor: '#E5D5C0', alignItems: 'center', justifyContent: 'center',
-  },
-  radioCircleSelected: { borderColor: '#F4A261' },
-  radioInner: { width: 12, height: 12, borderRadius: 6, backgroundColor: '#F4A261' },
-  radioText: { flex: 1 },
-  radioLabel: { fontSize: 16, fontWeight: '600', color: '#2D3047' },
-  radioDesc: { fontSize: 13, color: '#6B7280', marginTop: 2 },
-  inputGroup: { gap: 8 },
-  inputLabel: { fontSize: 15, fontWeight: '500', color: '#2D3047' },
-  input: {
-    backgroundColor: '#FFFFFF', borderRadius: 12, borderWidth: 1.5,
-    borderColor: '#E5D5C0', paddingHorizontal: 16, paddingVertical: 14,
-    fontSize: 17, color: '#2D3047', minHeight: 52,
-  },
-  nextBtn: {
-    backgroundColor: '#F4A261', borderRadius: 16, paddingVertical: 18,
-    alignItems: 'center', marginTop: 8, minHeight: 56,
-  },
-  nextBtnDisabled: { backgroundColor: '#E5D5C0' },
-  nextBtnText: { fontSize: 17, fontWeight: '700', color: '#FFFFFF' },
-});

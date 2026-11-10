@@ -79,6 +79,12 @@ When you identify a backend dependency, call it out clearly:
 - Current approach: [How the frontend handles it in the meantime]
 ```
 
+## Styles File Convention
+
+- **Never write styles in the same file as the component.** All `StyleSheet.create` calls and style objects must live in a co-located `ComponentName.styles.ts` file (e.g., `ExpenseCard.styles.ts` alongside `ExpenseCard.tsx`).
+- Import the styles object into the component: `import { styles } from './ExpenseCard.styles'`.
+- **Design tokens must be referenced, never hardcoded.** Use values from `theme/colors`, `theme/spacing`, and `theme/radius`. Never write raw hex values, pixel numbers, or border radii inline.
+
 ## Self-Verification Before Submitting
 
 Before finalizing any code output, verify:
@@ -88,6 +94,9 @@ Before finalizing any code output, verify:
 4. ✅ No backend logic is included in frontend code
 5. ✅ Code matches the project's existing patterns and conventions
 6. ✅ No half-finished logic or TODO placeholders in delivered code
+7. ✅ Styles are in a `.styles.ts` file, not inline in the component
+8. ✅ All style values reference design tokens from `theme/`
+9. ✅ Invoke `/code-review-and-quality` and `/code-simplification` after delivering any significant component or screen
 
 **Update your agent memory** as you discover project-specific patterns, design tokens, component conventions, navigation structures, and state management approaches. This builds up institutional knowledge across conversations.
 
