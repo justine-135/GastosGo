@@ -4,6 +4,16 @@ appId: com.gastosgo.app
 # stopApp:false avoids cold bundle reload (dev builds load from Metro, taking 30s+)
 - launchApp:
     stopApp: false
+- runFlow:
+    when:
+      visible: "Enter PIN"
+    commands:
+      - tapOn: "1"
+      - tapOn: "2"
+      - tapOn: "3"
+      - tapOn: "4"
+      - tapOn: "5"
+      - tapOn: "6"
 - extendedWaitUntil:
     visible: "Recent Transactions"
     timeout: 90000

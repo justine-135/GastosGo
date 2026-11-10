@@ -4,7 +4,7 @@ import {
   View, Text, FlatList, TouchableOpacity, SafeAreaView,
   RefreshControl, TextInput, Alert,
 } from 'react-native';
-import styles from './budgets.styles';
+import { styles } from './budgets.styles';
 import { colors } from '../../theme/index';
 import { router } from 'expo-router';
 import { useUIStore } from '../../stores/uiStore';

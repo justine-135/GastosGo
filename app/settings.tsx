@@ -245,7 +245,7 @@ export default function SettingsScreen() {
           <View style={styles.dayPickerSheet}>
             <Text style={styles.dayPickerTitle}>Budget Cycle Start Day</Text>
             <FlatList
-              data={Array.from({ length: 28 }, (_, i) => i + 1)}
+              data={Array.from({ length: 31 }, (_, i) => i + 1)}
               keyExtractor={(item) => String(item)}
               numColumns={7}
               renderItem={({ item }) => (

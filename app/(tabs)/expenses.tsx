@@ -4,7 +4,7 @@ import {
   View, Text, SectionList, ScrollView, TouchableOpacity, SafeAreaView,
   RefreshControl, Alert, type SectionListData,
 } from 'react-native';
-import styles from './expenses.styles';
+import { styles } from './expenses.styles';
 import { colors } from '../../theme/index';
 import { router } from 'expo-router';
 import { useQueryClient } from '@tanstack/react-query';
@@ -233,7 +233,7 @@ export default function ExpensesScreen() {
         /* Recurring tab */
         <SectionList
           sections={[
-            { title: 'Active', data: activeRules },
+            ...(activeRules.length > 0 ? [{ title: 'Active', data: activeRules }] : []),
             ...(inactiveRules.length > 0 ? [{ title: 'Inactive', data: inactiveRules }] : []),
           ]}
           keyExtractor={(item) => item.id}

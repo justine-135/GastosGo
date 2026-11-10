@@ -55,4 +55,4 @@ const styles = StyleSheet.create({
   fabText: { fontSize: 30, color: white, lineHeight: 34, marginTop: -2 },
 });
 
-export default styles;
+export { styles };

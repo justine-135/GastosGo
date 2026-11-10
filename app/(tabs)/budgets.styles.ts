@@ -41,4 +41,4 @@ const styles = StyleSheet.create({
   emptySub: { fontSize: typography.sizes.base, color: c.mutedForeground, textAlign: 'center', paddingHorizontal: spacing.lg },
 });
 
-export default styles;
+export { styles };

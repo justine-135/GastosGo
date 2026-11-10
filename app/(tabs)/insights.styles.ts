@@ -58,4 +58,4 @@ const styles = StyleSheet.create({
   barLegendText: { fontSize: typography.sizes.sm - 1, color: c.mutedForeground },
 });
 
-export default styles;
+export { styles };

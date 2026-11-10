@@ -31,10 +31,15 @@ export default function OnboardingBudget() {
       setError('');
       // shortcut: not transactional — partial budget saves possible on network error,
       //           upgrade to a DB transaction when the data layer supports it
+      const parseMaybe = (s: string | undefined) => {
+        if (!s?.trim()) return undefined;
+        const n = parseFloat(s);
+        return Number.isNaN(n) ? undefined : n;
+      };
       await insertProfile({
         incomeMode: incomeMode ?? 'salary',
-        monthlySalary: parseFloat(salary ?? '0') || undefined,
-        savingsTarget: parseFloat(savingsTarget ?? '0') || undefined,
+        monthlySalary: parseMaybe(salary),
+        savingsTarget: parseMaybe(savingsTarget),
       });
 
       // Save per-category budgets

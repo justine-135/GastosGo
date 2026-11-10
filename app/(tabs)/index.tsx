@@ -4,7 +4,7 @@ import {
   View, Text, ScrollView, RefreshControl,
   TouchableOpacity, SafeAreaView, StatusBar,
 } from 'react-native';
-import styles from './index.styles';
+import { styles } from './index.styles';
 import { colors } from '../../theme/index';
 import { router } from 'expo-router';
 import { useQueryClient } from '@tanstack/react-query';
@@ -13,9 +13,10 @@ import { useRecentExpenses } from '../../hooks/useExpenses';
 import { useBudgets } from '../../hooks/useBudgets';
 import { useSavings } from '../../hooks/useSavings';
 import { useRulesDueSoon } from '../../hooks/useRecurring';
+import { MonthNavigator } from '../../components/MonthNavigator';
 import { SkeletonBox } from '../../components/SkeletonBox';
 import { BudgetProgressBar } from '../../components/BudgetProgressBar';
-import { formatPeso, formatDate, formatMonthYear } from '../../utils/format';
+import { formatPeso, formatDate } from '../../utils/format';
 
 export default function DashboardScreen() {
   const qc = useQueryClient();
@@ -56,7 +57,6 @@ export default function DashboardScreen() {
         <View style={styles.header}>
           <View>
             <Text style={styles.greeting}>Good day! 👋</Text>
-            <Text style={styles.monthLabel}>{formatMonthYear(selectedMonth, selectedYear)}</Text>
           </View>
           <TouchableOpacity
             onPress={() => router.push('/settings')}
@@ -67,6 +67,8 @@ export default function DashboardScreen() {
             <Text style={{ fontSize: 24 }}>⚙️</Text>
           </TouchableOpacity>
         </View>
+        {/* Month navigation — same store state drives useBudgets/useSavings below */}
+        <MonthNavigator />
 
         {/* Summary widgets */}
         <View style={styles.widgetsGrid}>

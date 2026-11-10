@@ -3,7 +3,7 @@ import React, { useState, useMemo } from 'react';
 import {
   View, Text, ScrollView, SafeAreaView, RefreshControl, TouchableOpacity,
 } from 'react-native';
-import styles from './insights.styles';
+import { styles } from './insights.styles';
 import { colors } from '../../theme/index';
 import { PolarChart, Pie } from 'victory-native';
 import { runOnJS } from 'react-native-reanimated';

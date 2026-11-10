@@ -26,8 +26,13 @@ export function formatMonthYear(month: number, year: number): string {
   return `${MONTH_NAMES_FULL[month - 1]} ${year}`;
 }
 
+// bare ISO dates (no T) are UTC midnight per spec — force local-time parsing
+function parseLocalDate(isoDate: string): Date {
+  return new Date(isoDate.includes('T') ? isoDate : `${isoDate}T00:00:00`);
+}
+
 export function formatDate(isoDate: string): string {
-  const d = new Date(isoDate);
+  const d = parseLocalDate(isoDate);
   const now = new Date();
   const localToday = new Date(now.getTime() - now.getTimezoneOffset() * 60000).toISOString().split('T')[0];
   const localYesterday = new Date(now.getTime() - now.getTimezoneOffset() * 60000 - 86400000).toISOString().split('T')[0];
@@ -39,7 +44,7 @@ export function formatDate(isoDate: string): string {
 }
 
 export function formatFullDate(isoDate: string): string {
-  return new Date(isoDate).toLocaleDateString('en-PH', {
+  return parseLocalDate(isoDate).toLocaleDateString('en-PH', {
     year: 'numeric', month: 'short', day: 'numeric',
   });
 }

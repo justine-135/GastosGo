@@ -11,7 +11,7 @@ export interface Profile {
   incomeMode: IncomeMode;
   monthlySalary: number | null;
   savingsTarget: number | null;
-  budgetCycleStart: number; // 1–28
+  budgetCycleStart: number; // 1–31
   expoPushToken: string | null;
   createdAt: string;
   updatedAt: string;

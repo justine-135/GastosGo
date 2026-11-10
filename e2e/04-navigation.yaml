@@ -3,6 +3,16 @@ appId: com.gastosgo.app
 # Tab navigation: all 4 tabs load without crash
 - launchApp:
     stopApp: false
+- runFlow:
+    when:
+      visible: "Enter PIN"
+    commands:
+      - tapOn: "1"
+      - tapOn: "2"
+      - tapOn: "3"
+      - tapOn: "4"
+      - tapOn: "5"
+      - tapOn: "6"
 - tapOn:
     text: "Cancel"
     optional: true
@@ -24,6 +34,10 @@ appId: com.gastosgo.app
     visible: "🔁 Recurring"
     timeout: 15000
 - assertNotVisible: "Recent Transactions"
+- tapOn: "🔁 Recurring"
+- extendedWaitUntil:
+    visible: "Active"
+    timeout: 10000
 - takeScreenshot: nav-expenses
 
 - tapOn: "Budgets"
