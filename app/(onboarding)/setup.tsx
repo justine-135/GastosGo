@@ -5,6 +5,8 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { eq } from "drizzle-orm";
 import { db, DEFAULT_CATEGORIES } from "../../db";
 import { categoriesTable, profilesTable } from "../../db/schema";
+import { insertProfile } from "../../db/queries/profiles";
+import { insertCategory } from "../../db/queries/categories";
 import { generateId } from "../../lib/crypto";
 import { formatCurrency } from "../../lib/formatCurrency";
 import { useAuthStore } from "../../store/authStore";
@@ -32,7 +34,7 @@ export default function OnboardingSetupScreen() {
     // Check if profile already exists
     const existing = await db.select().from(profilesTable).where(eq(profilesTable.userId, userId)).limit(1);
     if (existing.length === 0) {
-      await db.insert(profilesTable).values({
+      await insertProfile({
         userId,
         incomeMode: mode,
         monthlySalary: mode === "salary" ? salaryNum : null,
@@ -42,10 +44,10 @@ export default function OnboardingSetupScreen() {
       });
 
       // Seed default categories
-      const existing = await db.select().from(categoriesTable).limit(1);
-      if (existing.length === 0) {
-        await db.insert(categoriesTable).values(
-          DEFAULT_CATEGORIES.map((cat) => ({
+      const existingCats = await db.select().from(categoriesTable).limit(1);
+      if (existingCats.length === 0) {
+        for (const cat of DEFAULT_CATEGORIES) {
+          await insertCategory({
             id: generateId(),
             userId,
             name: cat.name,
@@ -53,8 +55,8 @@ export default function OnboardingSetupScreen() {
             color: cat.color,
             monthlyBudget: cat.monthlyBudget,
             currency: "PHP",
-          }))
-        );
+          });
+        }
       }
     }
 

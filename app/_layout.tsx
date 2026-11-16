@@ -2,6 +2,7 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { useMigrations } from "drizzle-orm/expo-sqlite/migrator";
 import { Slot, useRouter, useSegments } from "expo-router";
 import { useEffect, useRef } from "react";
+import { AppState } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { db, migrations } from "../db";
 import { queryClient } from "../lib/queryClient";
@@ -11,10 +12,11 @@ import { generateId } from "../lib/crypto";
 import { usersTable, profilesTable } from "../db/schema";
 import { eq, isNull } from "drizzle-orm";
 import { supabase } from "../lib/supabase";
+import { drainSyncQueue } from "../db/queries/syncQueue";
 
 export default function RootLayout() {
   const { success: migrationsRan, error: migrationError } = useMigrations(db, migrations);
-  const { userId, setSession } = useAuthStore();
+  const { userId, setSession, supabaseSession } = useAuthStore();
   const resolved = useThemeStore((s) => s.resolved);
   const router = useRouter();
   const segments = useSegments();
@@ -45,24 +47,24 @@ export default function RootLayout() {
       const bySupaId = await db.select().from(usersTable)
         .where(eq(usersTable.supabaseId, supabaseId))
         .limit(1);
-      if (bySupaId.length > 0) {
-        setSession(bySupaId[0].id, session);
-        return;
-      }
-
-      // Migration: link an unlinked local-only user, or create fresh
-      const unlinked = await db.select().from(usersTable)
-        .where(isNull(usersTable.supabaseId))
-        .limit(1);
       let localId: string;
-      if (unlinked.length > 0) {
-        localId = unlinked[0].id;
-        await db.update(usersTable).set({ supabaseId }).where(eq(usersTable.id, localId));
+      if (bySupaId.length > 0) {
+        localId = bySupaId[0].id;
       } else {
-        localId = generateId();
-        await db.insert(usersTable).values({ id: localId, supabaseId });
+        // Migration: link an unlinked local-only user, or create fresh
+        const unlinked = await db.select().from(usersTable)
+          .where(isNull(usersTable.supabaseId))
+          .limit(1);
+        if (unlinked.length > 0) {
+          localId = unlinked[0].id;
+          await db.update(usersTable).set({ supabaseId }).where(eq(usersTable.id, localId));
+        } else {
+          localId = generateId();
+          await db.insert(usersTable).values({ id: localId, supabaseId });
+        }
       }
       setSession(localId, session);
+      drainSyncQueue(supabaseId).catch((e) => console.warn("[sync]", e));
     }
 
     bootstrap().catch((e) => {
@@ -70,6 +72,16 @@ export default function RootLayout() {
       if (e?.message !== "supabase_timeout") console.warn("[bootstrap]", e);
     });
   }, [migrationsRan]);
+
+  // Drain queue when app comes back to foreground
+  useEffect(() => {
+    if (!supabaseSession) return;
+    const uid = supabaseSession.user.id;
+    const sub = AppState.addEventListener("change", (state) => {
+      if (state === "active") drainSyncQueue(uid).catch((e) => console.warn("[sync]", e));
+    });
+    return () => sub.remove();
+  }, [supabaseSession]);
 
   // If migrations ran but auth isn't ready yet, go to onboarding immediately.
   // Handles Supabase failure / slow network — avoids hanging on (tabs) forever.

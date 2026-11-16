@@ -1,6 +1,7 @@
 import { and, eq } from "drizzle-orm";
 import { db } from "../index";
 import { incomeRecordsTable, type NewIncomeRecord } from "../schema";
+import { enqueueSync } from "./syncQueue";
 
 export async function getIncomeForMonth(userId: string, month: number, year: number) {
   return db
@@ -16,5 +17,6 @@ export async function getIncomeForMonth(userId: string, month: number, year: num
 }
 
 export async function insertIncome(values: NewIncomeRecord) {
-  return db.insert(incomeRecordsTable).values(values);
+  await db.insert(incomeRecordsTable).values(values);
+  await enqueueSync("insert", "income_records", values.id, values);
 }

@@ -18,9 +18,16 @@ export async function enqueueSync(
   await db.insert(syncQueueTable).values(item);
 }
 
+// camelCase → snake_case so PostgREST column names match
+function toSnake(obj: Record<string, unknown>): Record<string, unknown> {
+  return Object.fromEntries(
+    Object.entries(obj).map(([k, v]) => [k.replace(/([A-Z])/g, "_$1").toLowerCase(), v])
+  );
+}
+
 const MAX_RETRIES = 5;
 
-export async function drainSyncQueue() {
+export async function drainSyncQueue(supabaseUid: string) {
   const items = await db
     .select()
     .from(syncQueueTable)
@@ -29,13 +36,13 @@ export async function drainSyncQueue() {
 
   for (const item of items) {
     try {
-      const payload = JSON.parse(item.payload);
-      if (item.operation === "insert") {
-        await supabase.from(item.tableName).upsert(payload);
-      } else if (item.operation === "update") {
-        await supabase.from(item.tableName).upsert(payload);
+      if (item.operation === "delete") {
+        const { error } = await supabase.from(item.tableName).delete().eq("id", item.recordId);
+        if (error) throw error;
       } else {
-        await supabase.from(item.tableName).delete().eq("id", item.recordId);
+        const payload = { ...toSnake(JSON.parse(item.payload)), user_id: supabaseUid };
+        const { error } = await supabase.from(item.tableName).upsert(payload);
+        if (error) throw error;
       }
       await db.delete(syncQueueTable).where(eq(syncQueueTable.id, item.id));
     } catch (e) {

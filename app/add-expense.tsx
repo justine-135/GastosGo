@@ -4,7 +4,9 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { and, eq, gte, isNull, lte } from "drizzle-orm";
 import { db } from "../db";
-import { categoriesTable, expensesTable, recurringRulesTable } from "../db/schema";
+import { categoriesTable, expensesTable } from "../db/schema";
+import { insertExpense } from "../db/queries/expenses";
+import { insertRecurringRule } from "../db/queries/recurringRules";
 import { useAddExpenseStore } from "../store/addExpenseStore";
 import { useAuthStore } from "../store/authStore";
 import { useCurrentCycle } from "../hooks/useCurrentCycle";
@@ -60,7 +62,7 @@ export default function AddExpenseModal() {
     mutationFn: async () => {
       if (!userId) throw new Error("No user");
       if (store.isRecurring) {
-        await db.insert(recurringRulesTable).values({
+        await insertRecurringRule({
           id: generateId(),
           userId,
           name: store.merchant || selectedCat?.name || "Bill",
@@ -72,7 +74,7 @@ export default function AddExpenseModal() {
           isActive: true,
         });
       } else {
-        await db.insert(expensesTable).values({
+        await insertExpense({
           id: generateId(),
           userId,
           amount: amountNum,
