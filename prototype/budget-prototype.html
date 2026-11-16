@@ -1,0 +1,763 @@
+<!DOCTYPE html>
+<!-- PROTOTYPE — throwaway. Answers: does the budget screen layout, inline-edit sheet, and carryover toggle feel right? -->
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>GastosGo · Budget Prototype</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --primary:#F4A261;--secondary:#A8DADC;--accent:#E9C46A;
+  --bg:#FFF8F0;--card:#FFECD2;--fg:#2D3047;
+  --destructive:#E76F51;--muted:#81B29A;
+  --border:#e5ddd4;--muted-text:#6b7280;
+}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#ede8e3;display:flex;min-height:100vh;padding:20px;gap:20px;align-items:flex-start}
+
+/* PHONE */
+.phone-wrap{flex-shrink:0;width:375px;position:sticky;top:20px}
+.phone{width:375px;height:812px;background:var(--bg);border-radius:46px;box-shadow:0 24px 64px rgba(0,0,0,.28),inset 0 0 0 1px rgba(255,255,255,.6);overflow:hidden;position:relative;border:11px solid #1a1a2e}
+.notch{position:absolute;top:0;left:50%;transform:translateX(-50%);width:118px;height:30px;background:#1a1a2e;border-radius:0 0 18px 18px;z-index:100}
+.screen{display:none;height:100%;overflow-y:auto;flex-direction:column}
+.screen.active{display:flex}
+
+/* STATUS BAR */
+.sbar{display:flex;justify-content:space-between;padding:10px 22px 2px;font-size:12px;font-weight:600;color:var(--fg);flex-shrink:0}
+
+/* SHARED */
+.btn-primary{display:block;width:calc(100% - 32px);margin:8px 16px;padding:16px;background:var(--primary);color:#fff;border:none;border-radius:14px;font-size:16px;font-weight:700;cursor:pointer;text-align:center}
+.btn-primary:disabled{opacity:.4;cursor:default}
+.btn-secondary{display:block;width:calc(100% - 32px);margin:4px 16px;padding:14px;background:transparent;color:var(--primary);border:2px solid var(--primary);border-radius:14px;font-size:14px;font-weight:600;cursor:pointer;text-align:center}
+.btn-ghost{background:none;border:none;cursor:pointer;color:var(--muted-text);font-size:13px;font-weight:600;padding:4px 0}
+.card{background:var(--card);border-radius:16px;padding:16px;margin:0 16px 12px}
+.hdr{padding:8px 16px 10px;display:flex;align-items:center;gap:10px;flex-shrink:0}
+.hdr-title{font-size:20px;font-weight:700;color:var(--fg);flex:1}
+.back-btn{width:36px;height:36px;display:flex;align-items:center;justify-content:center;border-radius:50%;background:var(--card);cursor:pointer;font-size:17px;border:none;color:var(--fg);flex-shrink:0}
+.section-hdr{padding:4px 20px 6px;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--muted-text);display:flex;justify-content:space-between;align-items:center}
+.scrollable{flex:1;overflow-y:auto;padding-bottom:88px}
+.input-wrap{margin:0 0 12px}
+.input-lbl{font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.3px;color:var(--muted-text);margin-bottom:5px}
+.input-field{width:100%;padding:13px;border:2px solid var(--border);border-radius:12px;font-size:15px;color:var(--fg);background:#fff;outline:none}
+.input-field:focus{border-color:var(--primary)}
+
+/* TAB BAR */
+.tab-bar{position:absolute;bottom:0;left:0;right:0;height:80px;background:#fff;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-around;padding-bottom:14px}
+.tab-btn{display:flex;flex-direction:column;align-items:center;gap:2px;cursor:pointer;opacity:.45;border:none;background:none;padding:4px 10px}
+.tab-btn.active{opacity:1}
+.tab-btn span:first-child{font-size:21px}
+.tab-btn span:last-child{font-size:10px;font-weight:600;color:var(--fg)}
+.tab-btn.active span:last-child{color:var(--primary)}
+
+/* FAB */
+.fab{position:absolute;bottom:88px;right:18px;width:52px;height:52px;background:var(--primary);border-radius:26px;border:none;font-size:26px;color:#fff;cursor:pointer;box-shadow:0 4px 16px rgba(244,162,97,.55);display:flex;align-items:center;justify-content:center;line-height:1}
+
+/* TOTAL OVERVIEW CARD */
+.overview-card{margin:0 16px 10px;background:linear-gradient(135deg,var(--fg) 0%,#3d4166 100%);border-radius:18px;padding:18px 20px}
+.ov-label{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:rgba(255,255,255,.6);margin-bottom:3px}
+.ov-row{display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:12px}
+.ov-spent{font-size:28px;font-weight:800;color:#fff}
+.ov-of{font-size:14px;color:rgba(255,255,255,.6);margin-bottom:4px}
+.ov-bar-wrap{height:7px;background:rgba(255,255,255,.2);border-radius:4px;overflow:hidden;margin-bottom:8px}
+.ov-bar{height:100%;border-radius:4px;transition:width .4s}
+.ov-stats{display:flex;justify-content:space-between}
+.ov-stat-lbl{font-size:10px;color:rgba(255,255,255,.55);text-transform:uppercase;letter-spacing:.3px}
+.ov-stat-val{font-size:13px;font-weight:700;color:#fff;margin-top:2px}
+
+/* CATEGORY ROW */
+.cat-row{display:flex;align-items:center;gap:11px;padding:11px 0;border-bottom:1px solid var(--border);cursor:pointer;transition:background .1s}
+.cat-row:last-child{border-bottom:none}
+.cat-row:hover{background:rgba(0,0,0,.02)}
+.cat-badge{width:40px;height:40px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:19px;flex-shrink:0}
+.cat-info{flex:1;min-width:0}
+.cat-name-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px}
+.cat-name{font-size:14px;font-weight:600;color:var(--fg)}
+.cat-pct{font-size:12px;font-weight:700}
+.cat-bar-wrap{height:5px;background:var(--border);border-radius:3px;overflow:hidden;margin-bottom:3px}
+.cat-bar{height:100%;border-radius:3px;transition:width .3s}
+.cat-amounts{font-size:11px;color:var(--muted-text)}
+.cat-amounts strong{color:var(--fg)}
+.cat-carryover-tag{font-size:10px;font-weight:600;color:var(--secondary);background:rgba(168,218,220,.2);border-radius:6px;padding:2px 6px;margin-left:5px}
+.cat-no-budget{font-size:11px;color:var(--muted-text);font-style:italic}
+.cat-chevron{color:var(--border);font-size:14px;flex-shrink:0}
+
+/* BADGE COLORS */
+.badge-orange{background:rgba(244,162,97,.18)}
+.badge-teal{background:rgba(168,218,220,.25)}
+.badge-yellow{background:rgba(233,196,106,.22)}
+.badge-sage{background:rgba(129,178,154,.2)}
+.badge-blue{background:rgba(144,202,249,.25)}
+.badge-purple{background:rgba(206,147,216,.22)}
+.badge-gray{background:rgba(188,170,164,.2)}
+
+/* PROGRESS BAR COLORS */
+.bar-safe{background:var(--muted)}
+.bar-warn{background:var(--accent)}
+.bar-danger{background:var(--destructive)}
+
+/* EMPTY STATE */
+.empty-state{text-align:center;padding:32px 20px}
+.empty-emoji{font-size:48px;margin-bottom:12px}
+.empty-title{font-size:17px;font-weight:700;color:var(--fg);margin-bottom:6px}
+.empty-sub{font-size:13px;color:var(--muted-text);line-height:1.5}
+
+/* ===== BOTTOM SHEET ===== */
+.sheet-overlay{position:absolute;inset:0;background:rgba(0,0,0,.35);z-index:200;display:none;align-items:flex-end}
+.sheet-overlay.open{display:flex}
+.sheet{background:var(--bg);border-radius:24px 24px 0 0;width:100%;max-height:88%;overflow-y:auto;padding:0 0 20px}
+.sheet-handle{width:36px;height:4px;background:var(--border);border-radius:2px;margin:12px auto 4px}
+.sheet-hdr{padding:8px 20px 12px;display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--border)}
+.sheet-icon{width:44px;height:44px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0}
+.sheet-cat-name{font-size:18px;font-weight:800;color:var(--fg)}
+.sheet-cat-sub{font-size:12px;color:var(--muted-text)}
+.sheet-close{margin-left:auto;background:var(--card);border:none;border-radius:50%;width:30px;height:30px;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;color:var(--muted-text)}
+.sheet-body{padding:16px 20px 0}
+.stat-row{display:flex;justify-content:space-between;margin-bottom:14px}
+.stat-box{text-align:center;flex:1}
+.stat-val{font-size:18px;font-weight:800;color:var(--fg)}
+.stat-lbl{font-size:11px;color:var(--muted-text);text-transform:uppercase;letter-spacing:.3px;margin-top:2px}
+.stat-box.mid{border-left:1px solid var(--border);border-right:1px solid var(--border)}
+.mini-bar-wrap{height:8px;background:var(--border);border-radius:4px;overflow:hidden;margin-bottom:16px}
+.mini-bar{height:100%;border-radius:4px;transition:width .3s}
+.sheet-section-lbl{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:var(--muted-text);margin-bottom:8px}
+.mini-exp{display:flex;align-items:center;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--border);font-size:13px}
+.mini-exp:last-child{border-bottom:none}
+.mini-exp-name{color:var(--fg);font-weight:500}
+.mini-exp-meta{color:var(--muted-text);font-size:11px}
+.mini-exp-amt{font-weight:700;color:var(--fg)}
+.divider{height:1px;background:var(--border);margin:16px 0}
+
+/* TOGGLE */
+.toggle-row{display:flex;align-items:center;justify-content:space-between;padding:4px 0}
+.toggle-info{}
+.toggle-title{font-size:14px;font-weight:600;color:var(--fg)}
+.toggle-desc{font-size:12px;color:var(--muted-text);margin-top:1px}
+.toggle{position:relative;width:44px;height:26px;flex-shrink:0}
+.toggle input{opacity:0;width:0;height:0}
+.toggle-track{position:absolute;inset:0;background:var(--border);border-radius:13px;cursor:pointer;transition:background .2s}
+.toggle input:checked+.toggle-track{background:var(--primary)}
+.toggle-thumb{position:absolute;top:3px;left:3px;width:20px;height:20px;background:#fff;border-radius:50%;transition:transform .2s;box-shadow:0 1px 3px rgba(0,0,0,.2)}
+.toggle input:checked~.toggle-thumb{transform:translateX(18px)}
+
+/* ADD CATEGORY */
+.icon-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:8px;margin-bottom:8px}
+.icon-opt{width:100%;aspect-ratio:1;border:2px solid var(--border);border-radius:12px;background:#fff;font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s}
+.icon-opt.sel{border-color:var(--primary);background:rgba(244,162,97,.1)}
+.color-grid{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:4px}
+.color-opt{width:30px;height:30px;border-radius:50%;cursor:pointer;border:3px solid transparent;transition:all .15s}
+.color-opt.sel{border-color:var(--fg);transform:scale(1.15)}
+
+/* RIGHT PANEL */
+.right-panel{flex:1;display:flex;flex-direction:column;gap:14px;max-width:460px}
+.rp-title{font-size:17px;font-weight:800;color:#1a1a2e}
+.panel{background:#fff;border-radius:12px;padding:14px}
+.panel h3{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--muted-text);margin-bottom:10px}
+
+/* CONTROLS PANEL */
+.ctrl-row{display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid var(--border)}
+.ctrl-row:last-child{border-bottom:none}
+.ctrl-icon{font-size:16px;width:22px;text-align:center;flex-shrink:0}
+.ctrl-name{font-size:12px;font-weight:600;color:var(--fg);width:72px;flex-shrink:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ctrl-slider{flex:1;accent-color:var(--primary);height:4px;cursor:pointer}
+.ctrl-amt{font-size:11px;color:var(--muted-text);width:68px;text-align:right;flex-shrink:0}
+.ctrl-pct{font-size:10px;font-weight:700;width:30px;text-align:right;flex-shrink:0}
+.savings-row{display:flex;gap:10px;margin-top:4px}
+.savings-field{flex:1}
+.savings-field label{display:block;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.3px;color:var(--muted-text);margin-bottom:4px}
+.savings-input{width:100%;padding:8px 10px;border:2px solid var(--border);border-radius:8px;font-size:13px;color:var(--fg);outline:none}
+.savings-input:focus{border-color:var(--primary)}
+.sc-grid{display:flex;flex-wrap:wrap;gap:7px}
+.sc-btn{padding:7px 12px;border:1.5px solid var(--border);border-radius:18px;background:#fff;font-size:12px;cursor:pointer;color:var(--fg);font-weight:500;transition:all .15s}
+.sc-btn:hover{border-color:var(--primary);color:var(--primary)}
+.state-panel{background:#1a1a2e;border-radius:12px;padding:14px;min-height:180px}
+.state-panel h3{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:#4a5568;margin-bottom:10px}
+pre.state-out{font-family:'Cascadia Code','Fira Code',monospace;font-size:11.5px;color:#a8dadc;white-space:pre-wrap;line-height:1.6}
+.questions-panel{background:#fffbeb;border:1px solid var(--accent);border-radius:12px;padding:14px}
+.questions-panel h3{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:#b45309;margin-bottom:8px}
+.q-item{font-size:12px;color:#78350f;line-height:1.5;margin-bottom:5px;padding-left:14px;position:relative}
+.q-item::before{content:'?';position:absolute;left:0;font-weight:700;color:#d97706}
+.note{font-size:12px;color:#b45309;background:rgba(233,196,106,.15);border-radius:8px;padding:8px 10px;margin-top:8px}
+</style>
+</head>
+<body>
+
+<!-- PHONE -->
+<div class="phone-wrap">
+<div class="phone">
+<div class="notch"></div>
+
+<!-- ===== BUDGETS MAIN ===== -->
+<div id="s-budgets" class="screen active">
+  <div class="sbar"><span>9:41</span><span>⚡ 100%</span></div>
+  <div class="hdr">
+    <span class="hdr-title">Budgets</span>
+    <button class="back-btn" style="font-size:13px;font-weight:600;color:var(--primary);background:none;border:none;cursor:pointer;width:auto;height:auto;padding:0" onclick="goTo('add-category')">+ New</button>
+  </div>
+  <div style="padding:0 20px 10px;font-size:12px;color:var(--muted-text)">November 2026 · Day 13 of 30</div>
+
+  <div class="scrollable">
+    <!-- Total overview -->
+    <div class="overview-card" id="overview-card">
+      <div class="ov-label">Total Spent</div>
+      <div class="ov-row">
+        <div>
+          <div class="ov-spent" id="ov-spent">₱0</div>
+          <div class="ov-of" id="ov-of">of ₱0 budgeted</div>
+        </div>
+        <div style="text-align:right">
+          <div style="font-size:22px;font-weight:800;color:#fff" id="ov-pct">0%</div>
+          <div style="font-size:11px;color:rgba(255,255,255,.55)">used</div>
+        </div>
+      </div>
+      <div class="ov-bar-wrap"><div class="ov-bar" id="ov-bar" style="width:0%"></div></div>
+      <div class="ov-stats">
+        <div><div class="ov-stat-lbl">Remaining</div><div class="ov-stat-val" id="ov-rem">₱0</div></div>
+        <div style="text-align:center"><div class="ov-stat-lbl">Saved</div><div class="ov-stat-val" id="ov-saved">—</div></div>
+        <div style="text-align:right"><div class="ov-stat-lbl">Over budget</div><div class="ov-stat-val" id="ov-over">0</div></div>
+      </div>
+    </div>
+
+    <!-- Over budget -->
+    <div id="sec-over" style="display:none">
+      <div class="section-hdr"><span>🚨 Over Budget</span></div>
+      <div class="card" style="padding:8px 14px"><div id="list-over"></div></div>
+    </div>
+
+    <!-- Warning -->
+    <div id="sec-warn" style="display:none">
+      <div class="section-hdr"><span>⚠️ Approaching Limit</span></div>
+      <div class="card" style="padding:8px 14px"><div id="list-warn"></div></div>
+    </div>
+
+    <!-- On track -->
+    <div id="sec-ok">
+      <div class="section-hdr"><span>✅ On Track</span></div>
+      <div class="card" style="padding:8px 14px"><div id="list-ok"></div></div>
+    </div>
+
+  </div>
+
+  <button class="fab" onclick="goTo('add-category')">+</button>
+  <div class="tab-bar">
+    <button class="tab-btn" onclick="alert('Home')"><span>🏠</span><span>Home</span></button>
+    <button class="tab-btn" onclick="alert('Expenses')"><span>📋</span><span>Expenses</span></button>
+    <button class="tab-btn active"><span>🎯</span><span>Budgets</span></button>
+    <button class="tab-btn" onclick="alert('Insights')"><span>📊</span><span>Insights</span></button>
+  </div>
+</div>
+
+<!-- ===== ADD CATEGORY ===== -->
+<div id="s-add-category" class="screen">
+  <div class="sbar"><span>9:41</span><span>⚡ 100%</span></div>
+  <div class="hdr">
+    <button class="back-btn" onclick="goTo('budgets')">←</button>
+    <span class="hdr-title">New Category</span>
+  </div>
+  <div class="scrollable" style="padding:0 16px 20px">
+    <div class="input-wrap">
+      <div class="input-lbl">Name</div>
+      <input class="input-field" id="inp-cat-name" placeholder="e.g. Gym, Utilities" oninput="S.newCat.name=this.value">
+    </div>
+
+    <div class="input-wrap">
+      <div class="input-lbl">Icon</div>
+      <div class="icon-grid" id="icon-grid"></div>
+    </div>
+
+    <div class="input-wrap">
+      <div class="input-lbl">Color</div>
+      <div class="color-grid" id="color-grid"></div>
+    </div>
+
+    <div class="input-wrap">
+      <div class="input-lbl">Monthly Budget (₱)</div>
+      <input class="input-field" id="inp-cat-budget" type="number" placeholder="0" oninput="S.newCat.monthlyBudget=parseFloat(this.value)||0">
+    </div>
+
+    <div style="margin-bottom:16px">
+      <div class="toggle-row">
+        <div class="toggle-info">
+          <div class="toggle-title">Budget Carryover</div>
+          <div class="toggle-desc">Unused budget carries to next month</div>
+        </div>
+        <label class="toggle">
+          <input type="checkbox" id="chk-cat-carryover" onchange="S.newCat.carryoverEnabled=this.checked">
+          <span class="toggle-track"></span>
+          <span class="toggle-thumb"></span>
+        </label>
+      </div>
+    </div>
+
+    <button class="btn-primary" onclick="saveNewCategory()">Add Category</button>
+  </div>
+</div>
+
+<!-- ===== BOTTOM SHEET (category detail / edit) ===== -->
+<div class="sheet-overlay" id="sheet-overlay" onclick="closeSheet(event)">
+  <div class="sheet" id="sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-hdr">
+      <div class="sheet-icon" id="sh-icon-bg">
+        <span id="sh-icon">🍚</span>
+      </div>
+      <div>
+        <div class="sheet-cat-name" id="sh-name">Food</div>
+        <div class="sheet-cat-sub" id="sh-sub">Monthly budget</div>
+      </div>
+      <button class="sheet-close" onclick="closeSheet()">✕</button>
+    </div>
+    <div class="sheet-body">
+      <!-- Stats -->
+      <div class="stat-row">
+        <div class="stat-box"><div class="stat-val" id="sh-spent">₱0</div><div class="stat-lbl">Spent</div></div>
+        <div class="stat-box mid"><div class="stat-val" id="sh-budget">₱0</div><div class="stat-lbl">Budget</div></div>
+        <div class="stat-box"><div class="stat-val" id="sh-rem">₱0</div><div class="stat-lbl">Remaining</div></div>
+      </div>
+      <div class="mini-bar-wrap"><div class="mini-bar" id="sh-bar"></div></div>
+
+      <!-- Recent expenses in this category -->
+      <div class="sheet-section-lbl">This Month's Expenses</div>
+      <div id="sh-exp-list" style="margin-bottom:16px"></div>
+
+      <div class="divider"></div>
+
+      <!-- Edit budget -->
+      <div class="input-wrap">
+        <div class="input-lbl">Monthly Budget (₱)</div>
+        <input class="input-field" type="number" id="sh-inp-budget" oninput="shBudgetInput(this.value)">
+      </div>
+
+      <!-- Carryover toggle -->
+      <div class="toggle-row" style="margin-bottom:16px">
+        <div class="toggle-info">
+          <div class="toggle-title">Budget Carryover</div>
+          <div class="toggle-desc">Roll unused budget to next month</div>
+        </div>
+        <label class="toggle">
+          <input type="checkbox" id="sh-chk-carryover" onchange="shCarryover(this.checked)">
+          <span class="toggle-track"></span>
+          <span class="toggle-thumb"></span>
+        </label>
+      </div>
+
+      <button class="btn-primary" onclick="saveSheetEdit()">Save Changes</button>
+      <button class="btn-ghost" id="sh-delete-btn" onclick="deleteCategory()" style="display:block;text-align:center;width:100%;color:var(--destructive);margin-top:8px">Delete Category</button>
+    </div>
+  </div>
+</div>
+
+</div><!-- /phone -->
+</div><!-- /phone-wrap -->
+
+<!-- RIGHT PANEL -->
+<div class="right-panel">
+  <div class="rp-title">GastosGo · Budget Screen Prototype</div>
+
+  <div class="panel">
+    <h3>Controls</h3>
+    <div id="ctrl-sliders"></div>
+    <div class="savings-row" style="margin-top:12px">
+      <div class="savings-field">
+        <label>Savings (₱)</label>
+        <input class="savings-input" type="number" id="inp-savings" placeholder="0" oninput="S.savings=parseFloat(this.value)||0;render()">
+      </div>
+      <div class="savings-field">
+        <label>Target Savings (₱)</label>
+        <input class="savings-input" type="number" id="inp-target-savings" placeholder="0" oninput="S.targetSavings=parseFloat(this.value)||0;render()">
+      </div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <h3>Scenarios</h3>
+    <div class="sc-grid">
+      <button class="sc-btn" onclick="scenario('healthy')">✅ Healthy</button>
+      <button class="sc-btn" onclick="scenario('mixed')">⚠️ Mixed</button>
+      <button class="sc-btn" onclick="scenario('over')">🚨 Over Budget</button>
+      <button class="sc-btn" onclick="scenario('no-budgets')">🌱 No Budgets Set</button>
+      <button class="sc-btn" onclick="scenario('month-end')">📅 Month End</button>
+      <button class="sc-btn" onclick="scenario('carryover')">🔄 With Carryover</button>
+    </div>
+  </div>
+
+  <div class="questions-panel">
+    <h3>Open questions this prototype should answer</h3>
+    <div class="q-item">Is the total budget overview card at the top useful, or does it push the category list too far down?</div>
+    <div class="q-item">Sections (Over Budget / Warning / On Track) vs. a single sorted list — does grouping help or add noise?</div>
+    <div class="q-item">Is the bottom sheet the right pattern for editing a budget, or should it be inline (tap the amount to edit it in place)?</div>
+    <div class="q-item"><strong>Schema gap:</strong> <code>carryoverEnabled</code> is not in the <code>categories</code> table yet — it's in the PRD/GLOSSARY but missing from the schema. Where should it live?</div>
+    <div class="q-item">Categories with no budget set — show them in a separate section, or hide them until the user taps "Set budget"?</div>
+    <div class="note">⚠️ Schema note: <code>categoriesTable</code> has no <code>carryoverEnabled</code> column. The toggle works in the prototype via in-memory state only. Needs a migration before it's buildable.</div>
+  </div>
+
+  <div class="panel">
+    <h3>Live State</h3>
+    <pre class="state-out" id="state-out" style="font-family:'Cascadia Code',monospace;font-size:11.5px;color:var(--fg);line-height:1.6;white-space:pre-wrap"></pre>
+  </div>
+</div>
+
+<script>
+// =========================================================
+// CROSS-PROTOTYPE SYNC
+// =========================================================
+const BC = new BroadcastChannel('gg_proto');
+let _bcReceiving = false;
+BC.onmessage = ({data}) => {
+  if(data.source === 'budget') return;
+  _bcReceiving = true;
+  S.expenses = data.expenses;
+  S.spentOverrides = {}; // clear slider overrides when real data arrives
+  if(data.actualSavings !== undefined) S.savings = data.actualSavings;
+  if(data.profile?.savingsTarget) S.targetSavings = data.profile.savingsTarget;
+  render();
+  _bcReceiving = false;
+};
+
+// =========================================================
+// ICON + COLOR OPTIONS
+// =========================================================
+const ICONS = ['🍚','🚌','🎮','📝','🛍️','💊','📦','🏃','☕','🍺','✈️','🎓','🐶','🎬','💪','🏠','⚡','💡','🧴','🎁'];
+const COLORS = ['#F4A261','#A8DADC','#E9C46A','#81B29A','#90CAF9','#CE93D8','#BCAAA4','#F48FB1','#80DEEA','#A5D6A7'];
+const BADGE_CLASSES = {
+  '#F4A261':'badge-orange','#A8DADC':'badge-teal','#E9C46A':'badge-yellow',
+  '#81B29A':'badge-sage','#90CAF9':'badge-blue','#CE93D8':'badge-purple',
+  '#BCAAA4':'badge-gray','#F48FB1':'badge-orange','#80DEEA':'badge-teal','#A5D6A7':'badge-sage',
+};
+
+function badgeStyle(color){ return `background:${color}22`; }
+
+// =========================================================
+// DEFAULT CATEGORIES
+// =========================================================
+function defaultCats(){
+  return [
+    { id:'food',      name:'Food',      icon:'🍚', color:'#F4A261', monthlyBudget:3000, carryoverEnabled:false },
+    { id:'transport', name:'Transport', icon:'🚌', color:'#A8DADC', monthlyBudget:1500, carryoverEnabled:false },
+    { id:'leisure',   name:'Leisure',   icon:'🎮', color:'#E9C46A', monthlyBudget:2000, carryoverEnabled:false },
+    { id:'bills',     name:'Bills',     icon:'📝', color:'#81B29A', monthlyBudget:5000, carryoverEnabled:false },
+    { id:'shopping',  name:'Shopping',  icon:'🛍️', color:'#90CAF9', monthlyBudget:2000, carryoverEnabled:false },
+    { id:'health',    name:'Health',    icon:'💊', color:'#CE93D8', monthlyBudget:1000, carryoverEnabled:false },
+    { id:'other',     name:'Other',     icon:'📦', color:'#BCAAA4', monthlyBudget:1000, carryoverEnabled:false },
+  ];
+}
+
+function clone(x){ return JSON.parse(JSON.stringify(x)) }
+function fmt(n){ return '₱'+Math.abs(n).toLocaleString('en-PH',{maximumFractionDigits:0}) }
+
+// =========================================================
+// STATE
+// =========================================================
+let S = {
+  screen: 'budgets',
+  categories: defaultCats(),
+  expenses: [],
+  newCat: { name:'', icon: ICONS[0], color: COLORS[0], monthlyBudget:0, carryoverEnabled:false },
+  editCatId: null,
+  savings: 0,
+  targetSavings: 0,
+  spentOverrides: {}, // catId → peso amount set by slider
+};
+
+function spent(catId){
+  if(catId in S.spentOverrides) return S.spentOverrides[catId];
+  return S.expenses.filter(e=>e.categoryId===catId).reduce((s,e)=>s+e.amount,0);
+}
+
+// =========================================================
+// NAVIGATION
+// =========================================================
+function goTo(screen){
+  S.screen = screen;
+  render();
+}
+
+// =========================================================
+// SHEET
+// =========================================================
+function openSheet(catId){
+  S.editCatId = catId;
+  const cat = S.categories.find(c=>c.id===catId);
+  if(!cat) return;
+
+  const usedAmt = spent(catId);
+  const rem = cat.monthlyBudget - usedAmt;
+  const pct = cat.monthlyBudget > 0 ? Math.min((usedAmt/cat.monthlyBudget)*100,100) : 0;
+  const barColor = pct>=100?'var(--destructive)':pct>=80?'var(--accent)':'var(--muted)';
+
+  document.getElementById('sh-icon-bg').style.cssText = `width:44px;height:44px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;background:${cat.color}22`;
+  document.getElementById('sh-icon').textContent = cat.icon;
+  document.getElementById('sh-name').textContent = cat.name;
+  document.getElementById('sh-sub').textContent = cat.monthlyBudget>0 ? fmt(cat.monthlyBudget)+' / month' : 'No budget set';
+  document.getElementById('sh-spent').textContent = fmt(usedAmt);
+  document.getElementById('sh-budget').textContent = cat.monthlyBudget>0 ? fmt(cat.monthlyBudget) : '—';
+  document.getElementById('sh-rem').textContent = cat.monthlyBudget>0 ? fmt(rem) : '—';
+  document.getElementById('sh-rem').style.color = rem<0?'var(--destructive)':'var(--fg)';
+  document.getElementById('sh-bar').style.cssText = `height:100%;border-radius:4px;width:${pct}%;background:${barColor};transition:width .3s`;
+  document.getElementById('sh-inp-budget').value = cat.monthlyBudget||'';
+  document.getElementById('sh-chk-carryover').checked = !!cat.carryoverEnabled;
+
+  // Recent expenses in this category
+  const catExps = S.expenses.filter(e=>e.categoryId===catId).reverse().slice(0,4);
+  document.getElementById('sh-exp-list').innerHTML = catExps.length
+    ? catExps.map(e=>`
+        <div class="mini-exp">
+          <div><div class="mini-exp-name">${e.merchant}</div><div class="mini-exp-meta">${e.paymentMethod} · ${e.date}</div></div>
+          <div class="mini-exp-amt">${fmt(e.amount)}</div>
+        </div>`).join('')
+    : '<div style="font-size:13px;color:var(--muted-text);padding:8px 0">No expenses logged yet.</div>';
+
+  // Show delete only for custom categories (not the 7 defaults)
+  const defaults = ['food','transport','leisure','bills','shopping','health','other'];
+  document.getElementById('sh-delete-btn').style.display = defaults.includes(catId) ? 'none' : 'block';
+
+  document.getElementById('sheet-overlay').classList.add('open');
+}
+
+function closeSheet(e){
+  if(e && e.target !== document.getElementById('sheet-overlay')) return;
+  document.getElementById('sheet-overlay').classList.remove('open');
+  S.editCatId = null;
+}
+
+function shBudgetInput(v){
+  const cat = S.categories.find(c=>c.id===S.editCatId);
+  if(cat) cat.monthlyBudget = parseFloat(v)||0;
+}
+
+function shCarryover(v){
+  const cat = S.categories.find(c=>c.id===S.editCatId);
+  if(cat) cat.carryoverEnabled = v;
+}
+
+function saveSheetEdit(){
+  const cat = S.categories.find(c=>c.id===S.editCatId);
+  if(!cat) return;
+  cat.monthlyBudget = parseFloat(document.getElementById('sh-inp-budget').value)||0;
+  cat.carryoverEnabled = document.getElementById('sh-chk-carryover').checked;
+  document.getElementById('sheet-overlay').classList.remove('open');
+  S.editCatId = null;
+  render();
+}
+
+function deleteCategory(){
+  if(!S.editCatId) return;
+  S.categories = S.categories.filter(c=>c.id!==S.editCatId);
+  S.expenses = S.expenses.filter(e=>e.categoryId!==S.editCatId);
+  document.getElementById('sheet-overlay').classList.remove('open');
+  S.editCatId = null;
+  render();
+}
+
+// =========================================================
+// ADD CATEGORY
+// =========================================================
+function saveNewCategory(){
+  const { name, icon, color, monthlyBudget, carryoverEnabled } = S.newCat;
+  if(!name.trim()) { alert('Enter a category name'); return; }
+  S.categories.push({
+    id: 'cat_'+Date.now(), name:name.trim(), icon, color, monthlyBudget, carryoverEnabled,
+  });
+  S.newCat = { name:'', icon:ICONS[0], color:COLORS[0], monthlyBudget:0, carryoverEnabled:false };
+  goTo('budgets');
+}
+
+function pickIcon(icon){
+  S.newCat.icon = icon;
+  document.querySelectorAll('.icon-opt').forEach(el=>el.classList.toggle('sel', el.dataset.icon===icon));
+}
+
+function pickColor(color){
+  S.newCat.color = color;
+  document.querySelectorAll('.color-opt').forEach(el=>el.classList.toggle('sel', el.dataset.color===color));
+}
+
+// =========================================================
+// SCENARIOS
+// =========================================================
+function scenario(name){
+  S.categories = defaultCats();
+  S.spentOverrides = {};
+  switch(name){
+    case 'healthy':
+      S.expenses = [
+        {id:'e1',amount:900,categoryId:'food',merchant:'Jollibee',paymentMethod:'GCash',date:'2026-11-05'},
+        {id:'e2',amount:400,categoryId:'transport',merchant:'Grab',paymentMethod:'GCash',date:'2026-11-07'},
+        {id:'e3',amount:299,categoryId:'leisure',merchant:'Netflix',paymentMethod:'Card',date:'2026-11-08'},
+        {id:'e4',amount:1200,categoryId:'bills',merchant:'Meralco',paymentMethod:'GCash',date:'2026-11-10'},
+      ];
+      break;
+    case 'mixed':
+      S.expenses = [
+        {id:'e1',amount:2420,categoryId:'food',merchant:'Various',paymentMethod:'GCash',date:'2026-11-05'},
+        {id:'e2',amount:1650,categoryId:'leisure',merchant:'Shopee',paymentMethod:'Card',date:'2026-11-08'},
+        {id:'e3',amount:400,categoryId:'transport',merchant:'Grab',paymentMethod:'GCash',date:'2026-11-10'},
+        {id:'e4',amount:1800,categoryId:'bills',merchant:'Meralco',paymentMethod:'GCash',date:'2026-11-11'},
+      ];
+      break;
+    case 'over':
+      S.expenses = [
+        {id:'e1',amount:3600,categoryId:'food',merchant:'Various',paymentMethod:'GCash',date:'2026-11-05'},
+        {id:'e2',amount:2250,categoryId:'leisure',merchant:'Shopee + GC',paymentMethod:'Card',date:'2026-11-08'},
+        {id:'e3',amount:1500,categoryId:'transport',merchant:'Grab',paymentMethod:'GCash',date:'2026-11-10'},
+        {id:'e4',amount:1200,categoryId:'shopping',merchant:'Lazada',paymentMethod:'Card',date:'2026-11-12'},
+      ];
+      break;
+    case 'no-budgets':
+      S.categories = defaultCats().map(c=>({...c,monthlyBudget:0}));
+      S.expenses = [];
+      break;
+    case 'month-end':
+      S.expenses = [
+        {id:'e1',amount:2900,categoryId:'food',merchant:'Various',paymentMethod:'GCash',date:'2026-11-01'},
+        {id:'e2',amount:1480,categoryId:'transport',merchant:'Grab',paymentMethod:'GCash',date:'2026-11-05'},
+        {id:'e3',amount:1950,categoryId:'leisure',merchant:'Shopee',paymentMethod:'Card',date:'2026-11-10'},
+        {id:'e4',amount:4800,categoryId:'bills',merchant:'Meralco+PLDT',paymentMethod:'GCash',date:'2026-11-15'},
+        {id:'e5',amount:1800,categoryId:'shopping',merchant:'Lazada',paymentMethod:'Card',date:'2026-11-18'},
+        {id:'e6',amount:500,categoryId:'health',merchant:'Mercury Drug',paymentMethod:'Cash',date:'2026-11-20'},
+        {id:'e7',amount:850,categoryId:'other',merchant:'Misc',paymentMethod:'Cash',date:'2026-11-22'},
+      ];
+      break;
+    case 'carryover':
+      S.categories = defaultCats().map((c,i)=>({...c, carryoverEnabled: i===0||i===3}));
+      S.expenses = [
+        {id:'e1',amount:1800,categoryId:'food',merchant:'Various',paymentMethod:'GCash',date:'2026-11-05'},
+        {id:'e2',amount:400,categoryId:'transport',merchant:'Grab',paymentMethod:'GCash',date:'2026-11-07'},
+        {id:'e3',amount:3200,categoryId:'bills',merchant:'Meralco+PLDT',paymentMethod:'GCash',date:'2026-11-10'},
+      ];
+      break;
+  }
+  S.screen = 'budgets';
+  render();
+}
+
+// =========================================================
+// RENDER
+// =========================================================
+function setSpentSlider(catId, val){
+  S.spentOverrides[catId] = parseFloat(val)||0;
+  render();
+}
+
+function renderControls(){
+  document.getElementById('ctrl-sliders').innerHTML = S.categories.map(cat=>{
+    const max = Math.max(cat.monthlyBudget*1.5, 5000);
+    const val = spent(cat.id);
+    const pct = cat.monthlyBudget>0 ? Math.round(val/cat.monthlyBudget*100) : 0;
+    const pctColor = pct>=100?'var(--destructive)':pct>=80?'#d97706':'var(--muted-text)';
+    return `<div class="ctrl-row">
+      <span class="ctrl-icon">${cat.icon}</span>
+      <span class="ctrl-name">${cat.name}</span>
+      <input class="ctrl-slider" type="range" min="0" max="${max}" step="50" value="${val}"
+        oninput="setSpentSlider('${cat.id}',this.value);this.nextElementSibling.textContent='₱'+Math.round(this.value).toLocaleString();this.nextElementSibling.nextElementSibling.textContent=this.value>0&&${cat.monthlyBudget}>0?Math.round(this.value/${cat.monthlyBudget}*100)+'%':'—'">
+      <span class="ctrl-amt">${fmt(val)}</span>
+      <span class="ctrl-pct" style="color:${pctColor}">${cat.monthlyBudget>0?pct+'%':'—'}</span>
+    </div>`;
+  }).join('');
+  document.getElementById('inp-savings').value = S.savings||'';
+  document.getElementById('inp-target-savings').value = S.targetSavings||'';
+}
+
+function render(){
+  document.querySelectorAll('.screen').forEach(el=>el.classList.remove('active'));
+  const el=document.getElementById('s-'+S.screen);
+  if(el) el.classList.add('active');
+
+  renderControls();
+  if(S.screen==='budgets') renderBudgets();
+  if(S.screen==='add-category') renderAddCat();
+  renderStateOut();
+  if(!_bcReceiving) BC.postMessage({source:'budget', expenses: S.expenses});
+}
+
+function renderBudgets(){
+  const totalBudget = S.categories.reduce((s,c)=>s+c.monthlyBudget,0);
+  const totalSpent  = S.categories.reduce((s,c)=>s+spent(c.id),0);
+  const pctTotal    = totalBudget>0 ? Math.min((totalSpent/totalBudget)*100,100) : 0;
+  const overCats    = S.categories.filter(c=>c.monthlyBudget>0 && spent(c.id)>=c.monthlyBudget);
+  const warnCats    = S.categories.filter(c=>c.monthlyBudget>0 && spent(c.id)<c.monthlyBudget && spent(c.id)/c.monthlyBudget>=0.8);
+  const okCats      = S.categories.filter(c=>c.monthlyBudget>0 && spent(c.id)/c.monthlyBudget<0.8);
+
+  // Overview card
+  document.getElementById('ov-spent').textContent = fmt(totalSpent);
+  document.getElementById('ov-of').textContent = `of ${fmt(totalBudget)} budgeted`;
+  document.getElementById('ov-pct').textContent = Math.round(pctTotal)+'%';
+  document.getElementById('ov-rem').textContent = fmt(Math.max(totalBudget-totalSpent,0));
+  document.getElementById('ov-over').textContent = overCats.length;
+  const savingsEl = document.getElementById('ov-saved');
+  if(S.savings>0||S.targetSavings>0){
+    savingsEl.textContent = S.targetSavings>0 ? `${fmt(S.savings)} / ${fmt(S.targetSavings)}` : fmt(S.savings);
+    savingsEl.style.color = S.targetSavings>0 && S.savings>=S.targetSavings ? 'var(--muted)' : '#fff';
+  } else {
+    savingsEl.textContent = '—';
+    savingsEl.style.color = '#fff';
+  }
+  const ovBarColor = overCats.length>0?'#E76F51':pctTotal>=80?'#E9C46A':'#A8DADC';
+  document.getElementById('ov-bar').style.cssText = `height:100%;border-radius:4px;width:${pctTotal}%;background:${ovBarColor};transition:width .4s`;
+
+  // Sections
+  const renderSec = (cats, listId, secId) => {
+    if(cats.length===0){ document.getElementById(secId).style.display='none'; return; }
+    document.getElementById(secId).style.display='block';
+    document.getElementById(listId).innerHTML = cats.map(c=>catRow(c)).join('');
+  };
+  renderSec(overCats,'list-over','sec-over');
+  renderSec(warnCats,'list-warn','sec-warn');
+  renderSec(okCats,'list-ok','sec-ok');
+}
+
+function catRow(cat){
+  const usedAmt = spent(cat.id);
+  const hasBudget = cat.monthlyBudget > 0;
+  const pct = hasBudget ? Math.min((usedAmt/cat.monthlyBudget)*100,100) : 0;
+  const barClass = pct>=100?'bar-danger':pct>=80?'bar-warn':'bar-safe';
+  const pctColor = pct>=100?'var(--destructive)':pct>=80?'#d97706':'var(--muted-text)';
+  const carryTag = cat.carryoverEnabled ? '<span class="cat-carryover-tag">↩ Carryover</span>' : '';
+  return `<div class="cat-row" onclick="openSheet('${cat.id}')">
+    <div class="cat-badge" style="background:${cat.color}22">${cat.icon}</div>
+    <div class="cat-info">
+      <div class="cat-name-row">
+        <div style="display:flex;align-items:center">${cat.name}${carryTag}</div>
+        <span class="cat-pct" style="color:${pctColor}">${hasBudget?Math.round(pct)+'%':'—'}</span>
+      </div>
+      ${hasBudget
+        ? `<div class="cat-bar-wrap"><div class="cat-bar ${barClass}" style="width:${pct}%"></div></div>
+           <div class="cat-amounts">${fmt(usedAmt)} <span style="color:var(--border)">·</span> ${fmt(cat.monthlyBudget)} budget · <strong>${fmt(Math.max(cat.monthlyBudget-usedAmt,0))} left</strong></div>`
+        : `<div class="cat-no-budget">Tap to set a budget</div>`}
+    </div>
+    <span class="cat-chevron">›</span>
+  </div>`;
+}
+
+function renderAddCat(){
+  // Icon grid
+  document.getElementById('icon-grid').innerHTML = ICONS.map(ic=>
+    `<button class="icon-opt${S.newCat.icon===ic?' sel':''}" data-icon="${ic}" onclick="pickIcon('${ic}')">${ic}</button>`
+  ).join('');
+  // Color grid
+  document.getElementById('color-grid').innerHTML = COLORS.map(c=>
+    `<div class="color-opt${S.newCat.color===c?' sel':''}" data-color="${c}" style="background:${c}" onclick="pickColor('${c}')"></div>`
+  ).join('');
+  document.getElementById('inp-cat-name').value = S.newCat.name;
+  document.getElementById('inp-cat-budget').value = S.newCat.monthlyBudget||'';
+  document.getElementById('chk-cat-carryover').checked = S.newCat.carryoverEnabled;
+}
+
+function renderStateOut(){
+  const display = {
+    screen: S.screen,
+    savings: S.savings, targetSavings: S.targetSavings,
+    categories: S.categories.map(c=>({
+      name:c.name, budget:c.monthlyBudget, spent:spent(c.id),
+      pct: c.monthlyBudget>0?Math.round(spent(c.id)/c.monthlyBudget*100)+'%':'no budget',
+      carryover: c.carryoverEnabled,
+    })),
+  };
+  document.getElementById('state-out').textContent = JSON.stringify(display,null,2);
+}
+
+// =========================================================
+// INIT
+// =========================================================
+scenario('healthy');
+</script>
+</body>
+</html>

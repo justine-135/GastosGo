@@ -1,0 +1,700 @@
+<!DOCTYPE html>
+<!-- PROTOTYPE — throwaway. Insights screen with weekly drill-down. -->
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>GastosGo · Insights</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --primary:#F4A261;--secondary:#A8DADC;--accent:#E9C46A;
+  --bg:#FFF8F0;--card:#FFECD2;--fg:#2D3047;
+  --destructive:#E76F51;--muted:#81B29A;
+  --border:#e5ddd4;--muted-text:#6b7280;
+}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#ede8e3;display:flex;min-height:100vh;padding:20px;gap:20px;align-items:flex-start}
+
+/* PHONE */
+.phone-wrap{width:375px;flex-shrink:0;position:sticky;top:20px}
+.phone-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--muted-text);text-align:center;margin-bottom:6px}
+.phone{width:375px;height:812px;background:var(--bg);border-radius:46px;box-shadow:0 24px 64px rgba(0,0,0,.28),inset 0 0 0 1px rgba(255,255,255,.6);overflow:hidden;position:relative;border:11px solid #1a1a2e;display:flex;flex-direction:column}
+.notch{position:absolute;top:0;left:50%;transform:translateX(-50%);width:118px;height:30px;background:#1a1a2e;border-radius:0 0 18px 18px;z-index:100}
+.sbar{display:flex;justify-content:space-between;padding:10px 22px 2px;font-size:12px;font-weight:600;color:var(--fg);flex-shrink:0}
+.hdr{padding:6px 16px 4px;display:flex;align-items:center;flex-shrink:0}
+.hdr-title{font-size:20px;font-weight:700;color:var(--fg)}
+.scrollable{flex:1;overflow-y:auto;padding-bottom:88px}
+.section-hdr{padding:4px 20px 6px;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--muted-text)}
+.card{background:var(--card);border-radius:16px;padding:16px;margin:0 16px 12px}
+.empty{text-align:center;padding:16px;color:var(--muted-text);font-size:13px}
+
+/* TAB BAR */
+.tab-bar{position:absolute;bottom:0;left:0;right:0;height:80px;background:#fff;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-around;padding-bottom:14px;z-index:10}
+.tab-btn{display:flex;flex-direction:column;align-items:center;gap:2px;cursor:pointer;opacity:.45;border:none;background:none;padding:4px 10px}
+.tab-btn.active{opacity:1}
+.tab-btn span:first-child{font-size:21px}
+.tab-btn span:last-child{font-size:10px;font-weight:600;color:var(--fg)}
+.tab-btn.active span:last-child{color:var(--primary)}
+
+/* MONTH NAV */
+.month-nav{display:flex;align-items:center;justify-content:center;gap:14px;padding:0 16px 10px}
+.month-nav-btn{background:var(--card);border:none;border-radius:50%;width:30px;height:30px;cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;color:var(--fg)}
+.month-nav-label{font-size:14px;font-weight:700;color:var(--fg)}
+
+/* COMPACT GAP CARD */
+.gap-card{border-radius:18px;padding:14px 18px;margin:0 16px 12px}
+.gap-card.on-track{background:linear-gradient(135deg,#81B29A,#A8DADC)}
+.gap-card.warning{background:linear-gradient(135deg,#E9C46A,#F4A261)}
+.gap-card.at-risk{background:linear-gradient(135deg,#E76F51,#F4A261)}
+.gap-card.no-data{background:linear-gradient(135deg,#8da1b9,#a8b8c8)}
+.gap-lbl{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:rgba(255,255,255,.75);margin-bottom:2px}
+.gap-amt{font-size:28px;font-weight:800;color:#fff;margin-bottom:2px}
+.gap-desc{font-size:11px;color:rgba(255,255,255,.85);margin-bottom:10px}
+.gap-footer{display:flex;justify-content:space-between;padding-top:10px;border-top:1px solid rgba(255,255,255,.25)}
+.gap-mini-lbl{font-size:10px;color:rgba(255,255,255,.65);text-transform:uppercase;letter-spacing:.3px}
+.gap-mini-val{font-size:13px;font-weight:700;color:#fff;margin-top:1px}
+
+/* WEEKLY CHART */
+.week-chart{display:flex;align-items:flex-end;gap:6px;height:80px}
+.week-bar-btn{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;background:none;border:2px solid transparent;cursor:pointer;padding:0;border-radius:8px;transition:border-color .15s}
+.week-bar-btn:hover{border-color:var(--primary)}
+.week-bar-btn:active{opacity:.7}
+.week-bar-outer{width:100%;background:var(--border);border-radius:5px 5px 0 0;height:56px;display:flex;align-items:flex-end;overflow:hidden}
+.week-bar-inner{width:100%;border-radius:5px 5px 0 0;min-height:3px;transition:height .3s}
+.week-lbl{font-size:10px;color:var(--muted-text);font-weight:600}
+.week-amt{font-size:9px;color:var(--muted-text);font-weight:600;white-space:nowrap;min-height:12px}
+.week-hint{text-align:center;font-size:10px;color:var(--muted-text);margin-top:6px}
+
+/* CATEGORY LIST */
+.ins-cat-row{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border)}
+.ins-cat-row:last-child{border-bottom:none}
+.ins-cat-badge{width:36px;height:36px;border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0}
+.ins-cat-info{flex:1;min-width:0}
+.ins-cat-name-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px}
+.ins-cat-name{font-size:13px;font-weight:600;color:var(--fg)}
+.ins-cat-amt{font-size:14px;font-weight:700;color:var(--fg)}
+.ins-bar-wrap{height:5px;background:var(--border);border-radius:3px;overflow:hidden;margin-bottom:3px}
+.ins-bar{height:100%;border-radius:3px}
+.ins-bar.safe{background:var(--muted)}.ins-bar.warn{background:var(--accent)}.ins-bar.danger{background:var(--destructive)}
+.ins-cat-sub{font-size:11px;color:var(--muted-text)}
+
+/* PAYMENT METHOD */
+.pay-row{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--border)}
+.pay-row:last-child{border-bottom:none}
+.pay-icon{font-size:19px;width:26px;text-align:center}
+.pay-info{flex:1}
+.pay-name-row{display:flex;justify-content:space-between;margin-bottom:5px}
+.pay-name{font-size:13px;font-weight:600;color:var(--fg)}
+.pay-amt{font-size:13px;font-weight:700;color:var(--fg)}
+.pay-bar-wrap{height:5px;background:var(--border);border-radius:3px;overflow:hidden}
+.pay-bar{height:100%;border-radius:3px;background:var(--secondary)}
+.pay-pct{font-size:11px;font-weight:600;color:var(--muted-text);width:28px;text-align:right;flex-shrink:0}
+
+/* MERCHANT LIST */
+.merch-row{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--border)}
+.merch-row:last-child{border-bottom:none}
+.merch-rank{width:22px;height:22px;border-radius:50%;background:var(--primary);color:#fff;font-size:11px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+
+/* BOTTOM SHEET */
+.sheet-overlay{position:absolute;inset:0;background:rgba(0,0,0,.35);z-index:200;display:none;align-items:flex-end}
+.sheet-overlay.open{display:flex}
+.sheet{background:var(--bg);border-radius:24px 24px 0 0;width:100%;max-height:72%;overflow-y:auto;padding:0 0 28px}
+.sheet-handle{width:36px;height:4px;background:var(--border);border-radius:2px;margin:12px auto 4px}
+.sheet-hdr{padding:8px 20px 12px;display:flex;align-items:center;border-bottom:1px solid var(--border)}
+.sheet-close{margin-left:auto;background:var(--card);border:none;border-radius:50%;width:30px;height:30px;cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;color:var(--muted-text)}
+.sheet-body{padding:16px 20px 0}
+.sheet-day-lbl{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:var(--muted-text);margin-bottom:6px}
+.sheet-cat-row{display:flex;align-items:center;gap:8px;padding:5px 0 5px 4px}
+.sheet-divider{height:1px;background:var(--border);margin:8px 0 14px}
+.sheet-day-total{font-size:11px;color:var(--muted-text);text-align:right;margin-top:2px;padding-left:4px}
+
+/* TOAST */
+.toast{position:absolute;bottom:96px;left:50%;transform:translateX(-50%);background:#2D3047dd;color:#fff;font-size:12px;font-weight:600;padding:8px 16px;border-radius:20px;white-space:nowrap;z-index:300;opacity:0;transition:opacity .2s;pointer-events:none}
+.toast.show{opacity:1}
+
+/* RIGHT PANEL */
+.right-panel{flex:1;display:flex;flex-direction:column;gap:14px;max-width:460px}
+.rp-title{font-size:17px;font-weight:800;color:#1a1a2e}
+.panel{background:#fff;border-radius:12px;padding:14px}
+.panel h3{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--muted-text);margin-bottom:10px}
+.sc-grid{display:flex;flex-wrap:wrap;gap:7px}
+.sc-btn{padding:7px 12px;border:1.5px solid var(--border);border-radius:18px;background:#fff;font-size:12px;cursor:pointer;color:var(--fg);font-weight:500;transition:all .15s}
+.sc-btn:hover{border-color:var(--primary);color:var(--primary)}
+.ctrl-row{display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid var(--border)}
+.ctrl-row:last-child{border-bottom:none}
+.ctrl-icon{font-size:16px;width:22px;text-align:center;flex-shrink:0}
+.ctrl-name{font-size:12px;font-weight:600;color:var(--fg);width:72px;flex-shrink:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ctrl-slider{flex:1;accent-color:var(--primary);cursor:pointer}
+.ctrl-amt{font-size:11px;color:var(--muted-text);width:60px;text-align:right;flex-shrink:0}
+.inc-row{display:flex;gap:10px;margin-top:10px}
+.inc-field{flex:1}
+.inc-field label{display:block;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.3px;color:var(--muted-text);margin-bottom:4px}
+.inc-input{width:100%;padding:8px 10px;border:2px solid var(--border);border-radius:8px;font-size:13px;color:var(--fg);outline:none}
+.inc-input:focus{border-color:var(--primary)}
+.state-panel{background:#1a1a2e;border-radius:12px;padding:14px}
+.state-panel h3{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:#4a5568;margin-bottom:10px}
+pre.state-out{font-family:'Cascadia Code','Fira Code',monospace;font-size:11px;color:#a8dadc;white-space:pre-wrap;line-height:1.5}
+</style>
+</head>
+<body>
+
+<div class="phone-wrap">
+<div class="phone-label">Insights</div>
+<div class="phone">
+<div class="notch"></div>
+
+<div class="sbar"><span>9:41</span><span>⚡ 100%</span></div>
+<div class="hdr"><span class="hdr-title">Insights</span></div>
+<div class="month-nav">
+  <button class="month-nav-btn" onclick="prevMonth()">‹</button>
+  <span class="month-nav-label" id="month-label">November 2026</span>
+  <button class="month-nav-btn" onclick="nextMonth()">›</button>
+</div>
+
+<div class="scrollable">
+
+  <div id="gap-card" class="gap-card no-data">
+    <div class="gap-lbl">Savings Gap</div>
+    <div class="gap-amt" id="gap-amt">—</div>
+    <div class="gap-desc" id="gap-desc">Set up income mode to see your gap</div>
+    <div class="gap-footer">
+      <div><div class="gap-mini-lbl">Spent</div><div class="gap-mini-val" id="gap-spent">—</div></div>
+      <div style="text-align:right"><div class="gap-mini-lbl" id="gap-b-lbl">Income</div><div class="gap-mini-val" id="gap-b-val">—</div></div>
+    </div>
+  </div>
+
+  <div class="section-hdr">Weekly Spending</div>
+  <div class="card">
+    <div class="week-chart" id="week-chart"></div>
+    <div class="week-hint">Tap a bar to see daily breakdown</div>
+  </div>
+
+  <div class="section-hdr" id="cat-hdr">By Category</div>
+  <div class="card" style="padding:8px 14px"><div id="cat-list"></div></div>
+
+  <div class="section-hdr">Payment Methods</div>
+  <div class="card" style="padding:8px 14px"><div id="pay-list"></div></div>
+
+  <div class="section-hdr">Top Merchants</div>
+  <div class="card" style="padding:8px 14px"><div id="merchant-list"></div></div>
+
+</div>
+
+<div class="tab-bar">
+  <button class="tab-btn" onclick="showToast('Home — not in this prototype')"><span>🏠</span><span>Home</span></button>
+  <button class="tab-btn" onclick="showToast('Expenses — not in this prototype')"><span>📋</span><span>Expenses</span></button>
+  <button class="tab-btn" onclick="showToast('Budgets — not in this prototype')"><span>🎯</span><span>Budgets</span></button>
+  <button class="tab-btn active"><span>📊</span><span>Insights</span></button>
+</div>
+
+<!-- Week bottom sheet -->
+<div class="sheet-overlay" id="week-sheet" onclick="closeWeekSheetOutside(event)">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-hdr">
+      <span style="font-size:16px;font-weight:800;color:var(--fg);flex:1" id="week-sheet-title"></span>
+      <span style="font-size:13px;font-weight:700;color:var(--fg);margin-right:12px" id="week-sheet-total"></span>
+      <button class="sheet-close" onclick="closeWeekSheet()">✕</button>
+    </div>
+    <div class="sheet-body" id="week-sheet-body"></div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+</div><!-- /phone -->
+</div><!-- /phone-wrap -->
+
+<!-- RIGHT PANEL -->
+<div class="right-panel">
+  <div class="rp-title">GastosGo · Insights Prototype</div>
+
+  <div class="panel">
+    <h3>Scenarios</h3>
+    <div class="sc-grid">
+      <button class="sc-btn" onclick="scenario('no-income')">🌱 No Income Set</button>
+      <button class="sc-btn" onclick="scenario('salary-healthy')">✅ Healthy</button>
+      <button class="sc-btn" onclick="scenario('salary-warning')">⚠️ Warning</button>
+      <button class="sc-btn" onclick="scenario('salary-over')">🚨 Over Budget</button>
+      <button class="sc-btn" onclick="scenario('mixed-income')">🔀 Mixed Income</button>
+      <button class="sc-btn" onclick="scenario('month-end')">📅 Month End</button>
+      <button class="sc-btn" onclick="scenario('target-mode')">🎯 Target Mode</button>
+    </div>
+  </div>
+
+  <div class="panel">
+    <h3>Controls — Spend Sliders</h3>
+    <div id="ctrl-sliders"></div>
+    <div class="inc-row">
+      <div class="inc-field">
+        <label>Monthly Income (₱)</label>
+        <input class="inc-input" type="number" id="inp-income" placeholder="e.g. 25000" oninput="S.income=parseFloat(this.value)||0;render()">
+      </div>
+      <div class="inc-field">
+        <label>Savings Target (₱)</label>
+        <input class="inc-input" type="number" id="inp-target" placeholder="e.g. 5000" oninput="S.savingsTarget=parseFloat(this.value)||0;render()">
+      </div>
+    </div>
+    <div class="inc-row">
+      <div class="inc-field">
+        <label>Income Mode</label>
+        <select class="inc-input" id="inp-mode" onchange="S.incomeMode=this.value||null;render()">
+          <option value="">— none —</option>
+          <option value="salary">Salary</option>
+          <option value="mixed">Mixed</option>
+          <option value="target">Target</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <h3>Gap Computation</h3>
+    <div id="gap-panel"></div>
+  </div>
+
+  <div class="state-panel">
+    <h3>Live State</h3>
+    <pre class="state-out" id="state-out"></pre>
+  </div>
+</div>
+
+<script>
+const MONTHS       = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+const MONTHS_SHORT = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const DAYS_SHORT   = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+const PAY_ICONS    = {Cash:'💵', GCash:'📱', Card:'💳', Others:'🔄'};
+
+function defaultCats() {
+  return [
+    {id:'food',      name:'Food',      icon:'🍚', color:'#F4A261', budget:3000},
+    {id:'transport', name:'Transport', icon:'🚌', color:'#A8DADC', budget:1500},
+    {id:'leisure',   name:'Leisure',   icon:'🎮', color:'#E9C46A', budget:2000},
+    {id:'bills',     name:'Bills',     icon:'📝', color:'#81B29A', budget:5000},
+    {id:'shopping',  name:'Shopping',  icon:'🛍️', color:'#90CAF9', budget:2000},
+    {id:'health',    name:'Health',    icon:'💊', color:'#CE93D8', budget:1000},
+    {id:'other',     name:'Other',     icon:'📦', color:'#BCAAA4', budget:1000},
+  ];
+}
+
+let S = {
+  month: 11, year: 2026,
+  incomeMode: null, income: 0, savingsTarget: 0,
+  categories: defaultCats(),
+  expenses: [],
+  spentOverrides: {},
+};
+
+function spent(catId) {
+  if (catId in S.spentOverrides) return S.spentOverrides[catId];
+  return S.expenses.filter(e => e.categoryId === catId).reduce((s, e) => s + e.amount, 0);
+}
+function totalSpent() { return S.categories.reduce((s, c) => s + spent(c.id), 0); }
+function fmt(n)       { return '₱' + Math.abs(n).toLocaleString('en-PH', {maximumFractionDigits:0}); }
+function fmtSigned(n) { return (n >= 0 ? '+' : '−') + '₱' + Math.abs(n).toLocaleString('en-PH', {maximumFractionDigits:0}); }
+
+function computeGap() {
+  const ts = totalSpent();
+  const {incomeMode, income, savingsTarget} = S;
+  if (!incomeMode) return {ts, gap:null, actualSavings:null, expectedSavings:null, incomeTotal:null};
+  if (incomeMode === 'target') {
+    // ADR 0001: Actual Savings = Savings Target − Total Expenses in Target Mode
+    const actualSavings = savingsTarget - ts;
+    return {ts, gap: actualSavings, actualSavings, expectedSavings: 0, incomeTotal: null};
+  }
+  const actualSavings = income - ts;
+  return {ts, gap: actualSavings - savingsTarget, actualSavings, expectedSavings: savingsTarget, incomeTotal: income};
+}
+
+// ── WEEK HELPERS ──
+function daysInMonth(m, y) { return new Date(y, m, 0).getDate(); }
+
+function weekBounds(i) {
+  const starts = [1, 8, 15, 22];
+  const ends   = [7, 14, 21, daysInMonth(S.month, S.year)];
+  return {start: starts[i], end: ends[i]};
+}
+
+function weekRangeLabel(i) {
+  const {start, end} = weekBounds(i);
+  return `Week ${i + 1} · ${MONTHS_SHORT[S.month-1]} ${start}–${end}`;
+}
+
+function weekTotal(i) {
+  const {start, end} = weekBounds(i);
+  const dateTotal = S.expenses
+    .filter(e => { const d = parseInt(e.date.split('-')[2], 10); return d >= start && d <= end; })
+    .reduce((s, e) => s + e.amount, 0);
+  // Slider overrides have no date — distribute wk1=0, wk2=40%, wk3=40%, wk4=20%
+  const overrideExtra = Object.entries(S.spentOverrides).reduce((s, [catId, v]) => {
+    const dated = S.expenses.filter(e => e.categoryId === catId).reduce((a, e) => a + e.amount, 0);
+    return s + Math.max(v - dated, 0);
+  }, 0);
+  return dateTotal + overrideExtra * [0, 0.4, 0.4, 0.2][i];
+}
+
+function weekDays(i) {
+  const {start, end} = weekBounds(i);
+  const byDate = {};
+  S.expenses
+    .filter(e => { const d = parseInt(e.date.split('-')[2], 10); return d >= start && d <= end; })
+    .forEach(e => {
+      byDate[e.date] = byDate[e.date] || {};
+      byDate[e.date][e.categoryId] = (byDate[e.date][e.categoryId] || 0) + e.amount;
+    });
+  return Object.entries(byDate)
+    .sort(([a], [b]) => a.localeCompare(b))
+    .map(([date, catAmts]) => ({date, catAmts}));
+}
+
+function fmtDay(dateStr) {
+  const d = new Date(dateStr + 'T00:00:00');
+  return `${DAYS_SHORT[d.getDay()]}, ${MONTHS_SHORT[d.getMonth()]} ${d.getDate()}`;
+}
+
+// ── TOAST ──
+let _toastTimer;
+function showToast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  clearTimeout(_toastTimer);
+  _toastTimer = setTimeout(() => el.classList.remove('show'), 2200);
+}
+
+// ── MONTH NAV ──
+function prevMonth() {
+  const m = S.month === 1 ? 12 : S.month - 1;
+  const y = S.month === 1 ? S.year - 1 : S.year;
+  const prefix = `${y}-${String(m).padStart(2,'0')}`;
+  if (!S.expenses.some(e => e.date.startsWith(prefix))) {
+    showToast(`No data for ${MONTHS_SHORT[m-1]} ${y}`); return;
+  }
+  S.month = m; S.year = y; render();
+}
+function nextMonth() {
+  const m = S.month === 12 ? 1 : S.month + 1;
+  const y = S.month === 12 ? S.year + 1 : S.year;
+  const prefix = `${y}-${String(m).padStart(2,'0')}`;
+  if (!S.expenses.some(e => e.date.startsWith(prefix))) {
+    showToast(`No data for ${MONTHS_SHORT[m-1]} ${y}`); return;
+  }
+  S.month = m; S.year = y; render();
+}
+
+// ── WEEK SHEET ──
+function openWeekSheet(i) {
+  const days = weekDays(i);
+  const total = weekTotal(i);
+  document.getElementById('week-sheet-title').textContent = weekRangeLabel(i);
+  document.getElementById('week-sheet-total').textContent = total > 0 ? fmt(total) : '';
+  if (!days.length) {
+    document.getElementById('week-sheet-body').innerHTML = '<div class="empty">No expenses logged this week.</div>';
+  } else {
+    document.getElementById('week-sheet-body').innerHTML = days.map(({date, catAmts}, idx) => {
+      const dayTotal = Object.values(catAmts).reduce((s, v) => s + v, 0);
+      const catRows = Object.entries(catAmts)
+        .sort(([,a],[,b]) => b - a)
+        .map(([catId, amt]) => {
+          const cat = S.categories.find(c => c.id === catId);
+          return `<div class="sheet-cat-row">
+            <span style="font-size:16px">${cat ? cat.icon : '📦'}</span>
+            <span style="font-size:13px;color:var(--fg);flex:1">${cat ? cat.name : 'Other'}</span>
+            <span style="font-size:13px;font-weight:700;color:var(--fg)">${fmt(amt)}</span>
+          </div>`;
+        }).join('');
+      const divider = idx < days.length - 1 ? '<div class="sheet-divider"></div>' : '';
+      return `<div>
+        <div style="display:flex;justify-content:space-between;align-items:baseline">
+          <div class="sheet-day-lbl">${fmtDay(date)}</div>
+          <div class="sheet-day-total">${fmt(dayTotal)}</div>
+        </div>
+        ${catRows}
+      </div>${divider}`;
+    }).join('');
+  }
+  document.getElementById('week-sheet').classList.add('open');
+}
+function closeWeekSheet() { document.getElementById('week-sheet').classList.remove('open'); }
+function closeWeekSheetOutside(e) { if (e.target === document.getElementById('week-sheet')) closeWeekSheet(); }
+
+// ── SCENARIOS ──
+function scenario(name) {
+  S.spentOverrides = {};
+  S.categories = defaultCats();
+  S.month = 11; S.year = 2026;
+  switch (name) {
+    case 'no-income':
+      S.incomeMode = null; S.income = 0; S.savingsTarget = 0;
+      S.expenses = [
+        {id:'e1',amount:1200,categoryId:'food',     merchant:'Jollibee',    paymentMethod:'GCash', date:'2026-11-05'},
+        {id:'e2',amount:400, categoryId:'transport', merchant:'Grab',       paymentMethod:'GCash', date:'2026-11-07'},
+      ];
+      break;
+    case 'salary-healthy':
+      S.incomeMode = 'salary'; S.income = 25000; S.savingsTarget = 5000;
+      S.expenses = [
+        {id:'e1',amount:1850,categoryId:'food',      merchant:'Jollibee',       paymentMethod:'GCash', date:'2026-11-01'},
+        {id:'e2',amount:650, categoryId:'transport', merchant:'Grab',           paymentMethod:'GCash', date:'2026-11-03'},
+        {id:'e3',amount:299, categoryId:'leisure',   merchant:'Netflix',        paymentMethod:'Card',  date:'2026-11-05'},
+        {id:'e4',amount:480, categoryId:'food',      merchant:'FoodPanda',      paymentMethod:'GCash', date:'2026-11-07'},
+        {id:'e5',amount:2200,categoryId:'bills',     merchant:'Meralco',        paymentMethod:'GCash', date:'2026-11-10'},
+        {id:'e6',amount:350, categoryId:'transport', merchant:'LRT',            paymentMethod:'Cash',  date:'2026-11-12'},
+        {id:'e7',amount:600, categoryId:'shopping',  merchant:'Shopee',         paymentMethod:'Card',  date:'2026-11-14'},
+        {id:'e8',amount:380, categoryId:'food',      merchant:'Mang Inasal',    paymentMethod:'Cash',  date:'2026-11-16'},
+      ];
+      break;
+    case 'salary-warning':
+      S.incomeMode = 'salary'; S.income = 25000; S.savingsTarget = 5000;
+      S.expenses = [
+        {id:'e1',amount:2410,categoryId:'food',      merchant:'Various',        paymentMethod:'GCash', date:'2026-11-02'},
+        {id:'e2',amount:1620,categoryId:'leisure',   merchant:'Shopee',         paymentMethod:'Card',  date:'2026-11-05'},
+        {id:'e3',amount:1250,categoryId:'transport', merchant:'Grab',           paymentMethod:'GCash', date:'2026-11-07'},
+        {id:'e4',amount:3800,categoryId:'bills',     merchant:'Meralco+PLDT',   paymentMethod:'GCash', date:'2026-11-10'},
+        {id:'e5',amount:900, categoryId:'shopping',  merchant:'Lazada',         paymentMethod:'Card',  date:'2026-11-13'},
+      ];
+      break;
+    case 'salary-over':
+      S.incomeMode = 'salary'; S.income = 25000; S.savingsTarget = 5000;
+      S.expenses = [
+        {id:'e1',amount:3600,categoryId:'food',      merchant:'Various',        paymentMethod:'GCash', date:'2026-11-02'},
+        {id:'e2',amount:2250,categoryId:'leisure',   merchant:'Shopee + GC',    paymentMethod:'Card',  date:'2026-11-05'},
+        {id:'e3',amount:1500,categoryId:'transport', merchant:'Grab',           paymentMethod:'GCash', date:'2026-11-09'},
+        {id:'e4',amount:5200,categoryId:'bills',     merchant:'Meralco+PLDT',   paymentMethod:'GCash', date:'2026-11-10'},
+        {id:'e5',amount:1900,categoryId:'shopping',  merchant:'Lazada',         paymentMethod:'Card',  date:'2026-11-13'},
+        {id:'e6',amount:800, categoryId:'health',    merchant:'Mercury Drug',   paymentMethod:'Cash',  date:'2026-11-14'},
+      ];
+      break;
+    case 'mixed-income':
+      S.incomeMode = 'mixed'; S.income = 27500; S.savingsTarget = 8000;
+      S.expenses = [
+        {id:'e1',amount:2500,categoryId:'food',      merchant:'Various',        paymentMethod:'GCash', date:'2026-11-01'},
+        {id:'e2',amount:800, categoryId:'transport', merchant:'Grab',           paymentMethod:'GCash', date:'2026-11-05'},
+        {id:'e3',amount:1500,categoryId:'bills',     merchant:'PLDT',           paymentMethod:'GCash', date:'2026-11-10'},
+        {id:'e4',amount:1200,categoryId:'shopping',  merchant:'Shopee',         paymentMethod:'Card',  date:'2026-11-11'},
+        {id:'e5',amount:450, categoryId:'leisure',   merchant:'Cinema',         paymentMethod:'Cash',  date:'2026-11-11'},
+      ];
+      break;
+    case 'month-end':
+      S.incomeMode = 'salary'; S.income = 25000; S.savingsTarget = 5000;
+      S.expenses = [
+        {id:'e1',amount:3200,categoryId:'food',      merchant:'Various',        paymentMethod:'GCash', date:'2026-11-01'},
+        {id:'e2',amount:500, categoryId:'food',      merchant:'FoodPanda',      paymentMethod:'GCash', date:'2026-11-07'},
+        {id:'e3',amount:1400,categoryId:'transport', merchant:'Grab',           paymentMethod:'GCash', date:'2026-11-05'},
+        {id:'e4',amount:200, categoryId:'transport', merchant:'Jeep/Bus',       paymentMethod:'Cash',  date:'2026-11-16'},
+        {id:'e5',amount:2100,categoryId:'leisure',   merchant:'Shopee',         paymentMethod:'Card',  date:'2026-11-10'},
+        {id:'e6',amount:4800,categoryId:'bills',     merchant:'Meralco+PLDT',   paymentMethod:'GCash', date:'2026-11-15'},
+        {id:'e7',amount:1800,categoryId:'shopping',  merchant:'Lazada',         paymentMethod:'Card',  date:'2026-11-19'},
+        {id:'e8',amount:500, categoryId:'health',    merchant:'Mercury Drug',   paymentMethod:'Cash',  date:'2026-11-21'},
+        {id:'e9',amount:850, categoryId:'other',     merchant:'Misc',           paymentMethod:'Cash',  date:'2026-11-23'},
+      ];
+      break;
+    case 'target-mode':
+      S.incomeMode = 'target'; S.income = 0; S.savingsTarget = 15000;
+      S.expenses = [
+        {id:'e1',amount:2800,categoryId:'food',      merchant:'Various',        paymentMethod:'GCash', date:'2026-11-01'},
+        {id:'e2',amount:900, categoryId:'transport', merchant:'Grab',           paymentMethod:'GCash', date:'2026-11-05'},
+        {id:'e3',amount:1800,categoryId:'bills',     merchant:'Meralco',        paymentMethod:'GCash', date:'2026-11-10'},
+        {id:'e4',amount:600, categoryId:'leisure',   merchant:'Netflix+Spotify',paymentMethod:'Card',  date:'2026-11-12'},
+        {id:'e5',amount:1200,categoryId:'shopping',  merchant:'Shopee',         paymentMethod:'Card',  date:'2026-11-14'},
+      ];
+      break;
+  }
+  syncControls();
+  render();
+}
+
+function syncControls() {
+  document.getElementById('inp-income').value = S.income || '';
+  document.getElementById('inp-target').value = S.savingsTarget || '';
+  document.getElementById('inp-mode').value   = S.incomeMode || '';
+}
+
+// ── RENDER ──
+function render() {
+  document.getElementById('month-label').textContent = `${MONTHS[S.month-1]} ${S.year}`;
+  renderGapCard();
+  renderWeekChart();
+  renderCatList();
+  renderPayList();
+  renderMerchantList();
+  renderControls();
+  renderGapPanel();
+  renderStateOut();
+}
+
+function renderGapCard() {
+  const {ts, gap, incomeTotal} = computeGap();
+  const hasMode = !!S.incomeMode;
+  let state = 'no-data', desc = 'Set up income mode to see your gap';
+  if (hasMode) {
+    if (gap < 0) { state = 'at-risk'; desc = 'Spending ahead of savings target'; }
+    else if (gap < S.savingsTarget * 0.2) { state = 'warning'; desc = 'Getting close to your target'; }
+    else { state = 'on-track'; desc = 'On track for your savings goal 🎉'; }
+  }
+  document.getElementById('gap-card').className = 'gap-card ' + state;
+  document.getElementById('gap-amt').textContent   = hasMode ? fmtSigned(gap) : '—';
+  document.getElementById('gap-desc').textContent  = desc;
+  document.getElementById('gap-spent').textContent = fmt(ts);
+  if (S.incomeMode === 'target') {
+    // ADR 0001: no income figure in Target Mode
+    document.getElementById('gap-b-lbl').textContent = 'Cap';
+    document.getElementById('gap-b-val').textContent = fmt(S.savingsTarget);
+  } else {
+    document.getElementById('gap-b-lbl').textContent = 'Income';
+    document.getElementById('gap-b-val').textContent = incomeTotal !== null ? fmt(incomeTotal) : '—';
+  }
+}
+
+function renderWeekChart() {
+  const totals = [0,1,2,3].map(weekTotal);
+  const max = Math.max(...totals, 1);
+  const weeklyBudget = S.categories.reduce((s, c) => s + c.budget, 0) / 4;
+  document.getElementById('week-chart').innerHTML = totals.map((amt, i) => {
+    const pct = (amt / max) * 100;
+    const barColor = amt > weeklyBudget ? 'var(--destructive)'
+                   : amt > weeklyBudget * 0.8 ? 'var(--accent)'
+                   : 'var(--secondary)';
+    const amtLabel = amt > 0
+      ? (amt >= 1000 ? '₱' + Math.round(amt / 100) / 10 + 'k' : '₱' + Math.round(amt))
+      : '';
+    return `<button class="week-bar-btn" onclick="openWeekSheet(${i})">
+      <div class="week-amt">${amtLabel}</div>
+      <div class="week-bar-outer">
+        <div class="week-bar-inner" style="height:${pct}%;background:${barColor}"></div>
+      </div>
+      <div class="week-lbl">Wk ${i+1}</div>
+    </button>`;
+  }).join('');
+}
+
+function renderCatList() {
+  const ts = totalSpent() || 1;
+  const rows = S.categories
+    .map(cat => ({cat, amt: spent(cat.id)}))
+    .filter(x => x.amt > 0)
+    .sort((a, b) => b.amt - a.amt);
+  document.getElementById('cat-hdr').textContent = rows.length
+    ? `By Category · ${rows.length} active` : 'By Category';
+  document.getElementById('cat-list').innerHTML = rows.length
+    ? rows.map(({cat, amt}) => {
+        const pctOfTotal  = Math.round(amt / ts * 100);
+        const pctOfBudget = cat.budget > 0 ? Math.min(amt / cat.budget * 100, 100) : 0;
+        const barClass    = pctOfBudget >= 100 ? 'danger' : pctOfBudget >= 80 ? 'warn' : 'safe';
+        const budgetNote  = cat.budget > 0
+          ? `${Math.round(pctOfBudget)}% of ${fmt(cat.budget)} budget`
+          : 'no budget set';
+        return `<div class="ins-cat-row">
+          <div class="ins-cat-badge" style="background:${cat.color}22">${cat.icon}</div>
+          <div class="ins-cat-info">
+            <div class="ins-cat-name-row">
+              <span class="ins-cat-name">${cat.name}</span>
+              <span class="ins-cat-amt">${fmt(amt)}</span>
+            </div>
+            <div class="ins-bar-wrap"><div class="ins-bar ${barClass}" style="width:${pctOfBudget}%"></div></div>
+            <div class="ins-cat-sub">${pctOfTotal}% of spending · ${budgetNote}</div>
+          </div>
+        </div>`;
+      }).join('')
+    : '<div class="empty">No expenses logged yet.</div>';
+}
+
+function renderPayList() {
+  const payTotals = {};
+  S.expenses.forEach(e => { payTotals[e.paymentMethod] = (payTotals[e.paymentMethod] || 0) + e.amount; });
+  const overrideExtra = Object.entries(S.spentOverrides).reduce((s, [catId, v]) => {
+    const dated = S.expenses.filter(e => e.categoryId === catId).reduce((a, e) => a + e.amount, 0);
+    return s + Math.max(v - dated, 0);
+  }, 0);
+  if (overrideExtra > 0) payTotals['GCash'] = (payTotals['GCash'] || 0) + overrideExtra;
+  const entries   = Object.entries(payTotals).sort(([,a],[,b]) => b - a);
+  const realTotal = entries.reduce((s, [,v]) => s + v, 0) || 1;
+  document.getElementById('pay-list').innerHTML = entries.length
+    ? entries.map(([method, amt]) => {
+        const pct = Math.round(amt / realTotal * 100);
+        return `<div class="pay-row">
+          <div class="pay-icon">${PAY_ICONS[method] || '💰'}</div>
+          <div class="pay-info">
+            <div class="pay-name-row">
+              <span class="pay-name">${method}</span>
+              <span class="pay-amt">${fmt(amt)}</span>
+            </div>
+            <div class="pay-bar-wrap"><div class="pay-bar" style="width:${pct}%"></div></div>
+          </div>
+          <div class="pay-pct">${pct}%</div>
+        </div>`;
+      }).join('')
+    : '<div class="empty">No expenses logged yet.</div>';
+}
+
+function renderMerchantList() {
+  const merchantTotals = {};
+  S.expenses.forEach(e => { merchantTotals[e.merchant] = (merchantTotals[e.merchant] || 0) + e.amount; });
+  const ts  = totalSpent() || 1;
+  const top = Object.entries(merchantTotals).sort(([,a],[,b]) => b - a).slice(0, 5);
+  document.getElementById('merchant-list').innerHTML = top.length
+    ? top.map(([merchant, amt], i) => {
+        const pct = Math.round(amt / ts * 100);
+        return `<div class="merch-row">
+          <div class="merch-rank">${i+1}</div>
+          <div style="flex:1">
+            <div style="font-size:13px;font-weight:600;color:var(--fg)">${merchant}</div>
+            <div style="font-size:11px;color:var(--muted-text)">${pct}% of spending</div>
+          </div>
+          <div style="font-size:14px;font-weight:700;color:var(--fg)">${fmt(amt)}</div>
+        </div>`;
+      }).join('')
+    : '<div class="empty">No expenses logged yet.</div>';
+}
+
+function renderControls() {
+  document.getElementById('ctrl-sliders').innerHTML = S.categories.map(cat => {
+    const max = Math.max(cat.budget * 1.5, 5000);
+    const val = spent(cat.id);
+    return `<div class="ctrl-row">
+      <span class="ctrl-icon">${cat.icon}</span>
+      <span class="ctrl-name">${cat.name}</span>
+      <input class="ctrl-slider" type="range" min="0" max="${max}" step="50" value="${val}"
+        oninput="S.spentOverrides['${cat.id}']=parseFloat(this.value)||0;render()">
+      <span class="ctrl-amt">${fmt(val)}</span>
+    </div>`;
+  }).join('');
+}
+
+function renderGapPanel() {
+  const {ts, gap, actualSavings} = computeGap();
+  const {incomeMode, income, savingsTarget} = S;
+  if (!incomeMode) {
+    document.getElementById('gap-panel').innerHTML = '<div style="font-size:13px;color:var(--muted-text)">No income mode selected.</div>';
+    return;
+  }
+  const rows = incomeMode === 'target'
+    ? [['Mode','Target'],['Spending cap',fmt(savingsTarget)],['− Expenses','−'+fmt(ts)],['= Remaining',fmtSigned(gap)]]
+    : [['Mode',incomeMode==='salary'?'Salary':'Mixed'],['Income',fmt(income)],['− Expenses','−'+fmt(ts)],['= Actual savings',fmt(actualSavings)],['− Savings target','−'+fmt(savingsTarget)],['= Gap',fmtSigned(gap)]];
+  const isPos = gap >= 0;
+  document.getElementById('gap-panel').innerHTML = rows.map(([lbl, val], i) => {
+    const isLast = i === rows.length - 1;
+    const valStyle = isLast
+      ? `font-weight:700;color:${isPos?'var(--muted)':'var(--destructive)'};font-size:15px`
+      : 'font-weight:600;color:var(--fg)';
+    return `<div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid #f0ece8;font-size:13px">
+      <span style="color:var(--muted-text)">${lbl}</span><span style="${valStyle}">${val}</span>
+    </div>`;
+  }).join('');
+}
+
+function renderStateOut() {
+  document.getElementById('state-out').textContent = JSON.stringify({
+    month: `${MONTHS[S.month-1]} ${S.year}`,
+    incomeMode: S.incomeMode, income: S.income, savingsTarget: S.savingsTarget,
+    totalSpent: totalSpent(),
+    weekTotals: [0,1,2,3].map(i => Math.round(weekTotal(i))),
+    expenses: S.expenses.length,
+  }, null, 2);
+}
+
+// ── INIT ──
+scenario('salary-healthy');
+</script>
+</body>
+</html>

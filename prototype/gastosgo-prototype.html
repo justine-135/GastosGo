@@ -1,0 +1,1061 @@
+<!DOCTYPE html>
+<!-- PROTOTYPE — throwaway. Answers: does the savings gap state model feel right across 3 income modes, and does the add-expense + dashboard flow feel right? -->
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>GastosGo · Prototype</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --primary:#F4A261;--secondary:#A8DADC;--accent:#E9C46A;
+  --bg:#FFF8F0;--card:#FFECD2;--fg:#2D3047;
+  --destructive:#E76F51;--muted:#81B29A;
+  --border:#e5ddd4;--muted-text:#6b7280;
+}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#ede8e3;display:flex;min-height:100vh;padding:20px;gap:20px;align-items:flex-start}
+
+/* PHONE */
+.phone-wrap{flex-shrink:0;width:375px;position:sticky;top:20px}
+.phone{width:375px;height:812px;background:var(--bg);border-radius:46px;box-shadow:0 24px 64px rgba(0,0,0,.28),inset 0 0 0 1px rgba(255,255,255,.6);overflow:hidden;position:relative;border:11px solid #1a1a2e}
+.notch{position:absolute;top:0;left:50%;transform:translateX(-50%);width:118px;height:30px;background:#1a1a2e;border-radius:0 0 18px 18px;z-index:100}
+
+.screen{display:none;height:100%;overflow-y:auto;flex-direction:column}
+.screen.active{display:flex}
+
+/* STATUS BAR */
+.sbar{display:flex;justify-content:space-between;padding:10px 22px 2px;font-size:12px;font-weight:600;color:var(--fg);flex-shrink:0}
+
+/* SHARED */
+.btn-primary{display:block;width:calc(100% - 32px);margin:8px 16px;padding:16px;background:var(--primary);color:#fff;border:none;border-radius:14px;font-size:16px;font-weight:700;cursor:pointer;text-align:center}
+.btn-primary:disabled{opacity:.4;cursor:default}
+.btn-secondary{display:block;width:calc(100% - 32px);margin:4px 16px;padding:14px;background:transparent;color:var(--primary);border:2px solid var(--primary);border-radius:14px;font-size:15px;font-weight:600;cursor:pointer;text-align:center}
+.card{background:var(--card);border-radius:16px;padding:16px;margin:0 16px 12px}
+.section-hdr{padding:4px 20px 6px;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--muted-text)}
+.back-btn{width:36px;height:36px;display:flex;align-items:center;justify-content:center;border-radius:50%;background:var(--card);cursor:pointer;font-size:17px;border:none;color:var(--fg);flex-shrink:0}
+.hdr{padding:8px 16px 10px;display:flex;align-items:center;gap:10px;flex-shrink:0}
+.hdr-title{font-size:20px;font-weight:700;color:var(--fg)}
+.scrollable{flex:1;overflow-y:auto;padding-bottom:88px}
+.input-wrap{margin:0 16px 10px}
+.input-lbl{font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.3px;color:var(--muted-text);margin-bottom:5px}
+.input-field{width:100%;padding:13px;border:2px solid var(--border);border-radius:12px;font-size:15px;color:var(--fg);background:#fff;outline:none}
+.input-field:focus{border-color:var(--primary)}
+
+/* TAB BAR */
+.tab-bar{position:absolute;bottom:0;left:0;right:0;height:80px;background:#fff;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-around;padding-bottom:14px}
+.tab-btn{display:flex;flex-direction:column;align-items:center;gap:2px;cursor:pointer;opacity:.45;border:none;background:none;padding:4px 10px}
+.tab-btn.active{opacity:1}
+.tab-btn span:first-child{font-size:21px}
+.tab-btn span:last-child{font-size:10px;font-weight:600;color:var(--fg)}
+.tab-btn.active span:last-child{color:var(--primary)}
+
+/* FAB */
+.fab{position:absolute;bottom:88px;right:18px;width:56px;height:56px;background:var(--primary);border-radius:28px;border:none;font-size:28px;color:#fff;cursor:pointer;box-shadow:0 4px 16px rgba(244,162,97,.55);display:flex;align-items:center;justify-content:center;line-height:1}
+
+/* STEP DOTS */
+.steps{display:flex;align-items:center;justify-content:center;gap:5px;padding:6px 0}
+.dot{width:7px;height:7px;border-radius:4px;background:var(--border);transition:all .2s}
+.dot.active{background:var(--primary);width:18px}
+
+/* ONBOARDING */
+.ob-hero{padding:20px 20px 10px;text-align:center}
+.ob-emoji{font-size:60px;margin-bottom:14px}
+.ob-title{font-size:24px;font-weight:800;color:var(--fg);margin-bottom:6px;line-height:1.2}
+.ob-sub{font-size:13px;color:var(--muted-text);line-height:1.5}
+.mode-opt{background:#fff;border:2px solid var(--border);border-radius:14px;padding:14px;margin:0 16px 9px;cursor:pointer;text-align:left;width:calc(100% - 32px);transition:all .15s}
+.mode-opt.sel{border-color:var(--primary);background:rgba(244,162,97,.07)}
+.mode-opt-hdr{display:flex;align-items:center;gap:9px;margin-bottom:3px}
+.mode-name{font-size:15px;font-weight:700;color:var(--fg)}
+.mode-desc{font-size:12px;color:var(--muted-text);line-height:1.4;padding-left:30px}
+
+/* DASHBOARD */
+.dash-greet{padding:10px 20px 2px;font-size:21px;font-weight:800;color:var(--fg)}
+.dash-sub{padding:0 20px 12px;font-size:12px;color:var(--muted-text)}
+.gap-card{border-radius:20px;padding:18px 20px;margin:0 16px 12px;cursor:default}
+.gap-card.on-track{background:linear-gradient(135deg,#81B29A,#A8DADC)}
+.gap-card.warning{background:linear-gradient(135deg,#E9C46A,#F4A261)}
+.gap-card.at-risk{background:linear-gradient(135deg,#E76F51,#F4A261)}
+.gap-card.no-data{background:linear-gradient(135deg,#8da1b9,#a8b8c8)}
+.gap-lbl{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:rgba(255,255,255,.75);margin-bottom:3px}
+.gap-amt{font-size:34px;font-weight:800;color:#fff;margin-bottom:3px}
+.gap-desc{font-size:12px;color:rgba(255,255,255,.85)}
+.gap-row{display:flex;justify-content:space-between;margin-top:12px;padding-top:12px;border-top:1px solid rgba(255,255,255,.25)}
+.gap-mini-lbl{font-size:10px;color:rgba(255,255,255,.65);text-transform:uppercase;letter-spacing:.3px}
+.gap-mini-val{font-size:14px;font-weight:700;color:#fff;margin-top:2px}
+.budget-row{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--border)}
+.budget-row:last-child{border-bottom:none}
+.budget-icon{font-size:20px;width:28px;text-align:center}
+.budget-info{flex:1}
+.budget-name{font-size:13px;font-weight:600;color:var(--fg);margin-bottom:3px}
+.budget-bar-wrap{height:5px;background:var(--border);border-radius:3px;overflow:hidden}
+.budget-bar{height:100%;border-radius:3px;transition:width .3s}
+.budget-bar.safe{background:var(--muted)}
+.budget-bar.warn{background:var(--accent)}
+.budget-bar.danger{background:var(--destructive)}
+.budget-pct{font-size:12px;font-weight:600;white-space:nowrap}
+.exp-item{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--border)}
+.exp-item:last-child{border-bottom:none}
+.exp-icon{width:38px;height:38px;border-radius:11px;background:var(--bg);display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0}
+.exp-name{font-size:13px;font-weight:600;color:var(--fg)}
+.exp-meta{font-size:11px;color:var(--muted-text)}
+.exp-amt{font-size:14px;font-weight:700;color:var(--fg)}
+.banner{background:rgba(233,196,106,.15);border:1px solid var(--accent);border-radius:11px;padding:11px;margin:0 16px 10px;display:none;gap:9px;align-items:flex-start}
+.banner.show{display:flex}
+.banner-icon{font-size:18px}
+.banner-text{font-size:12px;color:var(--fg);line-height:1.5}
+.banner-action{font-weight:700;color:var(--primary);cursor:pointer;text-decoration:underline}
+
+/* ADD EXPENSE */
+.amount-stage{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:16px}
+.amount-lbl{font-size:12px;color:var(--muted-text);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px}
+.amount-val{font-size:52px;font-weight:800;color:var(--fg);min-height:64px;display:flex;align-items:center;gap:4px}
+.amount-currency{font-size:26px;font-weight:400;color:var(--muted-text);margin-top:4px}
+.numpad{display:grid;grid-template-columns:1fr 1fr 1fr;border-top:1px solid var(--border)}
+.nk{background:var(--bg);padding:19px;text-align:center;font-size:22px;font-weight:500;cursor:pointer;border:none;color:var(--fg);border-right:1px solid var(--border);border-bottom:1px solid var(--border)}
+.nk:hover{background:var(--card)}
+.nk.action{background:var(--card);font-size:15px;font-weight:600;color:var(--muted-text)}
+.nk.next{background:var(--primary);color:#fff;font-size:15px;font-weight:700;grid-column:1/-1;border-right:none;padding:16px}
+.cat-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px;padding:0 16px 12px}
+.cat-chip{background:#fff;border:2px solid var(--border);border-radius:13px;padding:13px;cursor:pointer;text-align:left;transition:all .15s}
+.cat-chip.sel{border-color:var(--primary);background:rgba(244,162,97,.09)}
+.cat-chip-icon{font-size:22px;margin-bottom:4px}
+.cat-chip-name{font-size:13px;font-weight:700;color:var(--fg)}
+.cat-chip-budget{font-size:11px;color:var(--muted-text)}
+.pay-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px;padding:0 16px 12px}
+.pay-chip{background:#fff;border:2px solid var(--border);border-radius:13px;padding:18px 12px;cursor:pointer;text-align:center;transition:all .15s}
+.pay-chip.sel{border-color:var(--secondary);background:rgba(168,218,220,.13)}
+.pay-chip-icon{font-size:26px;margin-bottom:4px}
+.pay-chip-name{font-size:13px;font-weight:700;color:var(--fg)}
+.confirm-row{display:flex;justify-content:space-between;padding:11px 0;border-bottom:1px solid var(--border);font-size:14px}
+.confirm-row:last-child{border-bottom:none}
+.confirm-lbl{color:var(--muted-text)}
+.confirm-val{font-weight:600;color:var(--fg)}
+
+/* RIGHT PANEL */
+.right-panel{flex:1;display:flex;flex-direction:column;gap:14px;max-width:460px}
+.rp-title{font-size:17px;font-weight:800;color:#1a1a2e}
+.panel{background:#fff;border-radius:12px;padding:14px}
+.panel h3{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--muted-text);margin-bottom:10px}
+.scenario-grid{display:flex;flex-wrap:wrap;gap:7px}
+.sc-btn{padding:7px 12px;border:1.5px solid var(--border);border-radius:18px;background:#fff;font-size:12px;cursor:pointer;color:var(--fg);font-weight:500;transition:all .15s}
+.sc-btn:hover{border-color:var(--primary);color:var(--primary)}
+.gap-row-r{display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid #f0ece8;font-size:13px}
+.gap-row-r:last-child{border-bottom:none}
+.gap-lbl-r{color:var(--muted-text)}
+.gap-val-r{font-weight:600;color:var(--fg)}
+.gap-val-r.pos{color:var(--muted)}
+.gap-val-r.neg{color:var(--destructive)}
+.gap-val-r.big{font-size:15px}
+.state-panel{background:#1a1a2e;border-radius:12px;padding:14px;min-height:200px}
+.state-panel h3{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:#4a5568;margin-bottom:10px}
+pre.state-out{font-family:'Cascadia Code','Fira Code',monospace;font-size:11.5px;color:#a8dadc;white-space:pre-wrap;line-height:1.6}
+.questions-panel{background:#fffbeb;border:1px solid var(--accent);border-radius:12px;padding:14px}
+.questions-panel h3{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:#b45309;margin-bottom:8px}
+.q-item{font-size:12px;color:#78350f;line-height:1.5;margin-bottom:5px;padding-left:14px;position:relative}
+.q-item::before{content:'?';position:absolute;left:0;font-weight:700;color:#d97706}
+</style>
+</head>
+<body>
+
+<!-- PHONE -->
+<div class="phone-wrap">
+<div class="phone">
+<div class="notch"></div>
+
+<!-- ===== ONBOARDING: MODE ===== -->
+<div id="s-onboarding-mode" class="screen">
+  <div class="sbar"><span>9:41</span><span>⚡ 100%</span></div>
+  <div class="ob-hero">
+    <div class="ob-emoji">💰</div>
+    <div class="ob-title">How do you track income?</div>
+    <div class="ob-sub">Helps us calculate your savings gap — the difference between what you expected to save and what you actually saved.</div>
+  </div>
+  <div style="height:12px"></div>
+  <button class="mode-opt" id="mode-salary" onclick="pickMode('salary')">
+    <div class="mode-opt-hdr"><span style="font-size:20px">💼</span><span class="mode-name">Salary</span></div>
+    <div class="mode-desc">Fixed monthly income</div>
+  </button>
+  <button class="mode-opt" id="mode-mixed" onclick="pickMode('mixed')">
+    <div class="mode-opt-hdr"><span style="font-size:20px">🔀</span><span class="mode-name">Mixed</span></div>
+    <div class="mode-desc">Salary + freelance / irregular income</div>
+  </button>
+  <button class="mode-opt" id="mode-target" onclick="pickMode('target')">
+    <div class="mode-opt-hdr"><span style="font-size:20px">🎯</span><span class="mode-name">Target</span></div>
+    <div class="mode-desc">No income logging — just set a spending cap</div>
+  </button>
+  <div style="flex:1"></div>
+  <button class="btn-primary" id="btn-mode-cont" onclick="goTo('onboarding-setup')" disabled>Continue</button>
+  <div style="height:12px"></div>
+</div>
+
+<!-- ===== ONBOARDING: SETUP ===== -->
+<div id="s-onboarding-setup" class="screen">
+  <div class="sbar"><span>9:41</span><span>⚡ 100%</span></div>
+  <div class="hdr">
+    <button class="back-btn" onclick="goTo('onboarding-mode')">←</button>
+    <span class="hdr-title" id="setup-title">Set your income</span>
+  </div>
+  <div style="padding:0 20px 14px;font-size:13px;color:var(--muted-text);line-height:1.5" id="setup-sub"></div>
+
+  <div id="f-salary" class="input-wrap" style="display:none">
+    <div class="input-lbl">Monthly Salary (₱)</div>
+    <input class="input-field" type="number" id="inp-salary" value="25000" oninput="syncSetup()">
+  </div>
+  <div id="f-target" class="input-wrap">
+    <div class="input-lbl" id="target-lbl">Savings Target (₱)</div>
+    <input class="input-field" type="number" id="inp-target" value="5000" oninput="syncSetup()">
+  </div>
+
+  <div class="card" id="setup-preview" style="margin-top:4px">
+    <div style="font-size:11px;text-transform:uppercase;letter-spacing:.3px;color:var(--muted-text);margin-bottom:8px">Preview</div>
+    <div id="setup-preview-inner"></div>
+  </div>
+
+  <div style="flex:1"></div>
+  <button class="btn-primary" onclick="finishOnboarding()">Get Started →</button>
+  <div style="height:14px"></div>
+</div>
+
+<!-- ===== DASHBOARD ===== -->
+<div id="s-dashboard" class="screen">
+  <div class="sbar"><span>9:41</span><span>⚡ 100%</span></div>
+  <div class="dash-greet">Good morning, Juan 👋</div>
+  <div class="dash-sub" id="dash-date">November 2026 · Day 13 of 30</div>
+  <div class="scrollable">
+    <!-- Gap card -->
+    <div id="gap-card" class="gap-card no-data">
+      <div class="gap-lbl" id="gap-card-lbl">Spending Cap</div>
+      <div class="gap-amt" id="gap-amt">—</div>
+      <div class="gap-desc" id="gap-desc">Set up your income mode to see your gap</div>
+      <div class="gap-row">
+        <div><div class="gap-mini-lbl">Spent</div><div class="gap-mini-val" id="gap-spent">₱0</div></div>
+        <div><div class="gap-mini-lbl" id="gap-income-lbl">Income</div><div class="gap-mini-val" id="gap-income-val">—</div></div>
+        <div><div class="gap-mini-lbl" id="gap-tgt-lbl">Target</div><div class="gap-mini-val" id="gap-tgt-val">—</div></div>
+      </div>
+      <div id="add-income-btn" style="display:none;margin-top:12px;padding-top:12px;border-top:1px solid rgba(255,255,255,.25)">
+        <button onclick="openIncomeSheet()" style="background:rgba(255,255,255,.2);border:1.5px solid rgba(255,255,255,.4);color:#fff;border-radius:20px;padding:7px 16px;font-size:13px;font-weight:700;cursor:pointer;width:100%">+ Add Income</button>
+      </div>
+    </div>
+
+    <!-- Recurring due banner -->
+    <div id="recur-banner" class="banner">
+      <span class="banner-icon">🔔</span>
+      <div class="banner-text">
+        <strong id="recur-name">Electric bill</strong> is due tomorrow (₱<span id="recur-amt">0</span>).
+        <span class="banner-action" onclick="markPaid()">Mark as Paid</span>
+      </div>
+    </div>
+
+    <!-- Budget Health -->
+    <div class="section-hdr">Budget Health</div>
+    <div class="card"><div id="budget-list"></div></div>
+
+    <!-- Recent -->
+    <div class="section-hdr">Recent</div>
+    <div class="card">
+      <div id="recent-list"></div>
+      <div id="no-recent" style="text-align:center;padding:16px;color:var(--muted-text);font-size:13px">No expenses yet. Tap + to add one.</div>
+    </div>
+  </div>
+
+  <button class="fab" onclick="goTo('add-category')">+</button>
+  <div class="tab-bar">
+    <button class="tab-btn active" onclick="goTo('dashboard')"><span>🏠</span><span>Home</span></button>
+    <button class="tab-btn" onclick="goTo('expenses-list')"><span>📋</span><span>Expenses</span></button>
+    <button class="tab-btn" onclick="alert('Budgets — not yet built')"><span>🎯</span><span>Budgets</span></button>
+    <button class="tab-btn" onclick="alert('Insights — not yet built')"><span>📊</span><span>Insights</span></button>
+  </div>
+</div>
+
+<!-- ===== ADD: AMOUNT ===== -->
+<div id="s-add-amount" class="screen">
+  <div class="sbar"><span>9:41</span><span>⚡ 100%</span></div>
+  <div class="hdr">
+    <button class="back-btn" onclick="goTo('add-category')">←</button>
+    <span class="hdr-title">Amount</span>
+  </div>
+  <div class="steps">
+    <div class="dot"></div><div class="dot active"></div><div class="dot"></div><div class="dot"></div>
+  </div>
+  <div id="amt-cat-chip" style="padding:0 16px 4px;font-size:14px;color:var(--muted-text)"></div>
+  <div class="amount-stage">
+    <div class="amount-lbl">How much?</div>
+    <div class="amount-val"><span class="amount-currency">₱</span><span id="amt-display">0</span></div>
+  </div>
+  <div class="numpad">
+    <button class="nk" onclick="nk('1')">1</button><button class="nk" onclick="nk('2')">2</button><button class="nk" onclick="nk('3')">3</button>
+    <button class="nk" onclick="nk('4')">4</button><button class="nk" onclick="nk('5')">5</button><button class="nk" onclick="nk('6')">6</button>
+    <button class="nk" onclick="nk('7')">7</button><button class="nk" onclick="nk('8')">8</button><button class="nk" onclick="nk('9')">9</button>
+    <button class="nk action" onclick="nk('.')">.</button><button class="nk" onclick="nk('0')">0</button><button class="nk action" onclick="nk('del')">⌫</button>
+    <button class="nk next" id="amt-next" onclick="goToPayment()">Next →</button>
+  </div>
+</div>
+
+<!-- ===== ADD: CATEGORY ===== -->
+<div id="s-add-category" class="screen">
+  <div class="sbar"><span>9:41</span><span>⚡ 100%</span></div>
+  <div class="hdr">
+    <button class="back-btn" onclick="goTo('dashboard')">←</button>
+    <span class="hdr-title">Category</span>
+  </div>
+  <div class="steps">
+    <div class="dot active"></div><div class="dot"></div><div class="dot"></div><div class="dot"></div>
+  </div>
+  <div style="padding:4px 20px 8px;font-size:13px;color:var(--muted-text)">What did you spend on?</div>
+  <div class="cat-grid" id="cat-grid"></div>
+  <div style="flex:1"></div>
+  <button class="btn-primary" id="btn-cat-next" onclick="goToAmount()" disabled>Next →</button>
+  <div style="height:14px"></div>
+</div>
+
+<!-- ===== ADD: PAYMENT ===== -->
+<div id="s-add-payment" class="screen">
+  <div class="sbar"><span>9:41</span><span>⚡ 100%</span></div>
+  <div class="hdr">
+    <button class="back-btn" onclick="goTo('add-category')">←</button>
+    <span class="hdr-title">Payment Method</span>
+  </div>
+  <div class="steps">
+    <div class="dot"></div><div class="dot"></div><div class="dot active"></div><div class="dot"></div>
+  </div>
+  <div style="padding:0 16px 10px;font-size:22px;font-weight:800;color:var(--fg)">₱<span id="pay-amt">0</span> · <span id="pay-cat" style="font-size:16px;color:var(--muted-text)"></span></div>
+  <div class="pay-grid">
+    <button class="pay-chip" id="pc-Cash" onclick="pickPayment('Cash')"><div class="pay-chip-icon">💵</div><div class="pay-chip-name">Cash</div></button>
+    <button class="pay-chip" id="pc-GCash" onclick="pickPayment('GCash')"><div class="pay-chip-icon">📱</div><div class="pay-chip-name">GCash</div></button>
+    <button class="pay-chip" id="pc-Card" onclick="pickPayment('Card')"><div class="pay-chip-icon">💳</div><div class="pay-chip-name">Card</div></button>
+    <button class="pay-chip" id="pc-Others" onclick="pickPayment('Others')"><div class="pay-chip-icon">🔄</div><div class="pay-chip-name">Others</div></button>
+  </div>
+  <div class="input-wrap">
+    <div class="input-lbl">Merchant / Notes (optional)</div>
+    <input class="input-field" id="inp-merchant" placeholder="e.g. Jollibee, Grab, SM" oninput="S.draft.merchant=this.value">
+  </div>
+  <div style="flex:1"></div>
+  <button class="btn-primary" id="btn-pay-next" onclick="goTo('add-confirm')" disabled>Review →</button>
+  <div style="height:14px"></div>
+</div>
+
+<!-- ===== ADD: CONFIRM ===== -->
+<div id="s-add-confirm" class="screen">
+  <div class="sbar"><span>9:41</span><span>⚡ 100%</span></div>
+  <div class="hdr">
+    <button class="back-btn" onclick="goTo('add-payment')">←</button>
+    <span class="hdr-title">Confirm</span>
+  </div>
+  <div class="steps">
+    <div class="dot"></div><div class="dot"></div><div class="dot"></div><div class="dot active"></div>
+  </div>
+  <div class="card" style="margin-top:12px">
+    <div style="text-align:center;padding:8px 0 18px">
+      <div id="conf-icon" style="font-size:46px">🍚</div>
+      <div id="conf-amt" style="font-size:34px;font-weight:800;color:var(--fg);margin-top:6px">₱0</div>
+    </div>
+    <div class="confirm-row"><span class="confirm-lbl">Category</span><span class="confirm-val" id="conf-cat">—</span></div>
+    <div class="confirm-row"><span class="confirm-lbl">Payment</span><span class="confirm-val" id="conf-pay">—</span></div>
+    <div class="confirm-row"><span class="confirm-lbl">Merchant</span><span class="confirm-val" id="conf-merchant">—</span></div>
+    <div class="confirm-row"><span class="confirm-lbl">Date</span><span class="confirm-val">Today · Nov 13, 2026</span></div>
+  </div>
+  <div class="card" id="impact-card" style="border-left:3px solid var(--accent)">
+    <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.3px;color:var(--muted-text);margin-bottom:5px">Budget Impact</div>
+    <div id="impact-text" style="font-size:13px;color:var(--fg)"></div>
+  </div>
+  <div class="card" style="display:flex;flex-direction:column;gap:10px">
+    <div style="display:flex;justify-content:space-between;align-items:center">
+      <div>
+        <div style="font-size:14px;font-weight:700;color:var(--fg)">Repeat this bill</div>
+        <div style="font-size:12px;color:var(--muted-text)">Save as a recurring rule</div>
+      </div>
+      <label style="position:relative;display:inline-block;width:44px;height:24px">
+        <input type="checkbox" id="chk-recurring" onchange="toggleRecurring(this.checked)" style="opacity:0;width:0;height:0">
+        <span id="toggle-track" style="position:absolute;inset:0;background:var(--border);border-radius:12px;cursor:pointer;transition:.2s"></span>
+        <span id="toggle-thumb" style="position:absolute;left:3px;top:3px;width:18px;height:18px;background:#fff;border-radius:50%;transition:.2s"></span>
+      </label>
+    </div>
+    <div id="recur-opts" style="display:none;gap:8px;flex-direction:column">
+      <div class="input-lbl">Frequency</div>
+      <div style="display:flex;gap:8px">
+        <button class="pay-chip" id="rf-monthly" onclick="pickFreq('monthly')" style="flex:1"><div class="pay-chip-name">Monthly</div></button>
+        <button class="pay-chip" id="rf-weekly" onclick="pickFreq('weekly')" style="flex:1"><div class="pay-chip-name">Weekly</div></button>
+        <button class="pay-chip" id="rf-yearly" onclick="pickFreq('yearly')" style="flex:1"><div class="pay-chip-name">Yearly</div></button>
+      </div>
+    </div>
+  </div>
+  <button class="btn-primary" id="btn-confirm-save" onclick="confirmExpense()">Log Expense ✓</button>
+  <button class="btn-secondary" onclick="cancelAdd()">Cancel</button>
+</div>
+
+<!-- ===== EXPENSES LIST ===== -->
+<div id="s-expenses-list" class="screen">
+  <div class="sbar"><span>9:41</span><span>⚡ 100%</span></div>
+  <div class="hdr"><span class="hdr-title">All Expenses</span></div>
+  <div class="scrollable">
+    <div class="card">
+      <div id="all-list"></div>
+      <div id="no-all" style="text-align:center;padding:20px;color:var(--muted-text);font-size:13px">No expenses yet.</div>
+    </div>
+  </div>
+  <div class="tab-bar">
+    <button class="tab-btn" onclick="goTo('dashboard')"><span>🏠</span><span>Home</span></button>
+    <button class="tab-btn active" onclick="goTo('expenses-list')"><span>📋</span><span>Expenses</span></button>
+    <button class="tab-btn" onclick="alert('Budgets — not yet built')"><span>🎯</span><span>Budgets</span></button>
+    <button class="tab-btn" onclick="alert('Insights — not yet built')"><span>📊</span><span>Insights</span></button>
+  </div>
+</div>
+
+<!-- ===== INCOME SHEET ===== -->
+<div id="income-overlay" style="position:absolute;inset:0;background:rgba(0,0,0,.35);z-index:200;display:none;align-items:flex-end" onclick="closeIncomeSheet(event)">
+  <div style="background:var(--bg);border-radius:24px 24px 0 0;width:100%;padding:0 20px 28px" onclick="event.stopPropagation()">
+    <div style="width:36px;height:4px;background:var(--border);border-radius:2px;margin:12px auto 16px"></div>
+    <div style="font-size:18px;font-weight:800;color:var(--fg);margin-bottom:4px">Log Income</div>
+    <div style="font-size:13px;color:var(--muted-text);margin-bottom:18px">Add a salary or freelance payment for this month.</div>
+
+    <div style="margin-bottom:12px">
+      <div style="font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.3px;color:var(--muted-text);margin-bottom:6px">Amount (₱)</div>
+      <input id="inc-amount" type="number" placeholder="0" style="width:100%;padding:13px;border:2px solid var(--border);border-radius:12px;font-size:22px;font-weight:700;color:var(--fg);background:#fff;outline:none" onfocus="this.style.borderColor='var(--primary)'" onblur="this.style.borderColor='var(--border)'">
+    </div>
+
+    <div style="margin-bottom:18px">
+      <div style="font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.3px;color:var(--muted-text);margin-bottom:8px">Source</div>
+      <div style="display:flex;gap:8px">
+        <button class="inc-src-btn" id="src-Salary"    onclick="pickSrc('Salary')"   style="flex:1;padding:10px;border:2px solid var(--border);border-radius:12px;background:#fff;font-size:13px;font-weight:600;cursor:pointer;color:var(--fg)">💼 Salary</button>
+        <button class="inc-src-btn" id="src-Freelance" onclick="pickSrc('Freelance')" style="flex:1;padding:10px;border:2px solid var(--border);border-radius:12px;background:#fff;font-size:13px;font-weight:600;cursor:pointer;color:var(--fg)">💻 Freelance</button>
+        <button class="inc-src-btn" id="src-Others"    onclick="pickSrc('Others')"   style="flex:1;padding:10px;border:2px solid var(--border);border-radius:12px;background:#fff;font-size:13px;font-weight:600;cursor:pointer;color:var(--fg)">📦 Others</button>
+      </div>
+    </div>
+
+    <button onclick="confirmIncome()" style="display:block;width:100%;padding:16px;background:var(--primary);color:#fff;border:none;border-radius:14px;font-size:16px;font-weight:700;cursor:pointer">Add Income ✓</button>
+  </div>
+</div>
+
+</div><!-- /phone -->
+</div><!-- /phone-wrap -->
+
+<!-- RIGHT PANEL -->
+<div class="right-panel">
+  <div class="rp-title">GastosGo · Prototype</div>
+
+  <div class="panel">
+    <h3>Jump to scenario</h3>
+    <div class="scenario-grid">
+      <button class="sc-btn" onclick="scenario('fresh')">🌱 Fresh Start</button>
+      <button class="sc-btn" onclick="scenario('salary-mid')">💼 Mid-Month (Salary)</button>
+      <button class="sc-btn" onclick="scenario('budget-warn')">⚠️ Budget Warning</button>
+      <button class="sc-btn" onclick="scenario('over-budget')">🚨 Over Budget</button>
+      <button class="sc-btn" onclick="scenario('target')">🎯 Target Mode (onboarding)</button>
+      <button class="sc-btn" onclick="scenario('mixed')">🔀 Mixed Mode</button>
+      <button class="sc-btn" onclick="scenario('recur-due')">🔔 Bill Due</button>
+      <button class="sc-btn" onclick="scenario('month-end')">📅 Month End</button>
+    </div>
+  </div>
+
+  <div class="panel">
+    <h3>Spending Cap Computation</h3>
+    <div id="gap-panel"></div>
+  </div>
+
+  <div class="questions-panel">
+    <h3>Open questions this prototype should answer</h3>
+    <div class="q-item">In <strong>Target Mode</strong>, is "spending cap" (what you can spend) clearer than "savings target" (what you want to save)? They feel like the same number but mean different things psychologically.</div>
+    <div class="q-item">Is 4 steps (amount → category → payment → confirm) the right flow, or should category come first?</div>
+    <div class="q-item">Does the gap card's green/red color correctly signal the user's state across all 3 income modes?</div>
+    <div class="q-item">Budget impact on the confirm screen — useful signal or noise before saving?</div>
+    <div class="q-item">In <strong>Mixed Mode</strong>, should income records be logged from the same + FAB flow, or a separate income screen?</div>
+  </div>
+
+  <div class="state-panel">
+    <h3>State</h3>
+    <pre class="state-out" id="state-out"></pre>
+  </div>
+</div>
+
+<script>
+// =========================================================
+// CROSS-PROTOTYPE SYNC
+// =========================================================
+const BC = new BroadcastChannel('gg_proto');
+let _bcReceiving = false;
+BC.onmessage = ({data}) => {
+  if(data.source === 'gastosgo') return; // ignore own echoes if any
+  _bcReceiving = true;
+  S.expenses = data.expenses;
+  render();
+  _bcReceiving = false;
+};
+
+// =========================================================
+// CATEGORIES — seeded defaults
+// =========================================================
+const CATS = [
+  { id:'food',      name:'Food',      icon:'🍚', monthlyBudget:3000 },
+  { id:'transport', name:'Transport', icon:'🚌', monthlyBudget:1500 },
+  { id:'leisure',   name:'Leisure',   icon:'🎮', monthlyBudget:2000 },
+  { id:'bills',     name:'Bills',     icon:'📝', monthlyBudget:5000 },
+  { id:'shopping',  name:'Shopping',  icon:'🛍️', monthlyBudget:2000 },
+  { id:'health',    name:'Health',    icon:'💊', monthlyBudget:1000 },
+  { id:'other',     name:'Other',     icon:'📦', monthlyBudget:1000 },
+];
+
+// =========================================================
+// STATE
+// =========================================================
+let S = {
+  screen: 'onboarding-mode',
+  profile: { incomeMode: null, salaryAmount: 0, savingsTarget: 0, budgetCycleStart: 1 },
+  categories: clone(CATS),
+  expenses: [],
+  incomeRecords: [],
+  recurringRules: [],
+  draft: { amount: '', categoryId: null, paymentMethod: null, merchant: '' },
+};
+
+function clone(x){ return JSON.parse(JSON.stringify(x)) }
+
+// =========================================================
+// SAVINGS GAP  (ADR-0001)
+// gap = actualSavings − expectedSavings; positive = on track
+// =========================================================
+function computeGap() {
+  const totalExpenses = S.expenses.reduce((s,e)=>s+e.amount,0)
+    + S.recurringRules.filter(r=>r.isActive).reduce((s,r)=>s+r.amount,0);
+  const { incomeMode, salaryAmount, savingsTarget } = S.profile;
+  let actualSavings=0, expectedSavings=0, incomeTotal=null;
+
+  if (incomeMode === 'salary') {
+    incomeTotal = salaryAmount;
+    actualSavings = salaryAmount - totalExpenses;
+    expectedSavings = savingsTarget;
+  } else if (incomeMode === 'mixed') {
+    incomeTotal = S.incomeRecords.reduce((s,r) => s+r.amount, 0);
+    actualSavings = incomeTotal - totalExpenses;
+    expectedSavings = savingsTarget;
+  } else if (incomeMode === 'target') {
+    // ADR-0001: actualSavings = savingsTarget − totalExpenses; expectedSavings = 0
+    // so gap = (savingsTarget − totalExpenses) − 0 = savingsTarget − totalExpenses
+    // positive  → still under cap (on track); negative → over cap (at risk)
+    actualSavings = savingsTarget - totalExpenses;
+    expectedSavings = 0;
+  }
+  return { totalExpenses, actualSavings, expectedSavings, gap: actualSavings - expectedSavings, incomeTotal };
+}
+
+function fmt(n){ if(n===null||n===undefined) return '—'; const a=Math.abs(n); return (n<0?'−':'')+'₱'+a.toLocaleString('en-PH',{maximumFractionDigits:2}) }
+function fmtSigned(n){ if(n===null||n===undefined) return '—'; return (n>=0?'+':'−')+'₱'+Math.abs(n).toLocaleString('en-PH',{maximumFractionDigits:2}) }
+function spent(catId){
+  const fromExp = S.expenses.filter(e=>e.categoryId===catId).reduce((s,e)=>s+e.amount,0);
+  const fromRules = S.recurringRules.filter(r=>r.categoryId===catId&&r.isActive).reduce((s,r)=>s+r.amount,0);
+  return fromExp + fromRules;
+}
+
+// =========================================================
+// NAVIGATION
+// =========================================================
+function goTo(screen) {
+  S.screen = screen;
+  render();
+}
+
+// =========================================================
+// ONBOARDING
+// =========================================================
+function pickMode(m) {
+  S.profile.incomeMode = m;
+  document.querySelectorAll('.mode-opt').forEach(el=>el.classList.remove('sel'));
+  document.getElementById('mode-'+m).classList.add('sel');
+  document.getElementById('btn-mode-cont').disabled = false;
+
+  // Setup screen labels
+  const titles = { salary:'Set your income', mixed:'Set your savings target', target:'Set your spending cap' };
+  const subs = {
+    salary:'We use this to calculate how much you can save each month.',
+    mixed:'Log income entries as they arrive. We\'ll track your savings gap against this target.',
+    target:'No income logging needed. Tell us the most you want to spend this month.',
+  };
+  document.getElementById('setup-title').textContent = titles[m];
+  document.getElementById('setup-sub').textContent = subs[m];
+  document.getElementById('f-salary').style.display = m==='salary' ? 'block' : 'none';
+  document.getElementById('target-lbl').textContent = m==='target' ? 'Spending Cap (₱)' : 'Savings Target (₱)';
+  syncSetup();
+}
+
+function syncSetup() {
+  S.profile.salaryAmount = parseFloat(document.getElementById('inp-salary').value)||0;
+  S.profile.savingsTarget = parseFloat(document.getElementById('inp-target').value)||0;
+  const { incomeMode, salaryAmount, savingsTarget } = S.profile;
+  if(!incomeMode) return;
+
+  let html='';
+  if(incomeMode==='salary'){
+    const spend = salaryAmount - savingsTarget;
+    html=`
+      <div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--border);font-size:13px"><span style="color:var(--muted-text)">Monthly salary</span><strong>${fmt(salaryAmount)}</strong></div>
+      <div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--border);font-size:13px"><span style="color:var(--muted-text)">Savings target</span><strong>${fmt(savingsTarget)}</strong></div>
+      <div style="display:flex;justify-content:space-between;padding:5px 0;font-size:13px"><span style="color:var(--muted-text)">Spending budget</span><strong style="color:${spend>=0?'var(--muted)':'var(--destructive)'}">${fmt(spend)}</strong></div>`;
+  } else if(incomeMode==='mixed'){
+    html=`<div style="font-size:13px;color:var(--muted-text);line-height:1.6">Log income entries as they arrive. We'll track how close you are to your <strong style="color:var(--fg)">${fmt(savingsTarget)}</strong> savings target.</div>`;
+  } else if(incomeMode==='target'){
+    html=`<div style="font-size:13px;color:var(--muted-text);line-height:1.6">You can spend up to <strong style="color:var(--fg)">${fmt(savingsTarget)}</strong> this month. The gap card will go red when you exceed this cap.</div>`;
+  }
+  document.getElementById('setup-preview-inner').innerHTML = html;
+  renderGapPanel();
+}
+
+function finishOnboarding() {
+  S.profile.salaryAmount = parseFloat(document.getElementById('inp-salary').value)||0;
+  S.profile.savingsTarget = parseFloat(document.getElementById('inp-target').value)||0;
+  goTo('dashboard');
+}
+
+// =========================================================
+// NUMPAD
+// =========================================================
+function nk(k) {
+  let v = S.draft.amount;
+  if(k==='del') v=v.slice(0,-1);
+  else if(k==='.') { if(!v.includes('.')) v+='.'; }
+  else { if(v==='0') v=k; else v+=k; if(v.length>8) return; }
+  S.draft.amount = v;
+  document.getElementById('amt-display').textContent = v||'0';
+}
+
+function goToAmount() {
+  if(!S.draft.categoryId) return;
+  goTo('add-amount');
+}
+
+function pickCat(id) {
+  S.draft.categoryId = id;
+  document.querySelectorAll('.cat-chip').forEach(el=>el.classList.remove('sel'));
+  const el=document.getElementById('cc-'+id); if(el) el.classList.add('sel');
+  document.getElementById('btn-cat-next').disabled=false;
+}
+
+function goToPayment() {
+  if(!(parseFloat(S.draft.amount)>0)) return;
+  goTo('add-payment');
+}
+
+function pickPayment(m) {
+  S.draft.paymentMethod = m;
+  document.querySelectorAll('.pay-chip').forEach(el=>el.classList.remove('sel'));
+  const el=document.getElementById('pc-'+m); if(el) el.classList.add('sel');
+  document.getElementById('btn-pay-next').disabled=false;
+}
+
+function toggleRecurring(on) {
+  document.getElementById('toggle-track').style.background = on ? 'var(--primary)' : 'var(--border)';
+  document.getElementById('toggle-thumb').style.left = on ? '23px' : '3px';
+  document.getElementById('recur-opts').style.display = on ? 'flex' : 'none';
+  if(on && !S.draft.frequency) pickFreq('monthly');
+  S.draft.recurring = on;
+  document.getElementById('btn-confirm-save').textContent = on ? 'Save Recurring Bill ✓' : 'Log Expense ✓';
+}
+
+function pickFreq(f) {
+  S.draft.frequency = f;
+  ['monthly','weekly','yearly'].forEach(x=>{
+    document.getElementById('rf-'+x).style.borderColor = x===f ? 'var(--primary)' : 'var(--border)';
+    document.getElementById('rf-'+x).style.color = x===f ? 'var(--primary)' : 'var(--fg)';
+  });
+}
+
+function confirmExpense() {
+  const cat = S.categories.find(c=>c.id===S.draft.categoryId);
+  const name = S.draft.merchant || (cat?cat.name:'Bill');
+  if(S.draft.recurring) {
+    S.recurringRules.push({
+      id:'r'+Date.now(), name, amount:parseFloat(S.draft.amount),
+      categoryId:S.draft.categoryId, paymentMethod:S.draft.paymentMethod,
+      frequency:S.draft.frequency||'monthly', nextDueDate:'2026-12-13', isActive:true,
+    });
+  } else {
+    S.expenses.push({
+      id:'e'+Date.now(), amount:parseFloat(S.draft.amount),
+      categoryId:S.draft.categoryId, merchant:name,
+      paymentMethod:S.draft.paymentMethod, date:'2026-11-13',
+    });
+  }
+  S.draft = { amount:'', categoryId:null, paymentMethod:null, merchant:'', recurring:false, frequency:null };
+  goTo('dashboard');
+}
+
+function cancelAdd() {
+  S.draft = { amount:'', categoryId:null, paymentMethod:null, merchant:'' };
+  goTo('dashboard');
+}
+
+let _incSrc = 'Salary';
+function openIncomeSheet() {
+  _incSrc = 'Salary';
+  document.getElementById('inc-amount').value = '';
+  document.querySelectorAll('.inc-src-btn').forEach(b => { b.style.borderColor='var(--border)'; b.style.background='#fff'; });
+  const el = document.getElementById('src-Salary'); if(el){ el.style.borderColor='var(--primary)'; el.style.background='rgba(244,162,97,.08)'; }
+  document.getElementById('income-overlay').style.display='flex';
+}
+function closeIncomeSheet(e) {
+  if(e && e.target!==document.getElementById('income-overlay')) return;
+  document.getElementById('income-overlay').style.display='none';
+}
+function pickSrc(src) {
+  _incSrc = src;
+  document.querySelectorAll('.inc-src-btn').forEach(b => { b.style.borderColor='var(--border)'; b.style.background='#fff'; });
+  const el = document.getElementById('src-'+src); if(el){ el.style.borderColor='var(--primary)'; el.style.background='rgba(244,162,97,.08)'; }
+}
+function confirmIncome() {
+  const amt = parseFloat(document.getElementById('inc-amount').value)||0;
+  if(!amt) { document.getElementById('inc-amount').style.borderColor='var(--destructive)'; return; }
+  S.incomeRecords.push({ id:'i'+Date.now(), amount:amt, source:_incSrc, month:11, year:2026 });
+  document.getElementById('income-overlay').style.display='none';
+  render();
+}
+
+function markPaid() {
+  const rule = S.recurringRules.find(r=>r._showBanner);
+  if(!rule) return;
+  S.expenses.push({
+    id:'e'+Date.now(), amount:rule.amount, categoryId:rule.categoryId,
+    merchant:rule.name, paymentMethod:rule.paymentMethod||'Cash',
+    date:'2026-11-13', isRecurring:true,
+  });
+  rule._showBanner=false;
+  render();
+}
+
+// =========================================================
+// SCENARIOS
+// =========================================================
+function scenario(name) {
+  const base = {
+    screen:'dashboard', categories:clone(CATS),
+    draft:{amount:'',categoryId:null,paymentMethod:null,merchant:''},
+    incomeRecords:[], recurringRules:[],
+  };
+  switch(name) {
+    case 'fresh':
+      S = {...base, screen:'onboarding-mode', profile:{incomeMode:null,salaryAmount:0,savingsTarget:0,budgetCycleStart:1}, expenses:[]};
+      break;
+    case 'salary-mid':
+      S = {...base, profile:{incomeMode:'salary',salaryAmount:25000,savingsTarget:5000,budgetCycleStart:1},
+        expenses:[
+          {id:'e1',amount:1850,categoryId:'food',merchant:'Jollibee',paymentMethod:'GCash',date:'2026-11-01'},
+          {id:'e2',amount:650,categoryId:'transport',merchant:'Grab',paymentMethod:'GCash',date:'2026-11-03'},
+          {id:'e3',amount:299,categoryId:'leisure',merchant:'Netflix',paymentMethod:'Card',date:'2026-11-05'},
+          {id:'e4',amount:2200,categoryId:'bills',merchant:'Meralco',paymentMethod:'GCash',date:'2026-11-08'},
+          {id:'e5',amount:480,categoryId:'food',merchant:'FoodPanda',paymentMethod:'GCash',date:'2026-11-10'},
+        ]};
+      break;
+    case 'budget-warn':
+      S = {...base, profile:{incomeMode:'salary',salaryAmount:25000,savingsTarget:5000,budgetCycleStart:1},
+        expenses:[
+          {id:'e1',amount:2410,categoryId:'food',merchant:'Various',paymentMethod:'GCash',date:'2026-11-05'},
+          {id:'e2',amount:1620,categoryId:'leisure',merchant:'Shopee',paymentMethod:'Card',date:'2026-11-08'},
+          {id:'e3',amount:1250,categoryId:'transport',merchant:'Grab',paymentMethod:'GCash',date:'2026-11-10'},
+        ]};
+      break;
+    case 'over-budget':
+      S = {...base, profile:{incomeMode:'salary',salaryAmount:25000,savingsTarget:5000,budgetCycleStart:1},
+        expenses:[
+          {id:'e1',amount:3600,categoryId:'food',merchant:'Various',paymentMethod:'GCash',date:'2026-11-05'},
+          {id:'e2',amount:2400,categoryId:'leisure',merchant:'Shopee + GC',paymentMethod:'Card',date:'2026-11-08'},
+          {id:'e3',amount:1500,categoryId:'transport',merchant:'Grab',paymentMethod:'GCash',date:'2026-11-10'},
+          {id:'e4',amount:1900,categoryId:'shopping',merchant:'Lazada',paymentMethod:'Card',date:'2026-11-12'},
+        ]};
+      break;
+    case 'target':
+      S = {...base, screen:'onboarding-setup', profile:{incomeMode:'target',salaryAmount:0,savingsTarget:8000,budgetCycleStart:1},
+        expenses:[
+          {id:'e1',amount:1500,categoryId:'food',merchant:'Canteen',paymentMethod:'Cash',date:'2026-11-01'},
+          {id:'e2',amount:600,categoryId:'transport',merchant:'Jeep/MRT',paymentMethod:'Cash',date:'2026-11-05'},
+          {id:'e3',amount:299,categoryId:'leisure',merchant:'Spotify',paymentMethod:'GCash',date:'2026-11-07'},
+        ]};
+      break;
+    case 'mixed':
+      S = {...base,
+        profile:{incomeMode:'mixed',salaryAmount:0,savingsTarget:8000,budgetCycleStart:1},
+        incomeRecords:[
+          {id:'i1',amount:20000,source:'Salary',month:11,year:2026},
+          {id:'i2',amount:7500,source:'Freelance',month:11,year:2026},
+        ],
+        expenses:[
+          {id:'e1',amount:2500,categoryId:'food',merchant:'Various',paymentMethod:'GCash',date:'2026-11-01'},
+          {id:'e2',amount:800,categoryId:'transport',merchant:'Grab',paymentMethod:'GCash',date:'2026-11-05'},
+          {id:'e3',amount:1500,categoryId:'bills',merchant:'PLDT',paymentMethod:'GCash',date:'2026-11-08'},
+        ]};
+      break;
+    case 'recur-due':
+      S = {...base, profile:{incomeMode:'salary',salaryAmount:25000,savingsTarget:5000,budgetCycleStart:1},
+        expenses:[{id:'e1',amount:1200,categoryId:'food',merchant:'Various',paymentMethod:'GCash',date:'2026-11-10'}],
+        recurringRules:[{id:'r1',name:'Electric bill (Meralco)',amount:1800,categoryId:'bills',paymentMethod:'GCash',frequency:'monthly',nextDueDate:'2026-11-14',isActive:true,_showBanner:true}]};
+      break;
+    case 'month-end':
+      S = {...base, profile:{incomeMode:'salary',salaryAmount:25000,savingsTarget:5000,budgetCycleStart:1},
+        expenses:[
+          {id:'e1',amount:3200,categoryId:'food',merchant:'Various',paymentMethod:'GCash',date:'2026-11-01'},
+          {id:'e2',amount:1400,categoryId:'transport',merchant:'Grab',paymentMethod:'GCash',date:'2026-11-05'},
+          {id:'e3',amount:2100,categoryId:'leisure',merchant:'Shopee',paymentMethod:'Card',date:'2026-11-10'},
+          {id:'e4',amount:4800,categoryId:'bills',merchant:'Meralco+PLDT',paymentMethod:'GCash',date:'2026-11-15'},
+          {id:'e5',amount:1800,categoryId:'shopping',merchant:'Lazada',paymentMethod:'Card',date:'2026-11-18'},
+          {id:'e6',amount:500,categoryId:'health',merchant:'Mercury Drug',paymentMethod:'Cash',date:'2026-11-20'},
+        ]};
+      break;
+  }
+  render();
+}
+
+// =========================================================
+// RENDER
+// =========================================================
+function render() {
+  document.querySelectorAll('.screen').forEach(el=>el.classList.remove('active'));
+  const id = 's-'+S.screen;
+  const el = document.getElementById(id);
+  if(el) el.classList.add('active');
+
+  if(S.screen==='dashboard') renderDashboard();
+  if(S.screen==='add-category') renderCatPicker();
+  if(S.screen==='add-amount') renderAmountScreen();
+  if(S.screen==='add-payment') renderPayScreen();
+  if(S.screen==='add-confirm') renderConfirm();
+  if(S.screen==='expenses-list') renderAllExpenses();
+  if(S.screen==='onboarding-setup') {
+    if(S.profile.incomeMode) pickMode(S.profile.incomeMode);
+    document.getElementById('inp-salary').value = S.profile.salaryAmount||'';
+    document.getElementById('inp-target').value = S.profile.savingsTarget||'';
+    syncSetup();
+  }
+
+  renderGapPanel();
+  renderStateOut();
+  if(!_bcReceiving) BC.postMessage({
+    source: 'gastosgo',
+    expenses: S.expenses,
+    incomeRecords: S.incomeRecords,
+    profile: S.profile,
+    actualSavings: computeGap().actualSavings,
+  });
+}
+
+function renderDashboard() {
+  const { totalExpenses, gap, incomeTotal, actualSavings, expectedSavings } = computeGap();
+  const { incomeMode, savingsTarget } = S.profile;
+
+  // Gap card — combine gap sign with budget health for card state
+  const card = document.getElementById('gap-card');
+  const hasMode = !!incomeMode;
+  const overBudgetCats = S.categories.filter(c => spent(c.id) >= c.monthlyBudget);
+  const warningCats    = S.categories.filter(c => { const p=spent(c.id)/c.monthlyBudget; return p>=0.8 && p<1; });
+  let cardState = 'no-data', desc = 'Set up your income mode to see your gap';
+  if (hasMode) {
+    if (gap < 0 || overBudgetCats.length > 0) {
+      cardState = 'at-risk';
+      const names = overBudgetCats.map(c=>c.name).join(', ');
+      desc = overBudgetCats.length
+        ? `🚨 Over budget in: ${names}`
+        : 'At risk — spending faster than planned';
+    } else if (warningCats.length > 0) {
+      cardState = 'warning';
+      const names = warningCats.map(c=>c.name).join(', ');
+      desc = `⚠️ Approaching limit in: ${names}`;
+    } else {
+      cardState = 'on-track';
+      desc = 'On track — keep it up! 🎉';
+    }
+  }
+  card.className = 'gap-card ' + cardState;
+  document.getElementById('gap-card-lbl').textContent = 'Spending Cap';
+  document.getElementById('gap-amt').textContent = hasMode ? fmtSigned(gap) : '—';
+  document.getElementById('gap-desc').textContent = desc;
+
+  document.getElementById('gap-spent').textContent = fmt(totalExpenses);
+
+  document.getElementById('add-income-btn').style.display = incomeMode==='mixed' ? 'block' : 'none';
+
+  if(incomeMode==='target') {
+    document.getElementById('gap-income-lbl').textContent = 'Cap';
+    document.getElementById('gap-income-val').textContent = fmt(savingsTarget);
+    document.getElementById('gap-tgt-lbl').textContent = 'Remaining';
+    document.getElementById('gap-tgt-val').textContent = fmt(actualSavings);
+  } else {
+    document.getElementById('gap-income-lbl').textContent = 'Income';
+    document.getElementById('gap-income-val').textContent = incomeTotal!==null ? fmt(incomeTotal) : '—';
+    document.getElementById('gap-tgt-lbl').textContent = 'Target';
+    document.getElementById('gap-tgt-val').textContent = hasMode ? fmt(expectedSavings) : '—';
+  }
+
+  // Recurring banner
+  const dueRule = S.recurringRules.find(r=>r._showBanner&&r.isActive);
+  const banner = document.getElementById('recur-banner');
+  if(dueRule){
+    banner.classList.add('show');
+    document.getElementById('recur-name').textContent = dueRule.name;
+    document.getElementById('recur-amt').textContent = dueRule.amount.toLocaleString();
+  } else { banner.classList.remove('show') }
+
+  // Budget list (top 5 by spent%)
+  document.getElementById('budget-list').innerHTML = S.categories.slice(0,5).map(cat=>{
+    const used=spent(cat.id); const pct=Math.min((used/cat.monthlyBudget)*100,100);
+    const bar=pct>=100?'danger':pct>=80?'warn':'safe';
+    const color=pct>=100?'var(--destructive)':pct>=80?'#d97706':'var(--muted-text)';
+    return `<div class="budget-row">
+      <div class="budget-icon">${cat.icon}</div>
+      <div class="budget-info">
+        <div class="budget-name">${cat.name}</div>
+        <div class="budget-bar-wrap"><div class="budget-bar ${bar}" style="width:${pct}%"></div></div>
+      </div>
+      <div class="budget-pct" style="color:${color}">${Math.round(pct)}%</div>
+    </div>`;
+  }).join('');
+
+  // Recent (last 5) — includes recurring rules
+  const ruleRows = S.recurringRules.map(r=>({
+    id:r.id, amount:r.amount, categoryId:r.categoryId,
+    merchant:r.name, paymentMethod:r.paymentMethod,
+    date:r.nextDueDate, _recurring:true,
+  }));
+  const recent = [...S.expenses, ...ruleRows].reverse().slice(0,5);
+  const recentList = document.getElementById('recent-list');
+  document.getElementById('no-recent').style.display = recent.length?'none':'block';
+  recentList.innerHTML = recent.map(expRow).join('');
+}
+
+function expRow(e) {
+  const cat=S.categories.find(c=>c.id===e.categoryId);
+  return `<div class="exp-item">
+    <div class="exp-icon">${cat?cat.icon:'📦'}</div>
+    <div style="flex:1"><div class="exp-name">${e.merchant}</div><div class="exp-meta">${cat?cat.name:'Other'} · ${e.paymentMethod} · ${e.date}${e._recurring?' · 🔁 Recurring':''}</div></div>
+    <div class="exp-amt">${fmt(e.amount)}</div>
+  </div>`;
+}
+
+function renderAmountScreen() {
+  const cat = S.categories.find(c=>c.id===S.draft.categoryId);
+  document.getElementById('amt-cat-chip').innerHTML = cat
+    ? `${cat.icon} <strong style="color:var(--fg)">${cat.name}</strong>`
+    : '';
+  document.getElementById('amt-display').textContent = S.draft.amount||'0';
+}
+
+function renderCatPicker() {
+  document.getElementById('cat-grid').innerHTML = S.categories.map(cat=>{
+    const rem = cat.monthlyBudget - spent(cat.id);
+    const isSel = S.draft.categoryId===cat.id;
+    return `<button class="cat-chip ${isSel?'sel':''}" id="cc-${cat.id}" onclick="pickCat('${cat.id}')">
+      <div class="cat-chip-icon">${cat.icon}</div>
+      <div class="cat-chip-name">${cat.name}</div>
+      <div class="cat-chip-budget">₱${rem.toLocaleString()} left</div>
+    </button>`;
+  }).join('');
+  if(S.draft.categoryId) document.getElementById('btn-cat-next').disabled=false;
+}
+
+function renderPayScreen() {
+  const amt=parseFloat(S.draft.amount)||0;
+  const cat=S.categories.find(c=>c.id===S.draft.categoryId);
+  document.getElementById('pay-amt').textContent = amt.toLocaleString();
+  document.getElementById('pay-cat').textContent = cat?cat.name:'';
+  document.querySelectorAll('.pay-chip').forEach(el=>el.classList.remove('sel'));
+  if(S.draft.paymentMethod){
+    const el=document.getElementById('pc-'+S.draft.paymentMethod);
+    if(el) el.classList.add('sel');
+    document.getElementById('btn-pay-next').disabled=false;
+  }
+  document.getElementById('inp-merchant').value = S.draft.merchant||'';
+}
+
+function renderConfirm() {
+  // reset recurring toggle each time the confirm screen opens
+  S.draft.recurring = false; S.draft.frequency = null;
+  document.getElementById('chk-recurring').checked = false;
+  toggleRecurring(false);
+  const amt=parseFloat(S.draft.amount)||0;
+  const cat=S.categories.find(c=>c.id===S.draft.categoryId);
+  document.getElementById('conf-icon').textContent = cat?cat.icon:'📦';
+  document.getElementById('conf-amt').textContent = fmt(amt);
+  document.getElementById('conf-cat').textContent = cat?cat.name:'—';
+  document.getElementById('conf-pay').textContent = S.draft.paymentMethod||'—';
+  document.getElementById('conf-merchant').textContent = S.draft.merchant||'—';
+
+  if(cat){
+    const used=spent(cat.id); const newTotal=used+amt;
+    const pct=(newTotal/cat.monthlyBudget)*100; const rem=cat.monthlyBudget-newTotal;
+    let msg='';
+    if(pct>=100) msg=`<span style="color:var(--destructive);font-weight:700">⚠️ Over budget!</span> ${cat.name} will be ${fmt(Math.abs(rem))} over the ${fmt(cat.monthlyBudget)} limit.`;
+    else if(pct>=80) msg=`<span style="color:#d97706;font-weight:700">⚠️ ${Math.round(pct)}% used.</span> ${fmt(rem)} left in ${cat.name} budget after this.`;
+    else msg=`${cat.name}: ${fmt(newTotal)} of ${fmt(cat.monthlyBudget)} used (${Math.round(pct)}%). ${fmt(rem)} remaining.`;
+    document.getElementById('impact-text').innerHTML = msg;
+  }
+}
+
+function renderAllExpenses() {
+  const ruleRows = S.recurringRules.map(r=>({
+    id:r.id, amount:r.amount, categoryId:r.categoryId,
+    merchant:r.name, paymentMethod:r.paymentMethod,
+    date:r.nextDueDate, _recurring:true,
+  }));
+  const all=[...S.expenses, ...ruleRows].reverse();
+  document.getElementById('no-all').style.display=all.length?'none':'block';
+  document.getElementById('all-list').innerHTML=all.map(expRow).join('');
+}
+
+function renderGapPanel() {
+  const { totalExpenses, actualSavings, expectedSavings, gap, incomeTotal } = computeGap();
+  const { incomeMode, salaryAmount, savingsTarget } = S.profile;
+  if(!incomeMode){ document.getElementById('gap-panel').innerHTML='<div style="font-size:13px;color:var(--muted-text)">No income mode selected.</div>'; return; }
+
+  let rows=[];
+  if(incomeMode==='salary'){
+    rows=[
+      ['Mode','Salary'],
+      ['Monthly salary', fmt(salaryAmount)],
+      ['− Total expenses', '−'+fmt(totalExpenses)],
+      ['= Actual savings', fmt(actualSavings)],
+      ['− Expected savings (target)', '−'+fmt(expectedSavings)],
+      ['= Spending Cap', fmtSigned(gap)],
+    ];
+  } else if(incomeMode==='mixed'){
+    rows=[
+      ['Mode','Mixed'],
+      ['Income records', S.incomeRecords.length+' entries'],
+      ['Total income', fmt(incomeTotal)],
+      ['− Total expenses', '−'+fmt(totalExpenses)],
+      ['= Actual savings', fmt(actualSavings)],
+      ['− Expected savings (target)', '−'+fmt(expectedSavings)],
+      ['= Spending Cap', fmtSigned(gap)],
+    ];
+  } else {
+    rows=[
+      ['Mode','Target (no income)'],
+      ['Spending cap', fmt(savingsTarget)],
+      ['− Total expenses', '−'+fmt(totalExpenses)],
+      ['= Spending Cap (remaining)', fmtSigned(gap)],
+      ['','(+ = under cap ✓, − = over cap ✗)'],
+    ];
+  }
+
+  const isPos=gap>=0;
+  document.getElementById('gap-panel').innerHTML = rows.map((r,i)=>{
+    const isLast = i===rows.length-1 || (incomeMode==='target'&&i===rows.length-2);
+    const valClass = (isLast&&r[0].startsWith('='))||(r[0]==='= Spending Cap')||(r[0]==='= Spending Cap (remaining)')
+      ? (isPos?'pos':'neg')+' big' : '';
+    return `<div class="gap-row-r">
+      <span class="gap-lbl-r">${r[0]}</span>
+      <span class="gap-val-r ${valClass}">${r[1]}</span>
+    </div>`;
+  }).join('');
+}
+
+function renderStateOut() {
+  const display = {
+    screen: S.screen,
+    profile: S.profile,
+    expenses: S.expenses.map(e=>({amount:e.amount,cat:e.categoryId,pay:e.paymentMethod})),
+    incomeRecords: S.incomeRecords,
+    recurringRules: S.recurringRules.map(r=>({name:r.name,amount:r.amount,due:r.nextDueDate,banner:r._showBanner})),
+  };
+  document.getElementById('state-out').textContent = JSON.stringify(display,null,2);
+}
+
+// =========================================================
+// INIT
+// =========================================================
+render();
+</script>
+</body>
+</html>
