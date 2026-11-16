@@ -1,12 +1,12 @@
 import { View, Text, TextInput, Pressable } from "react-native";
 import { useRouter } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
-import { db } from "../db";
-import { incomeRecordsTable } from "../db/schema";
+import { insertIncome, getIncomeForMonth } from "../db/queries/income";
 import { generateId } from "../lib/crypto";
 import { useAuthStore } from "../store/authStore";
+import { formatCurrency } from "../lib/formatCurrency";
 import styles from "./income.styles";
 
 const SOURCES = [
@@ -24,22 +24,25 @@ export default function IncomeScreen() {
   const [source, setSource] = useState<Source>("Salary");
 
   const now = new Date();
+  const month = now.getMonth() + 1;
+  const year = now.getFullYear();
+
+  const { data: incomeRecords = [] } = useQuery({
+    queryKey: ["income", userId, month, year],
+    enabled: !!userId,
+    queryFn: () => getIncomeForMonth(userId!, month, year),
+  });
+  const monthTotal = incomeRecords.reduce((s, r) => s + r.amount, 0);
 
   const mutation = useMutation({
     mutationFn: async () => {
       const amt = parseFloat(amount);
       if (!amt || !userId) throw new Error("Invalid");
-      await db.insert(incomeRecordsTable).values({
-        id: generateId(),
-        userId,
-        amount: amt,
-        source,
-        month: now.getMonth() + 1,
-        year: now.getFullYear(),
-      });
+      await insertIncome({ id: generateId(), userId, amount: amt, source, month, year });
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["dashboard"] });
+      qc.invalidateQueries({ queryKey: ["income", userId, month, year] });
       router.back();
     },
   });
@@ -48,7 +51,11 @@ export default function IncomeScreen() {
     <SafeAreaView style={styles.container}>
       <View style={styles.handle} />
       <Text style={styles.title}>Log Income</Text>
-      <Text style={styles.sub}>Add a salary or freelance payment for this month.</Text>
+      <Text style={styles.sub}>
+        {monthTotal > 0
+          ? `${now.toLocaleString("default", { month: "long" })} total: ${formatCurrency(monthTotal)}`
+          : "Add a salary or freelance payment for this month."}
+      </Text>
 
       <View style={styles.inputWrap}>
         <Text style={styles.label}>Amount (₱)</Text>
