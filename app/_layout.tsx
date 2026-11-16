@@ -1,0 +1,82 @@
+import { QueryClientProvider } from "@tanstack/react-query";
+import { useMigrations } from "drizzle-orm/expo-sqlite/migrator";
+import { Slot, useRouter, useSegments } from "expo-router";
+import { useEffect, useRef } from "react";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
+import { db, migrations } from "../db";
+import { queryClient } from "../lib/queryClient";
+import { useAuthStore } from "../store/authStore";
+import { useThemeStore } from "../store/themeStore";
+import { generateId } from "../lib/crypto";
+import { usersTable, profilesTable } from "../db/schema";
+import { eq } from "drizzle-orm";
+
+export default function RootLayout() {
+  const { success: migrationsRan, error: migrationError } = useMigrations(db, migrations);
+  const { userId, setSession } = useAuthStore();
+  const resolved = useThemeStore((s) => s.resolved);
+  const router = useRouter();
+  const segments = useSegments();
+  const segmentsRef = useRef(segments);
+  segmentsRef.current = segments;
+
+  // Bootstrap anonymous auth and local user row
+  useEffect(() => {
+    if (!migrationsRan) return;
+
+    async function bootstrap() {
+      // shortcut: local-only user; re-wire Supabase auth once project is provisioned
+      const existing = await db.select().from(usersTable).limit(1);
+      let localId: string;
+      if (existing.length > 0) {
+        localId = existing[0].id;
+      } else {
+        localId = generateId();
+        await db.insert(usersTable).values({ id: localId });
+      }
+      setSession(localId, null);
+    }
+
+    bootstrap();
+  }, [migrationsRan]);
+
+  // If migrations ran but auth isn't ready yet, go to onboarding immediately.
+  // Handles Supabase failure / slow network — avoids hanging on (tabs) forever.
+  useEffect(() => {
+    if (!migrationsRan || userId) return;
+    const inOnboarding = segments[0] === "(onboarding)";
+    if (!inOnboarding) router.replace("/(onboarding)");
+  }, [migrationsRan, userId]);
+
+  // Once auth resolves, do a profile-based redirect.
+  useEffect(() => {
+    if (!userId) return;
+
+    async function checkProfile() {
+      const profile = await db.select().from(profilesTable)
+        .where(eq(profilesTable.userId, userId!))
+        .limit(1);
+
+      const inOnboarding = segmentsRef.current[0] === "(onboarding)";
+      const hasProfile = profile.length > 0;
+
+      if (!hasProfile && !inOnboarding) {
+        router.replace("/(onboarding)");
+      } else if (hasProfile && inOnboarding) {
+        router.replace("/(tabs)");
+      }
+    }
+
+    checkProfile();
+  }, [userId]);
+
+  if (migrationError) throw migrationError;
+
+  return (
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <QueryClientProvider client={queryClient}>
+        <Slot />
+      </QueryClientProvider>
+    </GestureHandlerRootView>
+  );
+}

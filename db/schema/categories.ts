@@ -1,5 +1,5 @@
 import { sql } from "drizzle-orm";
-import { real, sqliteTable, text } from "drizzle-orm/sqlite-core";
+import { integer, real, sqliteTable, text } from "drizzle-orm/sqlite-core";
 import { usersTable } from "./users";
 
 export const categoriesTable = sqliteTable("categories", {
@@ -20,6 +20,8 @@ export const categoriesTable = sqliteTable("categories", {
   updatedAt: text("updated_at")
     .notNull()
     .default(sql`(strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))`),
+  carryoverEnabled: integer("carryover_enabled", { mode: "boolean" }).notNull().default(false),
+  deletedAt: text("deleted_at"),
 });
 
 export type Category = typeof categoriesTable.$inferSelect;

@@ -28,6 +28,7 @@ export const expensesTable = sqliteTable(
     createdAt: text("created_at")
       .notNull()
       .default(sql`(strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))`),
+    deletedAt: text("deleted_at"),
   },
   (t) => [check("date_min_length", sql`length(${t.date}) >= 10`)]
 );
