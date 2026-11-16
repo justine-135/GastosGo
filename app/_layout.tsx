@@ -9,7 +9,8 @@ import { useAuthStore } from "../store/authStore";
 import { useThemeStore } from "../store/themeStore";
 import { generateId } from "../lib/crypto";
 import { usersTable, profilesTable } from "../db/schema";
-import { eq } from "drizzle-orm";
+import { eq, isNull } from "drizzle-orm";
+import { supabase } from "../lib/supabase";
 
 export default function RootLayout() {
   const { success: migrationsRan, error: migrationError } = useMigrations(db, migrations);
@@ -25,19 +26,49 @@ export default function RootLayout() {
     if (!migrationsRan) return;
 
     async function bootstrap() {
-      // shortcut: local-only user; re-wire Supabase auth once project is provisioned
-      const existing = await db.select().from(usersTable).limit(1);
+      // Get or create an anonymous Supabase session (5 s timeout guards unprovisioned project)
+      let { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        const timeout = new Promise<never>((_, reject) =>
+          setTimeout(() => reject(new Error("supabase_timeout")), 5000)
+        );
+        const { data, error } = await Promise.race([
+          supabase.auth.signInAnonymously(),
+          timeout,
+        ]);
+        if (error) throw error;
+        session = data.session;
+      }
+      const supabaseId = session!.user.id;
+
+      // Find existing local user linked to this Supabase identity
+      const bySupaId = await db.select().from(usersTable)
+        .where(eq(usersTable.supabaseId, supabaseId))
+        .limit(1);
+      if (bySupaId.length > 0) {
+        setSession(bySupaId[0].id, session);
+        return;
+      }
+
+      // Migration: link an unlinked local-only user, or create fresh
+      const unlinked = await db.select().from(usersTable)
+        .where(isNull(usersTable.supabaseId))
+        .limit(1);
       let localId: string;
-      if (existing.length > 0) {
-        localId = existing[0].id;
+      if (unlinked.length > 0) {
+        localId = unlinked[0].id;
+        await db.update(usersTable).set({ supabaseId }).where(eq(usersTable.id, localId));
       } else {
         localId = generateId();
-        await db.insert(usersTable).values({ id: localId });
+        await db.insert(usersTable).values({ id: localId, supabaseId });
       }
-      setSession(localId, null);
+      setSession(localId, session);
     }
 
-    bootstrap();
+    bootstrap().catch((e) => {
+      // Timeout or network failure — userId stays null, guard redirects to onboarding
+      if (e?.message !== "supabase_timeout") console.warn("[bootstrap]", e);
+    });
   }, [migrationsRan]);
 
   // If migrations ran but auth isn't ready yet, go to onboarding immediately.

@@ -1,6 +1,6 @@
 [project]
 # Set this to your Supabase project ref after provisioning
-project_id = "your-project-ref"
+project_id = "whbhsspfrjvdbjkvcaje"
 
 [functions.bill-reminders]
 # Daily at 09:00 PHT (UTC+8) = 01:00 UTC
