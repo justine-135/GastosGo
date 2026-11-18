@@ -5,6 +5,7 @@ import { insertExpense } from '../src/db/expenses';
 import { listExpenses } from '../src/db/expenses';
 import { seedDefaultCategories, listCategories } from '../src/db/categories';
 import { isFirstLaunch, markLaunched } from '../src/db/firstLaunch';
+import { softDeleteExpense, listDeletedExpenses, restoreExpense } from '../src/db/expenses';
 
 function makeDriver(db: Database): DbDriver {
   return {
@@ -111,6 +112,55 @@ describe('SQLite query layer', () => {
       const expenses = listExpenses(driver);
       expect(expenses[0].date).toBe('2024-06-15');
       expect(expenses[1].date).toBe('2024-06-10');
+    });
+  });
+
+  describe('softDeleteExpense / listDeletedExpenses / restoreExpense', () => {
+    let categoryId: string;
+
+    beforeEach(() => {
+      seedDefaultCategories(driver);
+      categoryId = listCategories(driver)[0].id as string;
+    });
+
+    it('soft-deleted Expense disappears from listExpenses', () => {
+      const expenseId = insertExpense(driver, { amount: 50, categoryId, paymentMethod: 'Cash', date: '2024-07-01' });
+      softDeleteExpense(driver, expenseId);
+      expect(listExpenses(driver)).toHaveLength(0);
+    });
+
+    it('soft-deleted Expense appears in listDeletedExpenses', () => {
+      const expenseId = insertExpense(driver, { amount: 75, categoryId, paymentMethod: 'GCash', date: '2024-07-02' });
+      softDeleteExpense(driver, expenseId);
+      const deleted = listDeletedExpenses(driver);
+      expect(deleted).toHaveLength(1);
+      expect(deleted[0].id).toBe(expenseId);
+    });
+
+    it('listDeletedExpenses excludes rows deleted more than 30 days ago', () => {
+      const expenseId = insertExpense(driver, { amount: 100, categoryId, paymentMethod: 'Card', date: '2024-01-01' });
+      driver.execute(
+        `UPDATE expenses SET deleted_at = datetime('now', '-31 days') WHERE id = ?`,
+        [expenseId],
+      );
+      expect(listDeletedExpenses(driver)).toHaveLength(0);
+    });
+
+    it('listDeletedExpenses includes row deleted exactly 30 days ago (boundary)', () => {
+      const expenseId = insertExpense(driver, { amount: 60, categoryId, paymentMethod: 'Cash', date: '2024-01-01' });
+      driver.execute(
+        `UPDATE expenses SET deleted_at = datetime('now', '-30 days') WHERE id = ?`,
+        [expenseId],
+      );
+      expect(listDeletedExpenses(driver)).toHaveLength(1);
+    });
+
+    it('restoreExpense returns Expense to listExpenses and removes from listDeletedExpenses', () => {
+      const expenseId = insertExpense(driver, { amount: 200, categoryId, paymentMethod: 'Cash', date: '2024-07-03' });
+      softDeleteExpense(driver, expenseId);
+      restoreExpense(driver, expenseId);
+      expect(listExpenses(driver)).toHaveLength(1);
+      expect(listDeletedExpenses(driver)).toHaveLength(0);
     });
   });
 
