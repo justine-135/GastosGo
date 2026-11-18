@@ -4,7 +4,7 @@
 
 **Blocked by:** 01
 
-**Status:** ready-for-agent
+**Status:** done
 
 - [ ] `@supabase/supabase-js` v2; `signInAnonymously()` on first launch (ADR 0002), no email/password UI; session persisted via AsyncStorage, `detectSessionInUrl: false`
 - [ ] Add the Sync Queue table (local create/update/delete ops), persisting across restarts

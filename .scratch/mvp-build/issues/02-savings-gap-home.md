@@ -4,7 +4,7 @@
 
 **Blocked by:** 01
 
-**Status:** ready-for-agent
+**Status:** done
 
 - [ ] 2-step onboarding stack: pick Income Mode (Salary / Mixed / Target); set Expected Savings or Savings Target accordingly; persisted to SQLite
 - [ ] `computeGap` pure util: Savings Gap = `Actual Savings − Expected Savings`, positive = on track (ADR 0001); handles all three modes (Target → Expected = 0, Actual = `Savings Target − Total Expenses`)

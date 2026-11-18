@@ -4,7 +4,7 @@
 
 **Blocked by:** None (can start immediately)
 
-**Status:** ready-for-agent
+**Status:** done
 
 - [ ] `npx create-expo-app@latest` (expo-router + TypeScript); `app.json` for iOS **and** Android; `eas.json` with `development`/`preview`/`production`/`e2e-test` profiles; `.npmrc` keeps `legacy-peer-deps=true`
 - [ ] Four tabs (Home, History, Budgets, Settings) + center add FAB route; add-expense as a modal/sheet route with native iOS slide

@@ -4,7 +4,7 @@
 
 **Blocked by:** 02
 
-**Status:** ready-for-agent
+**Status:** done
 
 - [ ] `.maestro/` flows re-created from scratch: onboarding and add-expense at minimum (reuse pre-wipe findings)
 - [ ] `.eas/workflows/` job on `pull_request`: build with the `e2e-test` profile, then run the Maestro flows against the artifact

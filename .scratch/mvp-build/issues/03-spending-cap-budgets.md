@@ -4,7 +4,7 @@
 
 **Blocked by:** 02
 
-**Status:** ready-for-agent
+**Status:** done
 
 - [ ] Budgets screen: set an optional monthly limit per Category; opt a Category into Budget Carryover; set Budget Cycle start day (default 1st)
 - [ ] `spendingCap` (sum of budgeted Category limits for the cycle) and `budgetedSpent` (per-category spent vs limit) pure utils

@@ -4,7 +4,7 @@
 
 **Blocked by:** 01
 
-**Status:** ready-for-agent
+**Status:** done
 
 - [ ] Delete an Expense → soft-delete (not removed from SQLite), disappears from Home/History
 - [ ] Recently Deleted section in Settings lists soft-deleted Expenses held for 30 days
