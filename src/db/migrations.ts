@@ -30,6 +30,20 @@ CREATE TABLE IF NOT EXISTS app_flags (
   key   TEXT PRIMARY KEY,
   value TEXT NOT NULL
 );
+
+CREATE TABLE IF NOT EXISTS settings (
+  key   TEXT PRIMARY KEY,
+  value TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS sync_queue (
+  id         TEXT PRIMARY KEY,
+  table_name TEXT NOT NULL,
+  operation  TEXT NOT NULL,
+  row_id     TEXT NOT NULL,
+  payload    TEXT NOT NULL,
+  created_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
 `;
 
 export function runMigrations(db: DbDriver): void {
