@@ -35,3 +35,15 @@ export function seedDefaultCategories(db: DbDriver): void {
 export function listCategories(db: DbDriver): CategoryRow[] {
   return db.query<CategoryRow>(`SELECT * FROM categories WHERE deleted_at IS NULL ORDER BY name ASC`);
 }
+
+export function updateCategoryBudget(
+  db: DbDriver,
+  id: string,
+  monthlyBudget: number,
+  carryoverEnabled: boolean,
+): void {
+  db.execute(
+    `UPDATE categories SET monthly_budget = ?, carryover_enabled = ?, updated_at = datetime('now') WHERE id = ?`,
+    [monthlyBudget, carryoverEnabled ? 1 : 0, id],
+  );
+}

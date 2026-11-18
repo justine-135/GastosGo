@@ -52,4 +52,13 @@ export const styles = StyleSheet.create({
   gapLabel: { fontSize: 13, fontWeight: '600', color: '#475569', textTransform: 'uppercase', letterSpacing: 0.5 },
   gapAmount: { fontSize: 32, fontWeight: '800', color: '#0F172A', marginTop: 4, fontVariant: ['tabular-nums'] },
   gapStatus: { fontSize: 14, color: '#475569', marginTop: 4 },
+  spendableCard: {
+    marginHorizontal: 16,
+    marginBottom: 8,
+    borderRadius: 12,
+    padding: 16,
+    backgroundColor: '#EFF6FF',
+  },
+  spendableLabel: { fontSize: 13, fontWeight: '600', color: '#475569', textTransform: 'uppercase', letterSpacing: 0.5 },
+  spendableAmount: { fontSize: 24, fontWeight: '800', color: '#1D4ED8', marginTop: 4, fontVariant: ['tabular-nums'] },
 });

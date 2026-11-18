@@ -8,6 +8,7 @@ export interface AppSettings {
   freelanceIncome: number;
   expectedSavings: number;
   savingsTarget: number;
+  budgetCycleDay: number;
 }
 
 const DEFAULTS: AppSettings = {
@@ -16,6 +17,7 @@ const DEFAULTS: AppSettings = {
   freelanceIncome: 0,
   expectedSavings: 0,
   savingsTarget: 0,
+  budgetCycleDay: 1,
 };
 
 function get(db: DbDriver, key: string): string | undefined {
@@ -33,6 +35,7 @@ export function loadSettings(db: DbDriver): AppSettings {
     freelanceIncome: Number(get(db, 'freelanceIncome') ?? DEFAULTS.freelanceIncome),
     expectedSavings: Number(get(db, 'expectedSavings') ?? DEFAULTS.expectedSavings),
     savingsTarget: Number(get(db, 'savingsTarget') ?? DEFAULTS.savingsTarget),
+    budgetCycleDay: Number(get(db, 'budgetCycleDay') ?? DEFAULTS.budgetCycleDay),
   };
 }
 
