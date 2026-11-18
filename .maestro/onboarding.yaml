@@ -1,0 +1,24 @@
+appId: com.gastosgo
+---
+- launchApp:
+    clearState: true
+
+# Step 1: pick income mode (Salary)
+- assertVisible: "How do you earn?"
+- tapOn: "Salary"
+- tapOn: "Next"
+
+# Step 2: enter salary and expected savings
+- assertVisible: "Your income"
+- tapOn:
+    text: "0"
+    index: 0
+- inputText: "50000"
+- tapOn:
+    text: "0"
+    index: 1
+- inputText: "10000"
+- tapOn: "Start tracking"
+
+# Assert Home screen is visible with Savings Gap card
+- assertVisible: "Savings Gap"
