@@ -38,3 +38,23 @@ export function listExpenses(db: DbDriver): ExpenseRow[] {
     `SELECT * FROM expenses WHERE deleted_at IS NULL ORDER BY date DESC, created_at DESC`,
   );
 }
+
+export function softDeleteExpense(db: DbDriver, id: string): void {
+  db.execute(
+    `UPDATE expenses SET deleted_at = datetime('now'), updated_at = datetime('now') WHERE id = ?`,
+    [id],
+  );
+}
+
+export function listDeletedExpenses(db: DbDriver): ExpenseRow[] {
+  return db.query<ExpenseRow>(
+    `SELECT * FROM expenses WHERE deleted_at IS NOT NULL AND deleted_at >= datetime('now', '-30 days') ORDER BY deleted_at DESC`,
+  );
+}
+
+export function restoreExpense(db: DbDriver, id: string): void {
+  db.execute(
+    `UPDATE expenses SET deleted_at = NULL, updated_at = datetime('now') WHERE id = ?`,
+    [id],
+  );
+}
