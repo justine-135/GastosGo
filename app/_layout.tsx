@@ -6,13 +6,17 @@ import { getDb } from '../src/db';
 import { hasCompletedOnboarding } from '../src/db/settings';
 import { signInAnonymously } from '../src/lib/supabase';
 import { drainSyncQueue } from '../src/lib/sync';
+import { registerForPushNotifications } from '../src/lib/notifications';
 
 export default function RootLayout() {
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
     getDb();
-    signInAnonymously().then(drainSyncQueue).catch(() => {});
+    signInAnonymously()
+      .then(drainSyncQueue)
+      .then(registerForPushNotifications)
+      .catch(() => {});
 
     const onboardingDone = hasCompletedOnboarding(getDb());
     if (!onboardingDone) {
