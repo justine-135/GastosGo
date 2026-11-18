@@ -1,0 +1,27 @@
+appId: com.gastosgo
+---
+- launchApp
+
+# Home screen must be visible before tapping the FAB
+- assertVisible: "Savings Gap"
+- tapOn:
+    accessibilityLabel: "Log an Expense"
+
+# Fill in amount
+- assertVisible: "Log an Expense"
+- tapOn:
+    text: "0"
+- inputText: "250"
+
+# Pick a category (Food is first in seed data)
+- tapOn: "Food"
+
+# Payment method defaults to Cash — tap GCash to exercise the picker
+- tapOn: "GCash"
+
+# Tap Save
+- tapOn: "Save"
+
+# Assert the expense appears in the Home list
+- assertVisible: "Food"
+- assertVisible: "₱250"
