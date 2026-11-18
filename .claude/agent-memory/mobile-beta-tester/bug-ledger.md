@@ -136,22 +136,22 @@ Before fixing any bug, read the relevant entry. If Status is `recurred` and your
 ## BUG-27 — `local-user` row never inserted in `users` table before FK-dependent inserts
 
 **First seen:** 2026-11-06  
-**Status:** open  
-**Attempts:** _(none)_  
-**Root cause:** `profiles`, `expenses`, `recurring_rules`, and `income_records` all have `userId` FKs referencing `users.id`. `LOCAL_USER_ID = 'local-user'` is used everywhere, but nowhere (not in `runMigrations`, `seed.ts`, or `insertProfile`) is a `users` row with `id = 'local-user'` inserted first. SQLite FK enforcement is OFF (no `PRAGMA foreign_keys = ON` in `db/client.ts`), so this silently works today, but any future `PRAGMA` activation (or test with FK on) will cause cascading FK violations on every insert.  
-**Files touched:** `db/seed.ts` or `db/migrate.ts` (need to insert local-user row); `db/client.ts` (FK pragma decision)  
-**Notes:** Currently non-crashing because SQLite FK enforcement is off by default. Risk escalates if FK enforcement is ever enabled — all onboarding writes will fail.
+**Status:** fixed (2026-11-10, session 4)  
+**Attempts:** `db/seed.ts` exports `seedLocalUser()` which does `INSERT OR IGNORE INTO users (id) VALUES ('local-user')`. `db/migrate.ts` `runMigrations()` calls `seedLocalUser()` on every launch.  
+**Root cause:** Was never inserting the `local-user` row; SQLite FK enforcement is off so it was silent.  
+**Files touched:** `db/seed.ts`, `db/migrate.ts`  
+**Notes:** Confirmed fixed — `runMigrations()` calls `seedLocalUser()` before `seedDefaultCategories()`.
 
 ---
 
 ## BUG-28 — `monthlySalary` entered during onboarding is silently discarded
 
 **First seen:** 2026-11-06  
-**Status:** open  
-**Attempts:** _(none)_  
-**Root cause:** `profiles` schema has no `monthly_salary` column. `InsertProfileInput.monthlySalary` is accepted by `insertProfile` but never written to the DB (no matching column in the INSERT). `rowToProfile` stubs `monthlySalary: null` permanently. The savings gap widget falls back to `profile?.monthlySalary ?? 0` — always 0 — so "Total Spent" and "Savings Gap" on the dashboard are correct only if the user also records income via `income_records`. For pure salary users who complete onboarding, their salary is lost.  
-**Files touched:** `lib/db/stubs.ts` (`insertProfile`), `db/schema/profiles.ts` (missing column), `drizzle/` (migration needed)  
-**Notes:** Affects the core value proposition — savings gap will always show 0 income for salary-mode users. Medium-to-high severity.
+**Status:** fixed (2026-11-10, session 4)  
+**Attempts:** `insertProfile` in `lib/db/stubs.ts` now writes `monthlySalary: input.monthlySalary ?? null` (line 87). `rowToProfile` returns `row.monthlySalary ?? null` (line 60). Column exists in profiles schema.  
+**Root cause:** Was: schema lacked `monthly_salary` column; now present.  
+**Files touched:** `lib/db/stubs.ts`, `db/schema/profiles.ts`, `drizzle/` migrations  
+**Notes:** Confirmed fixed in current code.
 
 ---
 
@@ -169,11 +169,11 @@ Before fixing any bug, read the relevant entry. If Status is `recurred` and your
 ## BUG-30 — `recurringRulesTable` schema paymentMethod enum mismatches UI type
 
 **First seen:** 2026-11-06  
-**Status:** open  
-**Attempts:** _(none)_  
-**Root cause:** `db/schema/recurringRules.ts` declares the `paymentMethod` column enum as `["cash", "gcash", "card", "bank_transfer"]` (lowercase, includes `bank_transfer`). The TypeScript type `PaymentMethod` in `lib/db/types.ts` is `'Cash' | 'GCash' | 'Card' | 'Others'` (title-case, `Others` instead of `bank_transfer`). The UI writes title-case values (`Cash`) to the DB. Drizzle does not enforce SQLite enums at runtime — the cast `as typeof recurringRulesTable.$inferInsert['paymentMethod']` silently accepts the wrong-cased strings. If strict enum enforcement is ever added (or Supabase sync validates the column), all existing recurring rule paymentMethod values will fail validation.  
-**Files touched:** `db/schema/recurringRules.ts` (enum needs to match `PaymentMethod` type, or vice versa)  
-**Notes:** `expenses` table has no enum constraint on `paymentMethod` (plain `text()`), so expenses are unaffected. Only recurring rules have this mismatch. `bank_transfer` is in the schema but `Others` is in the UI — these two values have no overlap.
+**Status:** open (schema mismatch persists — SQLite doesn't enforce enums, so no crash, but Supabase sync risk remains)  
+**Attempts:** _(none on schema)_  
+**Root cause:** `db/schema/recurringRules.ts` declares enum as `["cash", "gcash", "card", "bank_transfer"]` (lowercase). UI type is `'Cash' | 'GCash' | 'Card' | 'Others'` (title-case). Drizzle doesn't enforce SQLite enum at runtime — silent mismatch.  
+**Files touched:** `db/schema/recurringRules.ts`  
+**Notes:** `updateRecurringRule` now correctly passes `paymentMethod` through (not defaulting to Cash), fixing BUG-07. The enum declaration mismatch is still a latent risk.
 
 ---
 
@@ -182,17 +182,73 @@ Before fixing any bug, read the relevant entry. If Status is `recurred` and your
 **First seen:** 2026-11-06  
 **Status:** open  
 **Attempts:** _(none)_  
-**Root cause:** `advanceNextDueDate` in `lib/db/stubs.ts` (line 498) calls `d.toISOString().slice(0, 10)` to compute the next due date after advancing. This yields a UTC date. For UTC+8 users (Philippines), dates computed after midnight local time will be one day behind — a bill paid at 11pm on Nov 30 would advance its due date to `Dec 29` (UTC) instead of `Dec 30` (local). Same root cause as BUG-22.  
-**Files touched:** `lib/db/stubs.ts` (line 498, `advanceNextDueDate`)  
-**Notes:** Fix: replace `d.toISOString().slice(0, 10)` with local date string using getFullYear/getMonth/getDate.
+**Root cause:** Was using `d.toISOString().slice(0, 10)` — UTC. Now uses `toLocalDate(d)` helper.  
+**Status:** fixed (2026-11-10, session 4) — confirmed no `toISOString().slice(0,10)` left in stubs.ts.  
+**Files touched:** `lib/db/stubs.ts`  
+**Notes:** Confirmed fixed.
 
 ---
 
 ## BUG-32 — `getRulesDueWithin` cutoff date computed in UTC
 
 **First seen:** 2026-11-06  
-**Status:** open  
-**Attempts:** _(none)_  
-**Root cause:** `getRulesDueWithin` in `lib/db/stubs.ts` (line 418) computes the cutoff as `cutoff.toISOString().slice(0, 10)` — this is a UTC date. For UTC+8 users, the 7-day lookahead window may miss bills due on the 7th day in local time (the cutoff would be day 6 in UTC). Bills that should appear in "due soon" won't show until the next day.  
-**Files touched:** `lib/db/stubs.ts` (line 418, `getRulesDueWithin`)  
-**Notes:** Fix: same local date string approach as BUG-29/BUG-22.
+**Status:** fixed (2026-11-10, session 4)  
+**Attempts:** `getRulesDueWithin` now uses `toLocalDate(cutoff)` (confirmed at line 423).  
+**Root cause:** Was using `cutoff.toISOString().slice(0, 10)` — UTC.  
+**Files touched:** `lib/db/stubs.ts`  
+**Notes:** Confirmed fixed.
+
+---
+
+## BUG-33 — Savings Target `0` silently dropped during onboarding
+
+**First seen:** 2026-11-10
+**Status:** open
+**Attempts:** _(none)_
+**Root cause:** `app/onboarding/budget.tsx` line 36: `savingsTarget: parseFloat(savingsTarget ?? '0') || undefined`. `parseFloat('0') || undefined` evaluates to `undefined`, so a user who explicitly enters "0" for their savings target has it silently discarded — `insertProfile` receives `undefined` and stores `0` via the `?? 0` default. For the target-mode user who literally wants ₱0 savings target, this is correct. For salary/mixed users who enter "0" wanting to skip the field, also fine. **Low-impact in practice but technically lossy.** The real risk is if the user enters "0.00" intending to disable savings target — the `0` case is indistinguishable from "not set."
+**Files touched:** `app/onboarding/budget.tsx` (line 36)
+**Notes:** Only triggers when user explicitly types "0" as savings target value. `canContinue` requires `savingsTarget.length > 0` which is satisfied by "0". Low severity.
+
+---
+
+## BUG-34 — Recurring tab shows "Active" section header when rule list is empty
+
+**First seen:** 2026-11-10
+**Status:** open
+**Attempts:** _(none)_
+**Root cause:** `app/(tabs)/expenses.tsx` lines 235-237: `sections={[{ title: 'Active', data: activeRules }, ...]}` always includes the Active section even when `activeRules` is empty. `SectionList` renders the "Active" header above `ListEmptyComponent`, creating a floating header over the empty state.
+**Files touched:** `app/(tabs)/expenses.tsx`
+**Notes:** Fix: `sections={activeRules.length > 0 ? [{ title: 'Active', data: activeRules }] : [], ...]}`
+
+---
+
+## BUG-35 — `formatDate` renders historical dates one day behind for UTC+8 users
+
+**First seen:** 2026-11-10
+**Status:** open
+**Attempts:** _(none)_
+**Root cause:** `utils/format.ts` line 38: `new Date(isoDate).toLocaleDateString(...)` — `new Date('YYYY-MM-DD')` treats the string as UTC midnight. For UTC+8 users, `new Date('2026-11-08')` = `2026-11-07T16:00:00+08:00`, rendering as "Nov 7" instead of "Nov 8". The today/yesterday comparison (lines 32-35) is correct (uses local offset), but the fallback date rendering is not.
+**Files touched:** `utils/format.ts` (line 38)
+**Notes:** Fix: `new Date(isoDate + 'T00:00:00').toLocaleDateString(...)` — appending T00:00:00 (no Z) forces local-time parse in V8/Hermes.
+
+---
+
+## BUG-36 — Dashboard has no MonthNavigator — users cannot change months from home screen
+
+**First seen:** 2026-11-10
+**Status:** open
+**Attempts:** _(none)_
+**Root cause:** `app/(tabs)/index.tsx` renders a static month label but no `<MonthNavigator />`. All other tabs (Expenses, Budgets, Insights) have month navigation. The Dashboard reads from `useUIStore` but provides no way to change the month directly.
+**Files touched:** `app/(tabs)/index.tsx`
+**Notes:** May be intentional design. Flag for PM confirmation before filing as must-fix.
+
+---
+
+## BUG-37 — Settings day-picker caps at 28, users with 29–31 paydate cannot match their cycle
+
+**First seen:** 2026-11-10
+**Status:** open
+**Attempts:** _(none)_
+**Root cause:** `app/settings.tsx` line 251: `Array.from({ length: 28 }, ...)` — intentionally avoids Feb overflow, but no explanation is shown to users.
+**Files touched:** `app/settings.tsx`
+**Notes:** Functional cap is acceptable; UX issue is lack of explanation. Consider extending to 31 with note "shortest-month rule applies."

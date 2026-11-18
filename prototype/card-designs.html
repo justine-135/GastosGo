@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>GastosGo — Card Background Designs</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: "Inter", sans-serif;
+  background: #F7F7F9;
+  color: #111827;
+  padding: 40px 32px 80px;
+  -webkit-font-smoothing: antialiased;
+  font-feature-settings: "cv11","ss01";
+}
+
+h1  { font-size: 22px; font-weight: 800; letter-spacing: -0.6px; margin-bottom: 6px; }
+.subtitle { font-size: 14px; color: #6B7280; margin-bottom: 48px; }
+h2  { font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: #6B7280; margin-bottom: 6px; }
+h3  { font-size: 13px; font-weight: 600; color: #111827; margin-bottom: 12px; }
+.section { margin-bottom: 56px; }
+.options { display: flex; gap: 20px; flex-wrap: wrap; }
+.option  { display: flex; flex-direction: column; gap: 10px; }
+.tag     { font-size: 11px; font-weight: 600; color: #6B7280; padding: 3px 8px; background: #E5E7EB; border-radius: 100px; display: inline-block; }
+.tag.pick { background: #EEF1FE; color: #4F6EF7; }
+
+/* ── Shared card base ── */
+.card {
+  position: relative;
+  overflow: hidden;
+  background: #fff;
+  border-radius: 20px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.09), 0 1px 4px rgba(0,0,0,0.05);
+  width: 300px;
+}
+
+/* ════════════════════════════════════════════════
+   SAVINGS GAP CARD (reference)
+   ════════════════════════════════════════════════ */
+.gap-card { padding: 24px 22px 20px; }
+
+.gap-label  { font-size: 13px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: #6B7280; margin-bottom: 6px; }
+.gap-amount { font-size: 44px; font-weight: 800; letter-spacing: -2px; line-height: 1; color: #0D9488; font-variant-numeric: tabular-nums; }
+.gap-pill   { display: inline-flex; align-items: center; gap: 4px; margin-top: 8px; padding: 4px 10px; border-radius: 100px; font-size: 12px; font-weight: 700; background: #CCFBF1; color: #0D9488; }
+.gap-rows   { margin-top: 16px; border-top: 0.5px solid rgba(0,0,0,0.07); }
+.gap-row    { display: flex; justify-content: space-between; padding: 7px 0; border-bottom: 0.5px solid rgba(0,0,0,0.07); font-size: 13px; }
+.gap-row span:last-child { font-weight: 600; }
+
+/* ── Savings Gap: existing (reference) ── */
+.sg-existing::before {
+  content: ''; position: absolute; top: -60px; right: -60px;
+  width: 200px; height: 200px; border-radius: 50%;
+  background: #0D9488; opacity: 0.07;
+}
+
+/* ── Savings Gap: Option A — two offset circles ── */
+.sg-a::before {
+  content: ''; position: absolute; top: -50px; right: -50px;
+  width: 180px; height: 180px; border-radius: 50%;
+  background: #0D9488; opacity: 0.08;
+}
+.sg-a::after {
+  content: ''; position: absolute; top: -10px; right: 60px;
+  width: 80px; height: 80px; border-radius: 50%;
+  background: #4F6EF7; opacity: 0.06;
+}
+
+/* ── Savings Gap: Option B — ring (stroke, not fill) ── */
+.sg-b::before {
+  content: ''; position: absolute; top: -80px; right: -80px;
+  width: 240px; height: 240px; border-radius: 50%;
+  border: 28px solid #0D9488; opacity: 0.1;
+  background: transparent;
+}
+
+/* ── Savings Gap: Option C — ring + small dot ── */
+.sg-c::before {
+  content: ''; position: absolute; top: -70px; right: -70px;
+  width: 220px; height: 220px; border-radius: 50%;
+  border: 22px solid #0D9488; opacity: 0.1;
+  background: transparent;
+}
+.sg-c::after {
+  content: ''; position: absolute; top: 10px; right: 20px;
+  width: 10px; height: 10px; border-radius: 50%;
+  background: #0D9488; opacity: 0.2;
+}
+
+/* ════════════════════════════════════════════════
+   SPENDING CAP CARD
+   ════════════════════════════════════════════════ */
+.cap-card { padding: 20px; }
+.cap-title { font-size: 13px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: #6B7280; margin-bottom: 2px; }
+.cap-sub   { font-size: 12px; color: #6B7280; margin-bottom: 14px; }
+.cap-row   { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 12px; }
+.cap-remaining { font-size: 28px; font-weight: 800; letter-spacing: -1px; font-variant-numeric: tabular-nums; color: #0D9488; }
+.cap-of    { font-size: 13px; color: #6B7280; }
+.progress-track { height: 7px; background: #F3F4F6; border-radius: 100px; overflow: hidden; }
+.progress-fill  { height: 100%; border-radius: 100px; background: #0D9488; }
+.cap-cats  { margin-top: 14px; }
+.cat-row   { display: flex; align-items: center; gap: 8px; padding: 7px 0; border-bottom: 0.5px solid rgba(0,0,0,0.07); font-size: 13px; }
+.cat-row:last-child { border-bottom: none; }
+.cat-row span:last-child { margin-left: auto; font-weight: 600; color: #111827; }
+
+/* ── Spending Cap: Option A — arc bottom-right ── */
+.sc-a::before {
+  content: ''; position: absolute; bottom: -70px; right: -70px;
+  width: 180px; height: 180px; border-radius: 50%;
+  border: 24px solid #0D9488; opacity: 0.08;
+  background: transparent;
+}
+
+/* ── Spending Cap: Option B — small dot cluster ── */
+.sc-b::before {
+  content: ''; position: absolute; top: 16px; right: 16px;
+  width: 10px; height: 10px; border-radius: 50%;
+  background: #4F6EF7; opacity: 0.18;
+  box-shadow:
+    18px 0  0 0 rgba(79,110,247,0.14),
+    36px 0  0 0 rgba(79,110,247,0.09),
+    0  18px 0 0 rgba(79,110,247,0.14),
+    18px 18px 0 0 rgba(79,110,247,0.10),
+    36px 18px 0 0 rgba(79,110,247,0.07);
+}
+
+/* ── Spending Cap: Option C — diagonal band ── */
+.sc-c::before {
+  content: ''; position: absolute; top: 0; right: 0;
+  width: 110px; height: 100%;
+  background: linear-gradient(135deg, transparent 40%, rgba(79,110,247,0.045) 40%);
+}
+.sc-c::after {
+  content: ''; position: absolute; top: -40px; right: -40px;
+  width: 100px; height: 100px; border-radius: 50%;
+  background: #4F6EF7; opacity: 0.05;
+}
+
+/* ════════════════════════════════════════════════
+   TOTAL CAP CARD (Budgets tab)
+   ════════════════════════════════════════════════ */
+.tc-card  { padding: 18px 20px 16px; }
+.tc-row   { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 14px; }
+.tc-col label { font-size: 13px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: #6B7280; display: block; margin-bottom: 4px; }
+.tc-col .num  { font-size: 26px; font-weight: 800; letter-spacing: -1px; font-variant-numeric: tabular-nums; }
+.tc-col .num.muted { color: #6B7280; }
+
+/* ── Total Cap: Option A — split glow ── */
+/* subtle vertical divider glow between the two columns */
+.tc-a::before {
+  content: ''; position: absolute; top: 0; bottom: 0; left: 50%;
+  width: 1px;
+  background: linear-gradient(180deg, transparent, rgba(79,110,247,0.12) 40%, rgba(79,110,247,0.12) 60%, transparent);
+}
+.tc-a::after {
+  content: ''; position: absolute; top: -50px; left: 50%;
+  transform: translateX(-50%);
+  width: 120px; height: 120px; border-radius: 50%;
+  background: #4F6EF7; opacity: 0.04;
+}
+
+/* ── Total Cap: Option B — large ring top-right ── */
+.tc-b::before {
+  content: ''; position: absolute; top: -60px; right: -60px;
+  width: 180px; height: 180px; border-radius: 50%;
+  border: 22px solid #4F6EF7; opacity: 0.09;
+  background: transparent;
+}
+
+/* ── Total Cap: Option C — two stacked circles, one per column ── */
+.tc-c::before {
+  content: ''; position: absolute; top: -40px; left: -40px;
+  width: 130px; height: 130px; border-radius: 50%;
+  background: #0D9488; opacity: 0.06;
+}
+.tc-c::after {
+  content: ''; position: absolute; bottom: -40px; right: -40px;
+  width: 110px; height: 110px; border-radius: 50%;
+  background: #4F6EF7; opacity: 0.07;
+}
+
+</style>
+</head>
+<body>
+
+<h1>Card Background Designs</h1>
+<p class="subtitle">Hover to compare. Pick one option per card — I'll apply all three.</p>
+
+<!-- ── SAVINGS GAP ─────────────────────────────── -->
+<div class="section">
+  <h2>Savings Gap Card</h2>
+
+  <div class="options">
+
+    <div class="option">
+      <span class="tag">Current (reference)</span>
+      <div class="card gap-card sg-existing">
+        <div class="gap-label">Savings Gap</div>
+        <div class="gap-amount">+₱9,500</div>
+        <div class="gap-pill">✓ On Track</div>
+        <div class="gap-rows">
+          <div class="gap-row"><span>Income</span><span>₱32,000</span></div>
+          <div class="gap-row"><span>Spending cap</span><span>₱18,000</span></div>
+          <div class="gap-row"><span>Spent so far</span><span>₱12,100</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="option">
+      <span class="tag">A — Two circles</span>
+      <div class="card gap-card sg-a">
+        <div class="gap-label">Savings Gap</div>
+        <div class="gap-amount">+₱9,500</div>
+        <div class="gap-pill">✓ On Track</div>
+        <div class="gap-rows">
+          <div class="gap-row"><span>Income</span><span>₱32,000</span></div>
+          <div class="gap-row"><span>Spending cap</span><span>₱18,000</span></div>
+          <div class="gap-row"><span>Spent so far</span><span>₱12,100</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="option">
+      <span class="tag pick">B — Ring ✦ recommended</span>
+      <div class="card gap-card sg-b">
+        <div class="gap-label">Savings Gap</div>
+        <div class="gap-amount">+₱9,500</div>
+        <div class="gap-pill">✓ On Track</div>
+        <div class="gap-rows">
+          <div class="gap-row"><span>Income</span><span>₱32,000</span></div>
+          <div class="gap-row"><span>Spending cap</span><span>₱18,000</span></div>
+          <div class="gap-row"><span>Spent so far</span><span>₱12,100</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="option">
+      <span class="tag">C — Ring + dot</span>
+      <div class="card gap-card sg-c">
+        <div class="gap-label">Savings Gap</div>
+        <div class="gap-amount">+₱9,500</div>
+        <div class="gap-pill">✓ On Track</div>
+        <div class="gap-rows">
+          <div class="gap-row"><span>Income</span><span>₱32,000</span></div>
+          <div class="gap-row"><span>Spending cap</span><span>₱18,000</span></div>
+          <div class="gap-row"><span>Spent so far</span><span>₱12,100</span></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ── SPENDING CAP ────────────────────────────── -->
+<div class="section">
+  <h2>Spending Cap Card</h2>
+
+  <div class="options">
+
+    <div class="option">
+      <span class="tag">Current (no decoration)</span>
+      <div class="card cap-card">
+        <div class="cap-title">Spending Cap</div>
+        <div class="cap-sub">Nov 2026 · 18 of 30 days</div>
+        <div class="cap-row">
+          <div><div class="cap-remaining">₱5,900</div><div style="font-size:12px;color:#6B7280;margin-top:2px">left of ₱18,000</div></div>
+        </div>
+        <div class="progress-track"><div class="progress-fill" style="width:67%"></div></div>
+        <div class="cap-cats">
+          <div class="cat-row"><span>🍔</span><span>Food</span><span>₱2,400</span></div>
+          <div class="cat-row"><span>🚌</span><span>Transport</span><span>₱3,200</span></div>
+          <div class="cat-row"><span>🏠</span><span>Rent</span><span>₱6,000</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="option">
+      <span class="tag pick">A — Arc bottom-right ✦ recommended</span>
+      <div class="card cap-card sc-a">
+        <div class="cap-title">Spending Cap</div>
+        <div class="cap-sub">Nov 2026 · 18 of 30 days</div>
+        <div class="cap-row">
+          <div><div class="cap-remaining">₱5,900</div><div style="font-size:12px;color:#6B7280;margin-top:2px">left of ₱18,000</div></div>
+        </div>
+        <div class="progress-track"><div class="progress-fill" style="width:67%"></div></div>
+        <div class="cap-cats">
+          <div class="cat-row"><span>🍔</span><span>Food</span><span>₱2,400</span></div>
+          <div class="cat-row"><span>🚌</span><span>Transport</span><span>₱3,200</span></div>
+          <div class="cat-row"><span>🏠</span><span>Rent</span><span>₱6,000</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="option">
+      <span class="tag">B — Dot cluster top-right</span>
+      <div class="card cap-card sc-b">
+        <div class="cap-title">Spending Cap</div>
+        <div class="cap-sub">Nov 2026 · 18 of 30 days</div>
+        <div class="cap-row">
+          <div><div class="cap-remaining">₱5,900</div><div style="font-size:12px;color:#6B7280;margin-top:2px">left of ₱18,000</div></div>
+        </div>
+        <div class="progress-track"><div class="progress-fill" style="width:67%"></div></div>
+        <div class="cap-cats">
+          <div class="cat-row"><span>🍔</span><span>Food</span><span>₱2,400</span></div>
+          <div class="cat-row"><span>🚌</span><span>Transport</span><span>₱3,200</span></div>
+          <div class="cat-row"><span>🏠</span><span>Rent</span><span>₱6,000</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="option">
+      <span class="tag">C — Diagonal band</span>
+      <div class="card cap-card sc-c">
+        <div class="cap-title">Spending Cap</div>
+        <div class="cap-sub">Nov 2026 · 18 of 30 days</div>
+        <div class="cap-row">
+          <div><div class="cap-remaining">₱5,900</div><div style="font-size:12px;color:#6B7280;margin-top:2px">left of ₱18,000</div></div>
+        </div>
+        <div class="progress-track"><div class="progress-fill" style="width:67%"></div></div>
+        <div class="cap-cats">
+          <div class="cat-row"><span>🍔</span><span>Food</span><span>₱2,400</span></div>
+          <div class="cat-row"><span>🚌</span><span>Transport</span><span>₱3,200</span></div>
+          <div class="cat-row"><span>🏠</span><span>Rent</span><span>₱6,000</span></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ── TOTAL CAP ───────────────────────────────── -->
+<div class="section">
+  <h2>Total Cap Card (Budgets tab)</h2>
+
+  <div class="options">
+
+    <div class="option">
+      <span class="tag">Current (no decoration)</span>
+      <div class="card tc-card">
+        <div class="tc-row">
+          <div class="tc-col"><label>Total Cap</label><div class="num">₱16,500</div></div>
+          <div class="tc-col" style="text-align:right"><label>Spent</label><div class="num muted">₱10,600</div></div>
+        </div>
+        <div class="progress-track"><div class="progress-fill" style="width:64%;background:#D97706"></div></div>
+      </div>
+    </div>
+
+    <div class="option">
+      <span class="tag">A — Split centre glow</span>
+      <div class="card tc-card tc-a">
+        <div class="tc-row">
+          <div class="tc-col"><label>Total Cap</label><div class="num">₱16,500</div></div>
+          <div class="tc-col" style="text-align:right"><label>Spent</label><div class="num muted">₱10,600</div></div>
+        </div>
+        <div class="progress-track"><div class="progress-fill" style="width:64%;background:#D97706"></div></div>
+      </div>
+    </div>
+
+    <div class="option">
+      <span class="tag pick">B — Ring top-right ✦ recommended</span>
+      <div class="card tc-card tc-b">
+        <div class="tc-row">
+          <div class="tc-col"><label>Total Cap</label><div class="num">₱16,500</div></div>
+          <div class="tc-col" style="text-align:right"><label>Spent</label><div class="num muted">₱10,600</div></div>
+        </div>
+        <div class="progress-track"><div class="progress-fill" style="width:64%;background:#D97706"></div></div>
+      </div>
+    </div>
+
+    <div class="option">
+      <span class="tag">C — Teal + blue circles</span>
+      <div class="card tc-card tc-c">
+        <div class="tc-row">
+          <div class="tc-col"><label>Total Cap</label><div class="num">₱16,500</div></div>
+          <div class="tc-col" style="text-align:right"><label>Spent</label><div class="num muted">₱10,600</div></div>
+        </div>
+        <div class="progress-track"><div class="progress-fill" style="width:64%;background:#D97706"></div></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+</body>
+</html>

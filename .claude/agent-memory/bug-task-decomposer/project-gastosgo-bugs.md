@@ -38,6 +38,18 @@ Key bugs: BUG-01 (Metro dev banner intercepts tab bar tap in 04-navigation — D
 Analyst note: BUG-02 merchant display is correct in app code (stubs.ts includes merchant, dashboard does merchant ?? category). Root cause is the Maestro flow never filling the merchant field (null in DB). TASK-BE-01 is an investigation before TASK-FE-02 can be confirmed.
 Pattern confirmed recurring: Maestro flows not scrolling to below-fold form fields (03-add-expense.yaml). Filed across Batch 5 and Batch 6.
 
+## Batch 9 — 2026-11-10 12:10 (5 bugs, 5 tasks)
+Written to `docs/tasks/beta-test-2026-11-10-12-10/`. FE only — BE/DB/DEVOPS idle this batch. Static analysis of commit e7a2a2a.
+Key bugs: BUG-35 (formatDate UTC+8 off-by-one — same class as BUG-29/31/32 but in utils/format.ts, not stubs.ts — P1), BUG-34 (orphaned ACTIVE section header on empty Recurring tab — SectionList always includes empty section), BUG-36 (no MonthNavigator on Dashboard — INVESTIGATION, may be intentional design), BUG-37 (budget cycle day picker capped at 28 silently), BUG-33 (double-falsy savings target — `parseFloat('0') || undefined` coerces 0 to undefined, works today only via insertProfile default).
+No file conflicts. All five tasks are Wave 1 parallel. No Wave 0 blockers.
+7 bugs confirmed fixed this session: BUG-25, BUG-26, BUG-27, BUG-28, BUG-31, BUG-32, BUG-07.
+New pattern noted: UTC offset bug now appears in FE utility layer (utils/format.ts) in addition to BE stubs and DB queries. Any new date display function must use the T00:00:00 or local-parts pattern.
+
+## Batch 8 — 2026-11-10 12:05 (5 bugs + 4 PRD gaps = 7 tasks)
+Written to `docs/tasks/beta-test-2026-11-10-12-05/`. FE (3), BE (2), DEVOPS (2); DB idle.
+Key bugs: BUG-01 (PIN lock blocks smoke flow — TASK-DEVOPS-01, Wave 0), BUG-02 (8 tabs instead of 4 — TASK-FE-01, Wave 0, Expo Router auto-discovery + explicit Tabs.Screen double registration), BUG-03 (Recurring section unverified — TASK-FE-03, blocked by BUG-02), BUG-04 (no Insights E2E — TASK-FE-02, Wave 2), BUG-05 (notification skip label missing — TASK-DEVOPS-02).
+New pattern: Expo Router route duplication — explicit `<Tabs.Screen>` in `_layout.tsx` duplicating auto-discovered routes causes double tab registration. Wave 0 has 2 parallel blockers (TASK-FE-01, TASK-DEVOPS-01). insights.tsx conflict with Batch 7 unfixed items — flag before assigning TASK-FE-02.
+
 ## Batch 7 — 2026-11-10 11:18 (5 review items, 4 tasks)
 Written to `docs/tasks/beta-test-2026-11-10-11-18/`. FE only — BE/DB/DEVOPS empty this batch. Static code review of HEAD~5..HEAD.
 Key items: design-token violation (opacity: 0.4 hardcoded in insights.tsx — TASK-FE-01), dim style inline in .tsx instead of .styles.ts (TASK-FE-01), slice.data.id null-pass through as-string cast (TASK-FE-02, P1), _layout.tsx dangling fallback timer (TASK-FE-04, P3), splash/null-render window investigation (TASK-FE-03, P3).

@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>GastosGo — Color Palette</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: "Inter", sans-serif; background: #F7F7F9; color: #111827; padding: 40px; -webkit-font-smoothing: antialiased; }
+h1 { font-size: 20px; font-weight: 700; letter-spacing: -0.5px; margin-bottom: 32px; }
+h2 { font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: #6B7280; margin-bottom: 12px; }
+.section { margin-bottom: 36px; }
+.row { display: flex; gap: 10px; flex-wrap: wrap; }
+
+.swatch {
+  display: flex; flex-direction: column; gap: 8px; align-items: flex-start;
+}
+.chip {
+  width: 80px; height: 56px; border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+.chip.wide { width: 180px; height: 36px; border-radius: 8px; }
+.label { font-size: 11px; font-weight: 500; color: #6B7280; }
+.name  { font-size: 12px; font-weight: 600; color: #111827; }
+
+/* ── Brand ── */
+.c-brand      { background: #4F6EF7; }
+.c-brand-soft { background: #7389F9; }
+.c-brand-bg   { background: #EEF1FE; border: 1px solid #D6DBFD; }
+.c-brand-grad { background: linear-gradient(135deg, #7389F9, #4F6EF7); }
+
+/* ── Current "On Track" (green) ── */
+.c-green-old  { background: #22C55E; }
+.c-green-old-bg { background: #DCFCE7; border: 1px solid #BBF7D0; }
+
+/* ── Proposed "On Track" (teal) ── */
+.c-teal       { background: #0D9488; }
+.c-teal-bg    { background: #CCFBF1; border: 1px solid #99F6E4; }
+
+/* ── Warning / Amber ── */
+.c-amber      { background: #D97706; }
+.c-amber-bg   { background: #FEF3C7; border: 1px solid #FDE68A; }
+
+/* ── Danger ── */
+.c-red        { background: #DC2626; }
+.c-red-bg     { background: #FEE2E2; border: 1px solid #FECACA; }
+
+/* ── Neutrals ── */
+.c-bg         { background: #F7F7F9; border: 1px solid #E5E7EB; }
+.c-card       { background: #FFFFFF; border: 1px solid #E5E7EB; }
+.c-navy       { background: #111827; }
+.c-gray       { background: #6B7280; }
+.c-gray-2     { background: #D1D5DB; }
+
+/* ── Progress bar: current ── */
+.prog-old-safe     { background: #22C55E; }
+.prog-old-warning  { background: linear-gradient(90deg, #22C55E, #F97316); }
+.prog-old-danger   { background: linear-gradient(90deg, #F97316, #EF4444); }
+
+/* ── Progress bar: proposed ── */
+.prog-new-safe    { background: #0D9488; }
+.prog-new-warning { background: #D97706; }
+.prog-new-danger  { background: #DC2626; }
+
+.compare { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+.compare-col h3 { font-size: 12px; font-weight: 600; color: #6B7280; margin-bottom: 10px; }
+.prog-row { display: flex; flex-direction: column; gap: 6px; margin-bottom: 8px; }
+.prog-bar { height: 10px; border-radius: 100px; }
+.prog-label { font-size: 11px; color: #6B7280; }
+</style>
+</head>
+<body>
+
+<h1>GastosGo — Proposed Color System</h1>
+
+<div class="section">
+  <h2>Brand</h2>
+  <div class="row">
+    <div class="swatch">
+      <div class="chip c-brand-grad"></div>
+      <div class="name">Button gradient</div>
+      <div class="label">soft → full</div>
+    </div>
+    <div class="swatch">
+      <div class="chip c-brand"></div>
+      <div class="name">Brand</div>
+      <div class="label">#4F6EF7</div>
+    </div>
+    <div class="swatch">
+      <div class="chip c-brand-soft"></div>
+      <div class="name">Brand soft</div>
+      <div class="label">#7389F9</div>
+    </div>
+    <div class="swatch">
+      <div class="chip c-brand-bg"></div>
+      <div class="name">Brand bg tint</div>
+      <div class="label">#EEF1FE</div>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h2>Semantic — On Track</h2>
+  <div class="compare">
+    <div>
+      <div class="compare-col">
+        <h3>Current (grass green)</h3>
+        <div class="row">
+          <div class="swatch">
+            <div class="chip c-green-old"></div>
+            <div class="name">On Track</div>
+            <div class="label">#22C55E</div>
+          </div>
+          <div class="swatch">
+            <div class="chip c-green-old-bg"></div>
+            <div class="name">On Track bg</div>
+            <div class="label">#DCFCE7</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div>
+      <div class="compare-col">
+        <h3>Proposed (teal)</h3>
+        <div class="row">
+          <div class="swatch">
+            <div class="chip c-teal"></div>
+            <div class="name">On Track</div>
+            <div class="label">#0D9488</div>
+          </div>
+          <div class="swatch">
+            <div class="chip c-teal-bg"></div>
+            <div class="name">On Track bg</div>
+            <div class="label">#CCFBF1</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h2>Semantic — Warning &amp; Danger</h2>
+  <div class="row">
+    <div class="swatch">
+      <div class="chip c-amber"></div>
+      <div class="name">Warning</div>
+      <div class="label">#D97706</div>
+    </div>
+    <div class="swatch">
+      <div class="chip c-amber-bg"></div>
+      <div class="name">Warning bg</div>
+      <div class="label">#FEF3C7</div>
+    </div>
+    <div class="swatch" style="margin-left:16px">
+      <div class="chip c-red"></div>
+      <div class="name">Danger</div>
+      <div class="label">#DC2626</div>
+    </div>
+    <div class="swatch">
+      <div class="chip c-red-bg"></div>
+      <div class="name">Danger bg</div>
+      <div class="label">#FEE2E2</div>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h2>Progress Bar — Current vs Proposed</h2>
+  <div class="compare">
+    <div class="compare-col">
+      <h3>Current</h3>
+      <div class="prog-row">
+        <div class="prog-label">Safe (&lt;60%)</div>
+        <div class="prog-bar prog-old-safe" style="width:55%"></div>
+      </div>
+      <div class="prog-row">
+        <div class="prog-label">Warning (60–85%)</div>
+        <div class="prog-bar prog-old-warning" style="width:75%"></div>
+      </div>
+      <div class="prog-row">
+        <div class="prog-label">Danger (&gt;85%)</div>
+        <div class="prog-bar prog-old-danger" style="width:92%"></div>
+      </div>
+    </div>
+    <div class="compare-col">
+      <h3>Proposed</h3>
+      <div class="prog-row">
+        <div class="prog-label">Safe (&lt;60%)</div>
+        <div class="prog-bar prog-new-safe" style="width:55%"></div>
+      </div>
+      <div class="prog-row">
+        <div class="prog-label">Warning (60–85%)</div>
+        <div class="prog-bar prog-new-warning" style="width:75%"></div>
+      </div>
+      <div class="prog-row">
+        <div class="prog-label">Danger (&gt;85%)</div>
+        <div class="prog-bar prog-new-danger" style="width:92%"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h2>Neutrals</h2>
+  <div class="row">
+    <div class="swatch">
+      <div class="chip c-bg"></div>
+      <div class="name">Background</div>
+      <div class="label">#F7F7F9</div>
+    </div>
+    <div class="swatch">
+      <div class="chip c-card"></div>
+      <div class="name">Card</div>
+      <div class="label">#FFFFFF</div>
+    </div>
+    <div class="swatch">
+      <div class="chip c-navy"></div>
+      <div class="name">Text primary</div>
+      <div class="label">#111827</div>
+    </div>
+    <div class="swatch">
+      <div class="chip c-gray"></div>
+      <div class="name">Text secondary</div>
+      <div class="label">#6B7280</div>
+    </div>
+    <div class="swatch">
+      <div class="chip c-gray-2"></div>
+      <div class="name">Inactive / sep</div>
+      <div class="label">#D1D5DB</div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>
