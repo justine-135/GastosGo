@@ -11,8 +11,24 @@ A single logged spending record with an amount, category, payment method, and da
 _Avoid_: transaction, purchase, gastos (use in marketing copy only, not in code)
 
 **Savings Gap**:
-`Actual Savings − Expected Savings`. Positive = saving more than expected (on track). Negative = saving less (at risk). In Target Mode, `Actual Savings = Savings Target − Total Expenses`.
+`Actual Savings − Expected Savings`. Positive = saving more than expected (on track). Negative = saving less (at risk). What goes into each side depends on Income Mode:
+
+| Income Mode | Actual Savings | Expected Savings |
+|---|---|---|
+| Salary | `Monthly Salary − Total Expenses` | the user's Expected Savings |
+| Mixed | `(Salary + Freelance income) − Total Expenses` | the user's Expected Savings |
+| Target | `Savings Target − Total Expenses` | `0` |
+
+In Target Mode, Expected Savings is `0` — the Savings Target is already baked into Actual Savings, so the gap reduces to `Savings Target − Total Expenses`. Setting Expected Savings equal to the target there would cancel it out.
 _Avoid_: savings difference, gap amount
+
+**Expected Savings**:
+The monthly savings figure the user commits to in Salary and Mixed modes — the baseline the Savings Gap is measured against. A first-class user input, entered during onboarding. Distinct from Savings Target, which is only used in Target Mode; Expected Savings is `0` in Target Mode.
+_Avoid_: savings goal, target savings (those are Savings Target)
+
+**Savings Target**:
+The savings goal set in Target Mode, where the user logs no income. Used as the basis for Actual Savings (`Savings Target − Total Expenses`), not as Expected Savings. Not used in Salary or Mixed mode.
+_Avoid_: expected savings, savings goal
 
 **Budget Cycle**:
 The recurring period (default: calendar month) against which budgets and the savings gap are measured. Starts on a user-configured day of month; defaults to the 1st.
@@ -39,6 +55,10 @@ _Avoid_: goal mode, no-income mode
 **Category**:
 A user-defined label that groups expenses (e.g. Food, Transport). May have an optional monthly spending limit. The 7 default categories are seeded on first launch.
 _Avoid_: tag, label, group
+
+**Spending Cap**:
+The sum of all budgeted Category limits for the current Budget Cycle. Only categories with a limit set contribute. Used on the Home screen to show total remaining spendable amount (`Spending Cap − expenses in budgeted categories`).
+_Avoid_: total budget, monthly cap
 
 **Budget Carryover**:
 A per-category opt-in setting that adds unused budget from one Budget Cycle to the next.

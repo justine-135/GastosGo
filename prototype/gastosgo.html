@@ -1,0 +1,1496 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>GastosGo — Prototype</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+/* ─── Easing system (Emil: custom curves, never default) ─── */
+:root {
+  --ease-out:    cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-in:     cubic-bezier(0.55, 0, 1, 0.45);
+  --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+  --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);   /* iOS sheet */
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1); /* bounce */
+
+  /* Tokens */
+  /* Primary: indigo-blue — confident, calm, finance-appropriate */
+  --coral:      #4F6EF7;
+  --coral-soft: #7389F9;
+  --coral-bg:   #EEF1FE;
+  /* Semantic accents — green/red only for income/danger */
+  --gold:       #F59E0B;
+  --gold-bg:    #FEF3C7;
+  --green:      #0D9488;
+  --green-bg:   #CCFBF1;
+  --red:        #EF4444;
+  --red-bg:     #FEE2E2;
+  --orange:     #F97316;
+  --bg:         #F7F7F9;
+  --card:       #FFFFFF;
+  --navy:       #111827;
+  --gray:       #6B7280;
+  --gray-2:     #D1D5DB;
+  --gray-light: #F3F4F6;
+  --sep:        rgba(0,0,0,0.07);
+  --sh-sm:      0 1px 3px rgba(0,0,0,0.07),0 2px 10px rgba(0,0,0,0.05);
+  --sh-md:      0 4px 20px rgba(0,0,0,0.09),0 1px 4px rgba(0,0,0,0.05);
+  --sh-lg:      0 16px 48px rgba(0,0,0,0.16);
+  --r:          16px;
+  --r-sm:       10px;
+  --r-pill:     100px;
+  --font:       "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
+  --tab-h:      83px;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+html, body { height: 100%; background: #1C1C1E; font-family: var(--font); color: var(--navy); -webkit-font-smoothing: antialiased; font-feature-settings: "cv11", "ss01"; }
+button { border: none; background: none; cursor: pointer; font-family: inherit; }
+input { font-family: inherit; outline: none; border: none; background: none; }
+
+/* ─── Shell ─────────────────────────────────────── */
+#app {
+  position: relative;
+  width: 390px; height: 844px;
+  margin: 0 auto;
+  overflow: hidden;
+  background: var(--bg);
+  border-radius: 48px;
+  box-shadow: 0 0 0 10px #2C2C2E, 0 24px 80px rgba(0,0,0,0.6);
+}
+body { display: flex; align-items: center; justify-content: center; min-height: 100vh; }
+@media (max-width: 430px) {
+  #app { width: 100%; height: 100dvh; border-radius: 0; box-shadow: none; }
+  body { background: var(--bg); }
+}
+
+/* ─── PROTOTYPE badge ───────────────────────────── */
+#proto-badge {
+  position: absolute; top: 54px; right: 16px; z-index: 9999;
+  background: rgba(255,99,72,0.88); color: #fff;
+  font-size: 10px; font-weight: 700; letter-spacing: 0.08em;
+  padding: 3px 8px; border-radius: var(--r-pill);
+  pointer-events: none;
+}
+
+/* ─── Status bar ────────────────────────────────── */
+.status-bar {
+  position: absolute; top: 0; left: 0; right: 0; height: 44px;
+  display: flex; align-items: flex-end; justify-content: space-between;
+  padding: 0 24px 8px; z-index: 10;
+  pointer-events: none;
+}
+.status-bar .time { font-size: 15px; font-weight: 700; letter-spacing: -0.3px; }
+.status-bar .icons { display: flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 700; }
+
+/* ─── Screen system ─────────────────────────────── */
+/* Choreograph: screen is the one lead — content is already there, no stagger inside */
+.screen {
+  position: absolute; inset: 0;
+  background: var(--bg);
+  transform: translateX(100%);
+  /* Enter: 380ms drawer curve. Exit slide-out handled by .slide-out */
+  transition: transform 380ms var(--ease-drawer);
+  overflow: hidden;
+}
+.screen.active  { transform: translateX(0); }
+.screen.slide-out { transform: translateX(-28%); transition: transform 260ms var(--ease-in); }
+
+/* ─── Nav bar ───────────────────────────────────── */
+.nav-bar {
+  position: absolute; top: 0; left: 0; right: 0;
+  height: 96px; padding-top: 44px;
+  display: flex; align-items: center; padding-left: 8px; padding-right: 16px;
+  background: rgba(250,250,248,0.85);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  z-index: 10; border-bottom: 0.5px solid var(--sep);
+}
+.nav-back {
+  width: 40px; height: 40px; display: flex; align-items: center; justify-content: center;
+  color: var(--coral); font-size: 24px; border-radius: 50%;
+  /* Emil: respond on pointerdown, 120ms ease-out */
+  transition: background 120ms var(--ease-out), transform 120ms var(--ease-out);
+  flex-shrink: 0; /* break-ui: don't shrink */
+}
+.nav-back:active { background: var(--gray-light); transform: scale(0.92); }
+.nav-title {
+  flex: 1; min-width: 0; /* break-ui */
+  font-size: 17px; font-weight: 600; letter-spacing: -0.4px;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.nav-action {
+  color: var(--coral); font-size: 17px; font-weight: 500;
+  padding: 8px; border-radius: var(--r-sm);
+  transition: opacity 120ms var(--ease-out);
+  flex-shrink: 0;
+}
+.nav-action:active { opacity: 0.55; }
+
+/* ─── Scroll areas ───────────────────────────────── */
+.scroll-content {
+  position: absolute; top: 96px; left: 0; right: 0; bottom: 0;
+  overflow-y: auto; -webkit-overflow-scrolling: touch; padding-bottom: 24px;
+}
+.scroll-content.no-nav { top: 44px; }
+
+/* ─── Tab bar ───────────────────────────────────── */
+#tab-bar {
+  position: absolute; bottom: 0; left: 0; right: 0; height: var(--tab-h);
+  display: flex;
+  background: rgba(255,255,255,0.88);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border-top: 0.5px solid var(--sep);
+  padding-bottom: 20px; z-index: 50;
+}
+/* Choreograph: tab switching is high-frequency → near-instant, 80ms opacity only */
+.tab-panel { position: absolute; inset: 0; display: none; opacity: 0; transition: opacity 80ms var(--ease-out); }
+.tab-panel.active { display: block; opacity: 1; }
+
+.tab-btn {
+  flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 4px; padding-top: 8px; color: var(--gray-2);
+  transition: color 180ms var(--ease-out);
+}
+.tab-btn.active { color: var(--coral); }
+.tab-btn svg { width: 24px; height: 24px; flex-shrink: 0; }
+.tab-btn span { font-size: 10px; font-weight: 500; }
+.tab-btn:active svg { transform: scale(0.9); transition: transform 100ms var(--ease-out); }
+
+.tab-add-wrap { flex: 1; display: flex; align-items: center; justify-content: center; padding-top: 8px; }
+.tab-add-circle {
+  width: 50px; height: 50px;
+  background: linear-gradient(145deg, var(--coral-soft), var(--coral));
+  border-radius: 50%; display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 4px 16px rgba(79,110,247,0.40);
+  /* Emil: scale(0.97) on :active, 120ms ease-out */
+  transition: transform 120ms var(--ease-out), box-shadow 120ms var(--ease-out);
+}
+.tab-add-circle:active {
+  transform: scale(0.90); /* FAB gets more dramatic press */
+  box-shadow: 0 2px 8px rgba(79,110,247,0.25);
+}
+.tab-add-circle svg { width: 22px; height: 22px; color: white; flex-shrink: 0; }
+
+/* ─── Cards & sections ─────────────────────────── */
+.card { background: var(--card); border-radius: var(--r); box-shadow: var(--sh-sm); overflow: hidden; }
+.section-header { font-size: 20px; font-weight: 700; letter-spacing: -0.5px; padding: 20px 20px 12px; }
+.section-label {
+  font-size: 13px; font-weight: 600; letter-spacing: 0.04em; color: var(--gray);
+  text-transform: uppercase; padding: 20px 20px 8px;
+}
+
+/* ─── List rows ─────────────────────────────────── */
+.list-row {
+  display: flex; align-items: center;
+  padding: 14px 20px; background: var(--card);
+  border-bottom: 0.5px solid var(--sep); gap: 14px;
+  cursor: pointer;
+  transition: background 120ms var(--ease-out);
+  -webkit-user-select: none; user-select: none;
+}
+.list-row:last-child { border-bottom: none; }
+.list-row:active { background: var(--gray-light); }
+.list-row-icon {
+  width: 36px; height: 36px; border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px; flex-shrink: 0; /* break-ui */
+}
+.list-row-body {
+  flex: 1; min-width: 0; /* break-ui: prevents text overflow in flex */
+}
+.list-row-title {
+  font-size: 16px; font-weight: 500; color: var(--navy);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.list-row-sub {
+  font-size: 13px; color: var(--gray); margin-top: 1px;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.list-row-right { display: flex; align-items: center; gap: 6px; color: var(--gray); flex-shrink: 0; }
+.chevron { color: var(--gray-2); font-size: 14px; }
+
+/* ─── Progress bars ─────────────────────────────── */
+.progress-track { height: 6px; background: var(--gray-light); border-radius: var(--r-pill); overflow: hidden; }
+.progress-fill {
+  height: 100%; border-radius: var(--r-pill);
+  /* Emil: custom spring curve for data-driven animations */
+  transition: width 500ms var(--ease-spring), background 400ms var(--ease-out);
+}
+
+/* ─── Buttons ───────────────────────────────────── */
+.btn-primary {
+  width: 100%; padding: 16px;
+  background: linear-gradient(145deg, var(--coral-soft), var(--coral));
+  color: white; font-size: 17px; font-weight: 600; letter-spacing: -0.3px;
+  border-radius: var(--r); font-family: var(--font);
+  box-shadow: 0 4px 16px rgba(79,110,247,0.30);
+  transition: transform 120ms var(--ease-out), box-shadow 120ms var(--ease-out), opacity 200ms var(--ease-out);
+}
+/* Emil: scale(0.97) on :active — real responsiveness */
+.btn-primary:active { transform: scale(0.97); box-shadow: 0 2px 8px rgba(79,110,247,0.18); }
+.btn-secondary {
+  width: 100%; padding: 15px;
+  background: var(--gray-light); color: var(--navy);
+  font-size: 17px; font-weight: 500; letter-spacing: -0.3px;
+  border-radius: var(--r); font-family: var(--font);
+  transition: transform 120ms var(--ease-out), background 120ms var(--ease-out);
+}
+.btn-secondary:active { transform: scale(0.97); background: #E5E5EA; }
+.btn-sm {
+  font-size: 14px; font-weight: 500; padding: 7px 13px; border-radius: var(--r-sm);
+  font-family: var(--font);
+  transition: transform 100ms var(--ease-out), background 100ms var(--ease-out);
+}
+.btn-sm:active { transform: scale(0.95); }
+.btn-restore { color: var(--coral); }
+.btn-restore:active { background: var(--coral-bg); }
+.btn-danger { color: var(--red); }
+.btn-danger:active { background: var(--red-bg); }
+
+/* ─── Inputs ────────────────────────────────────── */
+.input-group { padding: 0 20px 16px; }
+.input-label { font-size: 13px; font-weight: 600; color: var(--gray); letter-spacing: 0.03em; text-transform: uppercase; margin-bottom: 6px; }
+.input-wrap {
+  background: var(--gray-light); border-radius: var(--r-sm);
+  padding: 14px 16px; display: flex; align-items: center; gap: 8px;
+  transition: background 150ms var(--ease-out), box-shadow 150ms var(--ease-out);
+}
+.input-wrap:focus-within { background: var(--card); box-shadow: 0 0 0 2px var(--coral); }
+.input-prefix { font-size: 20px; font-weight: 300; color: var(--gray); flex-shrink: 0; }
+.input-wrap input { flex: 1; min-width: 0; font-size: 20px; font-weight: 500; color: var(--navy); letter-spacing: -0.5px; font-variant-numeric: tabular-nums; }
+.input-wrap input::placeholder { color: var(--gray-2); }
+.input-wrap.sm input { font-size: 16px; font-weight: 400; }
+.input-wrap.sm { padding: 12px 16px; }
+
+/* ─── Segmented control ─────────────────────────── */
+.segmented { display: flex; background: var(--gray-light); border-radius: var(--r-sm); padding: 2px; gap: 2px; }
+.seg-opt {
+  flex: 1; padding: 8px 4px; font-size: 13px; font-weight: 500; color: var(--gray);
+  border-radius: 8px; text-align: center; cursor: pointer;
+  transition: background 180ms var(--ease-out), color 180ms var(--ease-out), box-shadow 180ms var(--ease-out);
+  user-select: none;
+}
+.seg-opt.active { background: var(--card); color: var(--navy); box-shadow: var(--sh-sm); font-weight: 600; }
+.seg-opt:active:not(.active) { background: rgba(0,0,0,0.04); }
+
+/* ─── Toggle ────────────────────────────────────── */
+.toggle-row { display: flex; align-items: center; justify-content: space-between; padding: 14px 20px; }
+.toggle {
+  position: relative; width: 51px; height: 31px;
+  background: var(--gray-2); border-radius: var(--r-pill);
+  transition: background 250ms var(--ease-out); cursor: pointer; flex-shrink: 0;
+}
+.toggle.on { background: var(--green); }
+.toggle::after {
+  content: ''; position: absolute; top: 2px; left: 2px; width: 27px; height: 27px;
+  background: white; border-radius: 50%;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+  /* Emil: spring for the thumb */
+  transition: transform 250ms var(--ease-spring);
+}
+.toggle.on::after { transform: translateX(20px); }
+
+/* ─── Mode cards ─────────────────────────────────── */
+.mode-card {
+  background: var(--card); border-radius: var(--r); padding: 20px;
+  display: flex; align-items: flex-start; gap: 16px;
+  border: 2px solid transparent;
+  box-shadow: var(--sh-sm);
+  transition: border-color 180ms var(--ease-out), background 180ms var(--ease-out), transform 120ms var(--ease-out);
+  cursor: pointer;
+  /* Choreograph: stagger only on first-run onboarding */
+  opacity: 0; animation: cardEnter 400ms var(--ease-out) both;
+  animation-delay: calc(var(--i, 0) * 70ms);
+}
+@keyframes cardEnter {
+  /* Emil: scale from 0.97 not 0 */
+  from { opacity: 0; transform: translateY(12px) scale(0.97); }
+  to   { opacity: 1; transform: none; }
+}
+.mode-card:active { transform: scale(0.98); }
+.mode-card.selected { border-color: var(--coral); background: var(--coral-bg); }
+.mode-card-icon {
+  width: 44px; height: 44px; border-radius: 12px; display: flex;
+  align-items: center; justify-content: center; font-size: 22px; flex-shrink: 0;
+}
+.mode-card h3 { font-size: 16px; font-weight: 700; color: var(--navy); margin-bottom: 4px; letter-spacing: -0.3px; }
+.mode-card p  { font-size: 13px; color: var(--gray); line-height: 1.4; }
+
+/* ─── Expense rows ──────────────────────────────── */
+.expense-row {
+  display: flex; align-items: center; padding: 12px 20px; gap: 14px;
+  border-bottom: 0.5px solid var(--sep); cursor: pointer;
+  transition: background 120ms var(--ease-out);
+}
+.expense-row:last-child { border-bottom: none; }
+.expense-row:active { background: var(--gray-light); }
+.expense-icon {
+  width: 40px; height: 40px; border-radius: 12px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px; flex-shrink: 0; /* break-ui */
+}
+.expense-body { flex: 1; min-width: 0; } /* break-ui: min-width:0 */
+.expense-name {
+  font-size: 15px; font-weight: 500; color: var(--navy);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; /* break-ui: truncate */
+}
+.expense-meta { font-size: 12px; color: var(--gray); margin-top: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.expense-amount {
+  font-size: 15px; font-weight: 600; color: var(--navy);
+  letter-spacing: -0.3px; flex-shrink: 0;
+  font-variant-numeric: tabular-nums; /* break-ui: no jitter */
+}
+
+/* ─── Date group header ─────────────────────────── */
+.date-header {
+  font-size: 13px; font-weight: 600; letter-spacing: 0.03em; color: var(--gray);
+  text-transform: uppercase; padding: 20px 20px 8px;
+  display: flex; justify-content: space-between; align-items: center;
+}
+.date-header .total {
+  color: var(--navy); font-size: 13px; font-weight: 600; font-variant-numeric: tabular-nums;
+  background: var(--gray-light); padding: 3px 10px; border-radius: var(--r-pill);
+}
+
+/* ─── Savings gap card ──────────────────────────── */
+#savings-gap-card {
+  margin: 60px 20px 0;
+  background: var(--card); border-radius: 24px; padding: 28px 24px 24px;
+  box-shadow: var(--sh-md); position: relative; overflow: hidden;
+  /* Choreograph: lead element, animates as one unit on first enter */
+  animation: gapEnter 500ms var(--ease-out) 60ms both;
+}
+@keyframes gapEnter {
+  from { opacity: 0; transform: translateY(16px) scale(0.98); }
+  to   { opacity: 1; transform: none; }
+}
+#savings-gap-card::before {
+  content: ''; position: absolute; top: -70px; right: -70px;
+  width: 220px; height: 220px; border-radius: 50%;
+  border: 22px solid transparent; background: transparent; opacity: 0.1;
+  transition: border-color 400ms var(--ease-out);
+}
+#savings-gap-card::after {
+  content: ''; position: absolute; top: 10px; right: 20px;
+  width: 10px; height: 10px; border-radius: 50%; opacity: 0.2;
+  transition: background 400ms var(--ease-out);
+}
+#savings-gap-card.on-track::before { border-color: var(--green); }
+#savings-gap-card.at-risk::before  { border-color: var(--red); }
+#savings-gap-card.on-track::after  { background: var(--green); }
+#savings-gap-card.at-risk::after   { background: var(--red); }
+
+.gap-label { font-size: 13px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: var(--gray); margin-bottom: 8px; }
+.gap-amount {
+  font-size: 48px; font-weight: 800; letter-spacing: -2.5px; line-height: 1; margin-bottom: 10px;
+  font-variant-numeric: tabular-nums;
+  transition: color 400ms var(--ease-out);
+}
+.gap-amount.on-track { color: var(--green); }
+.gap-amount.at-risk  { color: var(--red); }
+.gap-status { display: flex; align-items: center; gap: 8px; margin-bottom: 20px; flex-wrap: wrap; }
+.status-pill {
+  display: inline-flex; align-items: center; gap: 4px; padding: 4px 10px;
+  border-radius: var(--r-pill); font-size: 12px; font-weight: 700; flex-shrink: 0;
+  transition: background 400ms var(--ease-out), color 400ms var(--ease-out);
+}
+.status-pill.on-track { background: var(--green-bg); color: var(--green); }
+.status-pill.at-risk  { background: var(--red-bg);   color: var(--red); }
+.gap-status-text { font-size: 13px; color: var(--gray); min-width: 0; overflow-wrap: anywhere; } /* break-ui */
+.gap-row {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 7px 0; border-top: 0.5px solid var(--sep);
+}
+.gap-row-label { font-size: 13px; color: var(--gray); }
+.gap-row-value { font-size: 14px; font-weight: 600; color: var(--navy); letter-spacing: -0.3px; font-variant-numeric: tabular-nums; }
+
+/* ─── Spending cap card ──────────────────────────── */
+.spending-cap-card {
+  margin: 14px 20px 0; background: var(--card); border-radius: var(--r);
+  padding: 20px; box-shadow: var(--sh-sm);
+  position: relative; overflow: hidden;
+  animation: gapEnter 500ms var(--ease-out) 120ms both;
+}
+.spending-cap-card::before {
+  content: ''; position: absolute; bottom: -70px; right: -70px;
+  width: 180px; height: 180px; border-radius: 50%;
+  border: 24px solid var(--green); background: transparent; opacity: 0.08;
+}
+.spending-cap-header { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 12px; }
+.spending-cap-title { font-size: 13px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: var(--gray); }
+.spending-cap-remaining { font-size: 24px; font-weight: 800; letter-spacing: -1px; font-variant-numeric: tabular-nums; transition: color 400ms var(--ease-out); }
+.spending-cap-sub { font-size: 12px; color: var(--gray); margin-top: 1px; }
+.cap-cat-row { display: flex; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 0.5px solid var(--sep); }
+.cap-cat-row:last-child { border-bottom: none; }
+.cap-cat-icon { font-size: 15px; width: 20px; text-align: center; flex-shrink: 0; }
+.cap-cat-name { font-size: 13px; font-weight: 500; color: var(--navy); flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.cap-cat-remaining { font-size: 13px; font-weight: 600; letter-spacing: -0.3px; flex-shrink: 0; font-variant-numeric: tabular-nums; }
+
+/* ─── Budget rows ───────────────────────────────── */
+.budget-row { padding: 16px 20px; border-bottom: 0.5px solid var(--sep); cursor: pointer; transition: background 120ms var(--ease-out); }
+.budget-row:last-child { border-bottom: none; }
+.budget-row:active { background: var(--gray-light); }
+.budget-row-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+.budget-row-left { display: flex; align-items: center; gap: 12px; min-width: 0; flex: 1; } /* break-ui */
+.budget-row-icon { width: 36px; height: 36px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 17px; flex-shrink: 0; }
+.budget-row-name { font-size: 15px; font-weight: 600; color: var(--navy); letter-spacing: -0.2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.budget-row-pct { font-size: 13px; color: var(--gray); margin-top: 1px; }
+.budget-row-amounts { text-align: right; flex-shrink: 0; }
+.budget-row-spent { font-size: 15px; font-weight: 700; letter-spacing: -0.3px; font-variant-numeric: tabular-nums; transition: color 400ms var(--ease-out); }
+.budget-row-limit { font-size: 12px; color: var(--gray); font-variant-numeric: tabular-nums; }
+
+/* ─── Budgets summary card ──────────────────────── */
+.budgets-summary-card {
+  position: relative; overflow: hidden;
+}
+.budgets-summary-card::before {
+  content: ''; position: absolute; top: -60px; right: -60px;
+  width: 180px; height: 180px; border-radius: 50%;
+  border: 22px solid var(--coral); background: transparent; opacity: 0.09;
+}
+
+/* ─── Settings ──────────────────────────────────── */
+.settings-section { background: var(--card); border-radius: var(--r); margin: 0 20px 16px; overflow: hidden; box-shadow: var(--sh-sm); }
+
+/* ─── Empty states ──────────────────────────────── */
+.empty-state { text-align: center; padding: 60px 40px; }
+.empty-icon  { font-size: 48px; margin-bottom: 16px; }
+.empty-title { font-size: 18px; font-weight: 700; color: var(--navy); margin-bottom: 8px; letter-spacing: -0.3px; }
+.empty-sub   { font-size: 14px; color: var(--gray); line-height: 1.5; }
+
+/* ─── Bottom sheet ──────────────────────────────── */
+#modal-overlay {
+  position: absolute; inset: 0; background: rgba(0,0,0,0); z-index: 200;
+  pointer-events: none;
+  /* Emil: asymmetric — enter 350ms, exit 200ms */
+  transition: background 350ms var(--ease-out);
+}
+#modal-overlay.visible { background: rgba(0,0,0,0.42); pointer-events: auto; transition-duration: 350ms; }
+#modal-overlay.closing { background: rgba(0,0,0,0); transition-duration: 200ms; }
+
+#add-sheet {
+  position: absolute; left: 0; right: 0; bottom: 0;
+  background: var(--card); border-radius: 20px 20px 0 0;
+  box-shadow: var(--sh-lg);
+  /* Emil: enter 380ms drawer curve, exit 220ms ease-in (asymmetric) */
+  transform: translateY(100%);
+  transition: transform 380ms var(--ease-drawer);
+  z-index: 201; max-height: 92%;
+  display: flex; flex-direction: column; overflow: hidden; touch-action: none;
+  will-change: transform;
+}
+#add-sheet.open  { transform: translateY(0); }
+#add-sheet.close { transform: translateY(100%); transition-duration: 220ms; transition-timing-function: var(--ease-in); }
+
+.sheet-handle { width: 36px; height: 4px; background: var(--gray-2); border-radius: 2px; margin: 10px auto 0; flex-shrink: 0; }
+.sheet-header { display: flex; align-items: center; justify-content: space-between; padding: 16px 20px 12px; flex-shrink: 0; }
+.sheet-title  { font-size: 20px; font-weight: 700; letter-spacing: -0.5px; }
+.sheet-close  {
+  width: 30px; height: 30px; background: var(--gray-light); border-radius: 50%;
+  display: flex; align-items: center; justify-content: center; font-size: 15px; color: var(--gray);
+  transition: background 120ms var(--ease-out), transform 120ms var(--ease-out);
+}
+.sheet-close:active { background: #E5E5EA; transform: scale(0.9); }
+.sheet-scroll { flex: 1; overflow-y: auto; }
+.sheet-actions { padding: 12px 20px 24px; flex-shrink: 0; }
+
+/* ─── Onboarding ────────────────────────────────── */
+.ob-bg {
+  position: absolute; inset: 0;
+  background: linear-gradient(165deg, #EEF1FE 0%, #F7F7F9 50%, #EEF1FE 100%);
+}
+.ob-content {
+  position: relative; display: flex; flex-direction: column;
+  height: 100%; padding: 44px 28px 32px;
+}
+.ob-logo {
+  width: 64px; height: 64px; margin-top: 20px; margin-bottom: 32px;
+  background: linear-gradient(145deg, var(--coral-soft), var(--coral));
+  border-radius: 20px; display: flex; align-items: center; justify-content: center;
+  font-size: 32px; box-shadow: 0 8px 24px rgba(255,99,72,0.32);
+  animation: gapEnter 500ms var(--ease-out) 100ms both;
+}
+.ob-eyebrow {
+  font-size: 13px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase;
+  color: var(--coral); margin-bottom: 8px;
+  animation: gapEnter 500ms var(--ease-out) 160ms both;
+}
+.ob-title {
+  font-size: 36px; font-weight: 800; letter-spacing: -1.5px; color: var(--navy);
+  line-height: 1.08; margin-bottom: 14px;
+  animation: gapEnter 500ms var(--ease-out) 200ms both;
+}
+.ob-title span { color: var(--coral); }
+.ob-sub {
+  font-size: 16px; color: var(--gray); line-height: 1.5; letter-spacing: -0.2px; margin-bottom: 32px;
+  animation: gapEnter 500ms var(--ease-out) 240ms both;
+}
+.ob-spacer { flex: 1; }
+/* Choreograph: pills stagger — first-run, one-time — 50ms between */
+.ob-pills {
+  display: flex; gap: 8px; margin-bottom: 32px; flex-wrap: wrap;
+  animation: gapEnter 500ms var(--ease-out) 300ms both;
+}
+.ob-pill {
+  background: var(--card); border: 1.5px solid var(--sep); border-radius: var(--r-pill);
+  padding: 7px 14px; font-size: 13px; font-weight: 500; color: #2C3E50;
+  display: flex; align-items: center; gap: 6px;
+}
+.step-dots { display: flex; gap: 6px; justify-content: center; margin-bottom: 20px; }
+.step-dot { width: 6px; height: 6px; border-radius: 3px; background: var(--gray-2); transition: all 300ms var(--ease-spring); }
+.step-dot.active { width: 20px; background: var(--coral); }
+
+/* ─── Utilities ─────────────────────────────────── */
+.mt-16  { margin-top: 16px; }
+.px-20  { padding-left: 20px; padding-right: 20px; }
+.soon-pill {
+  font-size: 11px; font-weight: 700; padding: 3px 8px; border-radius: var(--r-pill);
+  background: var(--gold-bg); color: var(--gold); flex-shrink: 0;
+}
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="proto-badge">PROTOTYPE</div>
+
+  <!-- ══════════════════════ ONBOARDING: WELCOME ══════════════════════ -->
+  <div class="screen active" id="screen-welcome">
+    <div class="ob-bg"></div>
+    <div class="ob-content">
+      <div style="height:0"></div>
+      <div class="ob-logo">💸</div>
+      <div class="ob-eyebrow">Your money, your rules</div>
+      <h1 class="ob-title">Know where every <span>piso</span> goes.</h1>
+      <p class="ob-sub">Track expenses, set budgets, and finally understand your savings gap — built for working Filipinos.</p>
+      <div class="ob-pills">
+        <div class="ob-pill">📊 Savings Gap</div>
+        <div class="ob-pill">📂 Category Budgets</div>
+        <div class="ob-pill">📵 Works Offline</div>
+        <div class="ob-pill">🔔 Reminders</div>
+      </div>
+      <button class="btn-primary" onclick="navigate('screen-income-mode')">Get Started</button>
+      <div style="height:16px"></div>
+      <p style="text-align:center;font-size:13px;color:var(--gray)">No account · Your data stays on your phone</p>
+    </div>
+  </div>
+
+  <!-- ══════════════════════ ONBOARDING: INCOME MODE ══════════════════════ -->
+  <div class="screen" id="screen-income-mode">
+    <div class="ob-bg"></div>
+    <div class="nav-bar" style="background:transparent;backdrop-filter:none;border:none">
+      <button class="nav-back" onclick="goBack()">‹</button>
+    </div>
+    <div class="scroll-content no-nav" style="padding:0 20px">
+      <div style="height:16px"></div>
+      <div style="font-size:13px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--coral)">Step 1 of 2</div>
+      <h2 style="font-size:28px;font-weight:800;letter-spacing:-1px;color:var(--navy);margin:8px 0 6px">How do you earn?</h2>
+      <p style="font-size:15px;color:var(--gray);margin-bottom:24px;line-height:1.5">Choose how GastosGo calculates your savings gap.</p>
+      <div style="display:flex;flex-direction:column;gap:12px">
+        <div class="mode-card" id="mode-salary" style="--i:0" onclick="selectMode('salary')">
+          <div class="mode-card-icon" style="background:#FFF3F1">💼</div>
+          <div><h3>Salary</h3><p>Fixed monthly income. I know exactly what I take home each month.</p></div>
+        </div>
+        <div class="mode-card" id="mode-mixed" style="--i:1" onclick="selectMode('mixed')">
+          <div class="mode-card-icon" style="background:#EEF4FF">🧑‍💻</div>
+          <div><h3>Mixed</h3><p>Salary plus freelance or irregular income each month.</p></div>
+        </div>
+        <div class="mode-card" id="mode-target" style="--i:2" onclick="selectMode('target')">
+          <div class="mode-card-icon" style="background:#EDFBF1">🎯</div>
+          <div><h3>Target</h3><p>I'd rather set a savings goal instead of logging my income.</p></div>
+        </div>
+      </div>
+      <div style="height:28px"></div>
+      <div class="step-dots"><div class="step-dot active"></div><div class="step-dot"></div></div>
+      <button class="btn-primary" id="btn-mode-next" onclick="navigate('screen-income-entry')" style="opacity:0.38;pointer-events:none">Continue</button>
+      <div style="height:40px"></div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════ ONBOARDING: INCOME ENTRY ══════════════════════ -->
+  <div class="screen" id="screen-income-entry">
+    <div class="ob-bg"></div>
+    <div class="nav-bar" style="background:transparent;backdrop-filter:none;border:none">
+      <button class="nav-back" onclick="goBack()">‹</button>
+    </div>
+    <div class="scroll-content no-nav" style="padding:0 20px">
+      <div style="height:16px"></div>
+      <div style="font-size:13px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--coral)">Step 2 of 2</div>
+      <h2 id="ob-entry-title" style="font-size:28px;font-weight:800;letter-spacing:-1px;color:var(--navy);margin:8px 0 6px">Your monthly salary</h2>
+      <p id="ob-entry-sub" style="font-size:15px;color:var(--gray);margin-bottom:28px;line-height:1.5">Enter your take-home pay after tax.</p>
+      <div id="ob-fields"></div>
+      <div style="height:28px"></div>
+      <div class="step-dots"><div class="step-dot"></div><div class="step-dot active"></div></div>
+      <button class="btn-primary" onclick="completeOnboarding()">Start Tracking 🎉</button>
+      <div style="height:40px"></div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════ MAIN APP ══════════════════════ -->
+  <div class="screen" id="screen-app">
+
+    <!-- HOME -->
+    <div class="tab-panel active" id="tab-home">
+      <div class="status-bar" style="color:var(--navy)">
+        <span class="time">9:41</span>
+        <div class="icons"><span>100%</span></div>
+      </div>
+      <div style="position:absolute;top:0;left:0;right:0;bottom:var(--tab-h);overflow-y:auto;-webkit-overflow-scrolling:touch">
+        <div id="savings-gap-card" class="on-track">
+          <div class="gap-label">Savings Gap · November 2026</div>
+          <div class="gap-amount on-track" id="gap-amount">₱9,500</div>
+          <div class="gap-status">
+            <div class="status-pill on-track" id="gap-pill">✓ On Track</div>
+            <span class="gap-status-text" id="gap-text">Saving ₱9,500 more than expected</span>
+          </div>
+          <div class="gap-row"><span class="gap-row-label">Actual Savings</span><span class="gap-row-value" id="gap-actual">₱16,500</span></div>
+          <div class="gap-row"><span class="gap-row-label">Expected Savings</span><span class="gap-row-value" id="gap-expected">₱7,000</span></div>
+          <div class="gap-row"><span class="gap-row-label">Total Spent</span><span class="gap-row-value" id="gap-spent">₱18,500</span></div>
+        </div>
+
+        <div class="spending-cap-card">
+          <div class="spending-cap-header">
+            <div>
+              <div class="spending-cap-title">Spending Cap</div>
+              <div class="spending-cap-sub">Nov 2026 · 18 of 30 days</div>
+            </div>
+            <div style="text-align:right">
+              <div class="spending-cap-remaining" id="cap-remaining">₱5,900</div>
+              <div style="font-size:12px;color:var(--gray)" id="cap-of">of ₱16,500 cap</div>
+            </div>
+          </div>
+          <div class="progress-track" style="margin-bottom:14px">
+            <div class="progress-fill" id="cap-bar" style="width:64%"></div>
+          </div>
+          <div id="home-cat-list"></div>
+        </div>
+
+        <div class="section-header">Recent</div>
+        <div class="card" style="margin:0 20px"><div id="home-recent"></div></div>
+        <div style="height:24px"></div>
+      </div>
+    </div>
+
+    <!-- HISTORY -->
+    <div class="tab-panel" id="tab-history">
+      <div class="status-bar" style="color:var(--navy)"><span class="time">9:41</span><div class="icons"><span>100%</span></div></div>
+      <div style="position:absolute;top:44px;left:0;right:0;padding:12px 20px 8px;background:var(--bg)">
+        <h1 style="font-size:28px;font-weight:800;letter-spacing:-1px">History</h1>
+        <p style="font-size:13px;color:var(--gray);margin-top:2px">November 2026</p>
+      </div>
+      <div style="position:absolute;top:120px;left:0;right:0;bottom:var(--tab-h);overflow-y:auto;-webkit-overflow-scrolling:touch">
+        <div id="history-list"></div>
+        <div style="height:24px"></div>
+      </div>
+    </div>
+
+    <!-- BUDGETS -->
+    <div class="tab-panel" id="tab-budgets">
+      <div class="status-bar" style="color:var(--navy)"><span class="time">9:41</span><div class="icons"><span>100%</span></div></div>
+      <div style="position:absolute;top:44px;left:0;right:0;padding:12px 20px 8px;background:var(--bg)">
+        <h1 style="font-size:28px;font-weight:800;letter-spacing:-1px">Budgets</h1>
+        <p style="font-size:13px;color:var(--gray);margin-top:2px">November 2026</p>
+      </div>
+      <div style="position:absolute;top:120px;left:0;right:0;bottom:var(--tab-h);overflow-y:auto;-webkit-overflow-scrolling:touch">
+        <div class="budgets-summary-card" style="margin:8px 20px 16px;background:var(--card);border-radius:var(--r);padding:16px 20px;box-shadow:var(--sh-sm)">
+          <div style="display:flex;justify-content:space-between;align-items:flex-end">
+            <div>
+              <div style="font-size:13px;color:var(--gray);font-weight:600;text-transform:uppercase;letter-spacing:0.04em">Total Cap</div>
+              <div style="font-size:26px;font-weight:800;letter-spacing:-1px;margin-top:4px;font-variant-numeric:tabular-nums" id="budgets-cap">₱16,500</div>
+            </div>
+            <div style="text-align:right">
+              <div style="font-size:13px;color:var(--gray);font-weight:600;text-transform:uppercase;letter-spacing:0.04em">Spent</div>
+              <div style="font-size:26px;font-weight:800;letter-spacing:-1px;margin-top:4px;font-variant-numeric:tabular-nums" id="budgets-spent">₱10,600</div>
+            </div>
+          </div>
+          <div class="progress-track" style="margin-top:14px">
+            <div class="progress-fill" id="budgets-bar" style="width:64%"></div>
+          </div>
+        </div>
+        <div class="card" style="margin:0 20px"><div id="budgets-list"></div></div>
+        <p style="text-align:center;font-size:13px;color:var(--gray);margin:14px 20px">Tap a category to edit its limit</p>
+        <div style="height:24px"></div>
+      </div>
+    </div>
+
+    <!-- SETTINGS -->
+    <div class="tab-panel" id="tab-settings">
+      <div class="status-bar" style="color:var(--navy)"><span class="time">9:41</span><div class="icons"><span>100%</span></div></div>
+      <div style="position:absolute;top:44px;left:0;right:0;padding:12px 20px 8px;background:var(--bg)">
+        <h1 style="font-size:28px;font-weight:800;letter-spacing:-1px">Settings</h1>
+      </div>
+      <div style="position:absolute;top:112px;left:0;right:0;bottom:var(--tab-h);overflow-y:auto;-webkit-overflow-scrolling:touch;padding-bottom:24px">
+        <div class="section-label">Income & Budget</div>
+        <div class="settings-section">
+          <div class="list-row" onclick="navigate('screen-settings-income')">
+            <div class="list-row-icon" style="background:#FFF3F1">💼</div>
+            <div class="list-row-body"><div class="list-row-title">Income Mode</div><div class="list-row-sub" id="s-mode-sub">Salary · ₱35,000/mo</div></div>
+            <div class="list-row-right"><span class="chevron">›</span></div>
+          </div>
+          <div class="list-row" onclick="navigate('screen-settings-cycle')">
+            <div class="list-row-icon" style="background:#EEF4FF">📅</div>
+            <div class="list-row-body"><div class="list-row-title">Budget Cycle</div><div class="list-row-sub" id="s-cycle-sub">Starts on the 1st of each month</div></div>
+            <div class="list-row-right"><span class="chevron">›</span></div>
+          </div>
+        </div>
+        <div class="section-label">Data</div>
+        <div class="settings-section">
+          <div class="list-row" onclick="navigate('screen-settings-deleted')">
+            <div class="list-row-icon" style="background:#FFF3F1">🗑</div>
+            <div class="list-row-body"><div class="list-row-title">Recently Deleted</div><div class="list-row-sub" id="s-deleted-sub">1 item</div></div>
+            <div class="list-row-right"><span class="chevron">›</span></div>
+          </div>
+        </div>
+        <div class="section-label">Upcoming</div>
+        <div class="settings-section">
+          <div class="list-row" onclick="navigate('screen-settings-recurring')">
+            <div class="list-row-icon" style="background:var(--gold-bg)">🔁</div>
+            <div class="list-row-body"><div class="list-row-title">Recurring Rules</div><div class="list-row-sub">Coming soon</div></div>
+            <div class="list-row-right"><span class="soon-pill">SOON</span></div>
+          </div>
+          <div class="list-row" onclick="navigate('screen-settings-security')">
+            <div class="list-row-icon" style="background:#F0FFF4">🔒</div>
+            <div class="list-row-body"><div class="list-row-title">PIN & Biometric Lock</div><div class="list-row-sub">Coming soon</div></div>
+            <div class="list-row-right"><span class="soon-pill">SOON</span></div>
+          </div>
+        </div>
+        <div style="text-align:center;padding:24px 20px 8px">
+          <div style="font-size:28px;margin-bottom:8px">💸</div>
+          <div style="font-size:15px;font-weight:700;color:var(--navy);letter-spacing:-0.3px">GastosGo</div>
+          <div style="font-size:13px;color:var(--gray);margin-top:4px">Version 0.1.0 — Prototype</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tab bar -->
+    <nav id="tab-bar">
+      <button class="tab-btn active" id="tbtn-home" onclick="switchTab('home')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        <span>Home</span>
+      </button>
+      <button class="tab-btn" id="tbtn-history" onclick="switchTab('history')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        <span>History</span>
+      </button>
+      <div class="tab-add-wrap">
+        <div class="tab-add-circle" onclick="openSheet()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        </div>
+      </div>
+      <button class="tab-btn" id="tbtn-budgets" onclick="switchTab('budgets')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+        <span>Budgets</span>
+      </button>
+      <button class="tab-btn" id="tbtn-settings" onclick="switchTab('settings')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06-.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        <span>Settings</span>
+      </button>
+    </nav>
+  </div>
+
+  <!-- ══════════════════════ ADD EXPENSE SHEET ══════════════════════ -->
+  <div id="modal-overlay" onclick="closeSheet()"></div>
+  <div id="add-sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-header">
+      <div class="sheet-title">Add Expense</div>
+      <button class="sheet-close" onclick="closeSheet()">✕</button>
+    </div>
+    <div class="sheet-scroll">
+      <div class="input-group">
+        <div class="input-label">Amount</div>
+        <div class="input-wrap">
+          <span class="input-prefix">₱</span>
+          <input type="number" id="exp-amount" placeholder="0.00" inputmode="decimal" oninput="checkSaveBtn()">
+        </div>
+      </div>
+      <div class="input-group" style="padding-bottom:8px">
+        <div class="input-label">Category</div>
+        <div class="list-row" style="background:var(--gray-light);border-radius:var(--r-sm);padding:14px 16px;border-bottom:none" onclick="navigate('screen-cat-picker')">
+          <div id="exp-cat-icon" style="font-size:20px;flex-shrink:0">📂</div>
+          <div class="list-row-body"><div id="exp-cat-name" style="font-size:16px;color:var(--gray-2)">Select category…</div></div>
+          <span class="chevron">›</span>
+        </div>
+      </div>
+      <div class="input-group">
+        <div class="input-label">Payment Method</div>
+        <div class="segmented" id="pay-seg">
+          <div class="seg-opt active" onclick="pickPayment(this,'Cash')">💵 Cash</div>
+          <div class="seg-opt" onclick="pickPayment(this,'GCash')">💚 GCash</div>
+          <div class="seg-opt" onclick="pickPayment(this,'Card')">💳 Card</div>
+          <div class="seg-opt" onclick="pickPayment(this,'Others')">···</div>
+        </div>
+      </div>
+      <div class="input-group">
+        <div class="input-label">Date</div>
+        <div class="input-wrap sm">
+          <span style="font-size:16px;flex-shrink:0">📅</span>
+          <input type="date" id="exp-date" class="sm" style="font-size:16px;color:var(--navy)">
+        </div>
+      </div>
+      <div class="input-group">
+        <div class="input-label">Notes (optional)</div>
+        <div class="input-wrap sm">
+          <input type="text" id="exp-notes" placeholder="What's this for?" style="font-size:16px">
+        </div>
+      </div>
+    </div>
+    <div class="sheet-actions">
+      <button class="btn-primary" id="btn-save" onclick="saveExpense()" style="opacity:0.38;pointer-events:none">Save Expense</button>
+    </div>
+  </div>
+
+  <!-- ══════════════════════ CATEGORY PICKER ══════════════════════ -->
+  <div class="screen" id="screen-cat-picker" style="z-index:210">
+    <div class="nav-bar"><button class="nav-back" onclick="goBack()">‹</button><div class="nav-title">Category</div></div>
+    <div class="scroll-content">
+      <div class="card" style="margin:16px 20px"><div id="cat-picker-list"></div></div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════ BUDGET EDIT ══════════════════════ -->
+  <div class="screen" id="screen-budget-edit">
+    <div class="nav-bar">
+      <button class="nav-back" onclick="goBack()">‹</button>
+      <div class="nav-title" id="budget-edit-title">Edit Category</div>
+      <button class="nav-action" onclick="saveBudgetEdit()">Save</button>
+    </div>
+    <div class="scroll-content">
+      <div style="height:16px"></div>
+      <div class="input-group">
+        <div class="input-label">Category Name</div>
+        <div class="input-wrap sm"><input type="text" id="edit-name" style="font-size:16px"></div>
+      </div>
+      <div class="input-group">
+        <div class="input-label">Monthly Limit (optional)</div>
+        <div class="input-wrap"><span class="input-prefix">₱</span><input type="number" id="edit-limit" placeholder="No limit" inputmode="decimal"></div>
+      </div>
+      <div class="card" style="margin:0 20px">
+        <div class="toggle-row">
+          <div>
+            <div style="font-size:16px;font-weight:500;color:var(--navy)">Budget Carryover</div>
+            <div style="font-size:13px;color:var(--gray);margin-top:2px">Unused budget carries over next month</div>
+          </div>
+          <div class="toggle" id="edit-carryover" onclick="this.classList.toggle('on')"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════ SETTINGS: INCOME ══════════════════════ -->
+  <div class="screen" id="screen-settings-income">
+    <div class="nav-bar">
+      <button class="nav-back" onclick="goBack()">‹</button>
+      <div class="nav-title">Income Mode</div>
+      <button class="nav-action" onclick="saveIncome()">Save</button>
+    </div>
+    <div class="scroll-content">
+      <div class="section-label">Mode</div>
+      <div style="display:flex;flex-direction:column;gap:10px;padding:0 20px">
+        <div class="mode-card" id="edit-mode-salary" onclick="editMode('salary')" style="animation:none;opacity:1">
+          <div class="mode-card-icon" style="background:#FFF3F1">💼</div>
+          <div><h3>Salary</h3><p>Fixed monthly income.</p></div>
+        </div>
+        <div class="mode-card" id="edit-mode-mixed" onclick="editMode('mixed')" style="animation:none;opacity:1">
+          <div class="mode-card-icon" style="background:#EEF4FF">🧑‍💻</div>
+          <div><h3>Mixed</h3><p>Salary + freelance income.</p></div>
+        </div>
+        <div class="mode-card" id="edit-mode-target" onclick="editMode('target')" style="animation:none;opacity:1">
+          <div class="mode-card-icon" style="background:#EDFBF1">🎯</div>
+          <div><h3>Target</h3><p>Set a savings goal instead.</p></div>
+        </div>
+      </div>
+      <div id="edit-income-fields" style="margin-top:16px"></div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════ SETTINGS: CYCLE ══════════════════════ -->
+  <div class="screen" id="screen-settings-cycle">
+    <div class="nav-bar">
+      <button class="nav-back" onclick="goBack()">‹</button>
+      <div class="nav-title">Budget Cycle</div>
+      <button class="nav-action" onclick="goBack()">Done</button>
+    </div>
+    <div class="scroll-content">
+      <div class="section-label">Cycle starts on</div>
+      <div class="card" style="margin:0 20px"><div id="cycle-list"></div></div>
+      <p style="font-size:13px;color:var(--gray);padding:12px 20px;line-height:1.5">The budget cycle resets on this day each month.</p>
+    </div>
+  </div>
+
+  <!-- ══════════════════════ SETTINGS: RECENTLY DELETED ══════════════════════ -->
+  <div class="screen" id="screen-settings-deleted">
+    <div class="nav-bar"><button class="nav-back" onclick="goBack()">‹</button><div class="nav-title">Recently Deleted</div></div>
+    <div class="scroll-content">
+      <p style="font-size:13px;color:var(--gray);padding:16px 20px 8px;line-height:1.5">Items are kept for 30 days. Restored items return to your history.</p>
+      <div class="card" style="margin:0 20px"><div id="deleted-list"></div></div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════ PLACEHOLDERS ══════════════════════ -->
+  <div class="screen" id="screen-settings-recurring">
+    <div class="nav-bar"><button class="nav-back" onclick="goBack()">‹</button><div class="nav-title">Recurring Rules</div></div>
+    <div class="scroll-content"><div class="empty-state"><div class="empty-icon">🔁</div><div class="empty-title">Coming Soon</div><div class="empty-sub">Auto-log or get reminders for recurring bills.</div></div></div>
+  </div>
+  <div class="screen" id="screen-settings-security">
+    <div class="nav-bar"><button class="nav-back" onclick="goBack()">‹</button><div class="nav-title">PIN & Biometric Lock</div></div>
+    <div class="scroll-content"><div class="empty-state"><div class="empty-icon">🔒</div><div class="empty-title">Coming Soon</div><div class="empty-sub">Protect your data with PIN or Face ID.</div></div></div>
+  </div>
+</div>
+
+<script>
+// ─── State ──────────────────────────────────────────────────────
+const S = {
+  user: { mode: null, salary: 0, freelance: 0, target: 0, expected: 7000, cycleDay: 1 },
+  cats: [
+    { id:1, name:'Food',          icon:'🍜', color:'#FF6348', limit:5000,  carryover:false },
+    { id:2, name:'Transport',     icon:'🚌', color:'#3B82F6', limit:2000,  carryover:false },
+    { id:3, name:'Entertainment', icon:'🎬', color:'#8B5CF6', limit:1500,  carryover:false },
+    { id:4, name:'Utilities',     icon:'⚡', color:'#F59E0B', limit:3000,  carryover:false },
+    { id:5, name:'Health',        icon:'💊', color:'#10B981', limit:2000,  carryover:false },
+    { id:6, name:'Shopping',      icon:'🛍', color:'#EC4899', limit:3000,  carryover:false },
+    { id:7, name:'Others',        icon:'📦', color:'#8E8E93', limit:null,  carryover:false },
+  ],
+  expenses: [
+    { id:1,  amount:350,  catId:1, method:'GCash', date:'2026-11-18', notes:'Jollibee', del:false },
+    { id:2,  amount:1200, catId:1, method:'GCash', date:'2026-11-17', notes:'Groceries — SM', del:false },
+    { id:3,  amount:180,  catId:2, method:'Cash',  date:'2026-11-17', notes:'Jeepney & MRT', del:false },
+    { id:4,  amount:499,  catId:3, method:'Card',  date:'2026-11-16', notes:'Netflix', del:false },
+    { id:5,  amount:850,  catId:1, method:'GCash', date:'2026-11-15', notes:'Dinner with pamilya', del:false },
+    { id:6,  amount:2500, catId:4, method:'Card',  date:'2026-11-14', notes:'Meralco bill', del:false },
+    { id:7,  amount:600,  catId:2, method:'Cash',  date:'2026-11-13', notes:'Grab rides', del:false },
+    { id:8,  amount:320,  catId:5, method:'Card',  date:'2026-11-12', notes:'Mercury Drug', del:false },
+    { id:9,  amount:1800, catId:6, method:'Card',  date:'2026-11-11', notes:'Shopee haul', del:false },
+    { id:10, amount:450,  catId:1, method:'Cash',  date:'2026-11-10', notes:'Merienda + lunch', del:false },
+    { id:11, amount:200,  catId:2, method:'Cash',  date:'2026-11-09', notes:'Bus fare', del:false },
+    { id:12, amount:980,  catId:3, method:'GCash', date:'2026-11-08', notes:'Spotify + games', del:false },
+    { id:13, amount:750,  catId:4, method:'Card',  date:'2026-11-07', notes:'Globe postpaid', del:false },
+    { id:14, amount:420,  catId:1, method:'Cash',  date:'2026-11-05', notes:'Paluto sa bahay', del:false },
+    { id:15, amount:600,  catId:5, method:'GCash', date:'2026-11-03', notes:'Check-up + meds', del:false },
+    { id:16, amount:1200, catId:6, method:'Card',  date:'2026-11-02', notes:'Lazada sale', del:true  },
+  ],
+  form: { catId: null, payment: 'Cash' },
+  editCatId: null,
+  editModeVal: null,
+  nextId: 17,
+};
+
+// ─── Helpers ────────────────────────────────────────────────────
+// break-ui: Intl.NumberFormat, tabular-nums enforced in CSS
+const fmt = n => '₱' + new Intl.NumberFormat('en-PH', { maximumFractionDigits: 0 }).format(Math.abs(n));
+const cat  = id => S.cats.find(c => c.id === id);
+const live = ()  => S.expenses.filter(e => !e.del);
+const spentFor = id => live().filter(e => e.catId === id).reduce((s,e) => s + e.amount, 0);
+const totalSpent = () => live().reduce((s,e) => s + e.amount, 0);
+const spendingCap = () => S.cats.filter(c => c.limit).reduce((s,c) => s + c.limit, 0);
+const budgetedSpent = () => live().filter(e => cat(e.catId)?.limit).reduce((s,e) => s + e.amount, 0);
+
+function barColor(p) {
+  if (p < 0.6)  return 'var(--green)';
+  if (p < 0.85) return '#D97706';
+  return '#DC2626';
+}
+
+function fmtDate(d) {
+  const dt = new Date(d + 'T00:00:00');
+  const today = new Date(); today.setHours(0,0,0,0);
+  const diff = (today - dt) / 86400000;
+  if (diff === 0) return 'Today';
+  if (diff === 1) return 'Yesterday';
+  return dt.toLocaleDateString('en-PH', { month: 'short', day: 'numeric' });
+}
+
+function computeGap() {
+  const u = S.user;
+  if (!u.mode) return { gap: 0, actual: 0, expected: 0 };
+  const income = u.mode === 'salary' ? u.salary : u.mode === 'mixed' ? u.salary + u.freelance : 0;
+  const actual = u.mode === 'target' ? u.target - totalSpent() : income - totalSpent();
+  const expected = u.mode === 'target' ? 0 : u.expected;
+  return { gap: actual - expected, actual, expected };
+}
+
+// break-ui: pluralization
+const plural = (n, s) => `${n} ${s}${n === 1 ? '' : 's'}`;
+
+// ─── Navigation ─────────────────────────────────────────────────
+let stack = [];
+function navigate(id) {
+  const cur = stack[stack.length - 1];
+  if (cur) document.getElementById(cur).classList.add('slide-out');
+  const el = document.getElementById(id);
+  el.classList.remove('slide-out');
+  el.classList.add('active');
+  stack.push(id);
+  if (id === 'screen-cat-picker')       renderCatPicker();
+  if (id === 'screen-income-entry')     renderObFields();
+  if (id === 'screen-settings-income')  initEditIncome();
+  if (id === 'screen-settings-cycle')   renderCycle();
+  if (id === 'screen-settings-deleted') renderDeleted();
+}
+function goBack() {
+  if (!stack.length) return;
+  const cur = stack.pop();
+  const el = document.getElementById(cur);
+  el.classList.remove('active', 'slide-out');
+  const prev = stack[stack.length - 1];
+  if (prev) document.getElementById(prev).classList.remove('slide-out');
+}
+
+navigate('screen-welcome');
+
+// ─── Tabs (high-frequency: 80ms opacity, no movement) ───────────
+function switchTab(name) {
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('tab-' + name).classList.add('active');
+  const btn = document.getElementById('tbtn-' + name);
+  if (btn) btn.classList.add('active');
+  if (name === 'home')    renderHome();
+  if (name === 'history') renderHistory();
+  if (name === 'budgets') renderBudgets();
+}
+
+// ─── Render: Home ────────────────────────────────────────────────
+function renderHome() {
+  const { gap, actual, expected } = computeGap();
+  const on = gap >= 0;
+  const card = document.getElementById('savings-gap-card');
+  card.className = on ? 'on-track' : 'at-risk';
+
+  const amtEl = document.getElementById('gap-amount');
+  amtEl.textContent = (gap >= 0 ? '' : '−') + fmt(gap);
+  amtEl.className = 'gap-amount ' + (on ? 'on-track' : 'at-risk');
+
+  const pill = document.getElementById('gap-pill');
+  pill.className = 'status-pill ' + (on ? 'on-track' : 'at-risk');
+  pill.textContent = on ? '✓ On Track' : '⚠ At Risk';
+  document.getElementById('gap-text').textContent = on
+    ? `Saving ${fmt(gap)} more than expected`
+    : `${fmt(Math.abs(gap))} behind target`;
+
+  document.getElementById('gap-actual').textContent   = fmt(actual);
+  document.getElementById('gap-expected').textContent = fmt(expected);
+  document.getElementById('gap-spent').textContent    = fmt(totalSpent());
+
+  const cap = spendingCap(), spent = budgetedSpent(), rem = cap - spent;
+  const pct = cap > 0 ? Math.min(spent / cap, 1) : 0;
+  document.getElementById('cap-remaining').textContent = rem >= 0 ? fmt(rem) : '−' + fmt(rem);
+  document.getElementById('cap-remaining').style.color = rem >= 0 ? 'var(--navy)' : 'var(--red)';
+  document.getElementById('cap-of').textContent = 'of ' + fmt(cap) + ' cap';
+  const bar = document.getElementById('cap-bar');
+  bar.style.width = (pct * 100) + '%';
+  bar.style.background = barColor(pct);
+
+  // Per-category remaining (budgeted only — by spec)
+  const el = document.getElementById('home-cat-list');
+  el.innerHTML = S.cats.filter(c => c.limit).map(c => {
+    const s = spentFor(c.id), r = c.limit - s, p = Math.min(s / c.limit, 1);
+    return `<div class="cap-cat-row">
+      <div class="cap-cat-icon">${c.icon}</div>
+      <div class="cap-cat-name" title="${c.name}">${c.name}</div>
+      <div style="flex:1;margin:0 10px"><div class="progress-track"><div class="progress-fill" style="width:${p*100}%;background:${barColor(p)}"></div></div></div>
+      <div class="cap-cat-remaining" style="color:${r>=0?'var(--navy)':'var(--red)'}">${r>=0?fmt(r):'−'+fmt(Math.abs(r))}</div>
+    </div>`;
+  }).join('');
+
+  // Recent (last 5 live expenses)
+  const recent = [...live()].sort((a,b) => b.id - a.id).slice(0, 5);
+  const rEl = document.getElementById('home-recent');
+  if (!recent.length) {
+    rEl.innerHTML = `<div class="empty-state" style="padding:40px 20px"><div class="empty-icon">🧾</div><div class="empty-title">No expenses yet</div><div class="empty-sub">Tap + to log your first expense</div></div>`;
+  } else {
+    rEl.innerHTML = recent.map(e => {
+      const c = cat(e.catId) || {};
+      return `<div class="expense-row">
+        <div class="expense-icon" style="background:${c.color}22">${c.icon||'📦'}</div>
+        <div class="expense-body">
+          <div class="expense-name" title="${e.notes||c.name}">${e.notes || c.name}</div>
+          <div class="expense-meta">${c.name} · ${e.method} · ${fmtDate(e.date)}</div>
+        </div>
+        <div class="expense-amount">−${fmt(e.amount)}</div>
+      </div>`;
+    }).join('');
+  }
+}
+
+// ─── Render: History ─────────────────────────────────────────────
+function renderHistory() {
+  const sorted = [...live()].sort((a,b) => b.date.localeCompare(a.date) || b.id - a.id);
+  const el = document.getElementById('history-list');
+  if (!sorted.length) {
+    el.innerHTML = `<div class="empty-state"><div class="empty-icon">🧾</div><div class="empty-title">No expenses yet</div><div class="empty-sub">Tap + to log your first expense</div></div>`;
+    return;
+  }
+  const byDate = {};
+  sorted.forEach(e => { (byDate[e.date] = byDate[e.date] || []).push(e); });
+  el.innerHTML = Object.entries(byDate).map(([date, exps]) => {
+    const dayTotal = exps.reduce((s,e) => s + e.amount, 0);
+    return `<div class="date-header"><span>${fmtDate(date)}</span><span class="total">−${fmt(dayTotal)}</span></div>
+      <div class="card" style="margin:0 20px 2px">
+        ${exps.map(e => {
+          const c = cat(e.catId) || {};
+          return `<div class="expense-row" onclick="softDelete(${e.id})">
+            <div class="expense-icon" style="background:${c.color||'#eee'}22">${c.icon||'📦'}</div>
+            <div class="expense-body">
+              <div class="expense-name" title="${e.notes||c.name}">${e.notes || c.name}</div>
+              <div class="expense-meta">${c.name} · ${e.method}</div>
+            </div>
+            <div>
+              <div class="expense-amount">−${fmt(e.amount)}</div>
+              <div style="font-size:11px;color:var(--gray-2);text-align:right;margin-top:1px">tap to delete</div>
+            </div>
+          </div>`;
+        }).join('')}
+      </div>`;
+  }).join('');
+}
+
+// ─── Render: Budgets ──────────────────────────────────────────────
+function renderBudgets() {
+  const cap = spendingCap(), spent = budgetedSpent();
+  const pct = cap > 0 ? Math.min(spent / cap, 1) : 0;
+  document.getElementById('budgets-cap').textContent = fmt(cap);
+  const spentEl = document.getElementById('budgets-spent');
+  spentEl.textContent = fmt(spent);
+  spentEl.style.color = pct > 0.85 ? 'var(--red)' : pct > 0.6 ? 'var(--orange)' : 'var(--navy)';
+  const bar = document.getElementById('budgets-bar');
+  bar.style.width = (pct * 100) + '%';
+  bar.style.background = barColor(pct);
+
+  document.getElementById('budgets-list').innerHTML = S.cats.map(c => {
+    const s = spentFor(c.id), p = c.limit ? Math.min(s / c.limit, 1) : 0;
+    return `<div class="budget-row" onclick="openBudgetEdit(${c.id})">
+      <div class="budget-row-top">
+        <div class="budget-row-left">
+          <div class="budget-row-icon" style="background:${c.color}22">${c.icon}</div>
+          <div style="min-width:0">
+            <div class="budget-row-name" title="${c.name}">${c.name}</div>
+            <div class="budget-row-pct">${c.limit ? Math.round(p*100)+'% used' : 'No limit set'}</div>
+          </div>
+        </div>
+        <div class="budget-row-amounts">
+          <div class="budget-row-spent" style="color:${!c.limit?'var(--navy)':p>0.85?'var(--red)':p>0.6?'var(--orange)':'var(--navy)'}">${fmt(s)}</div>
+          <div class="budget-row-limit">${c.limit ? 'of ' + fmt(c.limit) : 'spent'}</div>
+        </div>
+      </div>
+      ${c.limit ? `<div class="progress-track"><div class="progress-fill" style="width:${p*100}%;background:${barColor(p)}"></div></div>` : ''}
+    </div>`;
+  }).join('');
+}
+
+function updateSubtexts() {
+  const u = S.user;
+  const labels = { salary:'Salary', mixed:'Mixed', target:'Target' };
+  let sub = labels[u.mode] || 'Not set';
+  if (u.mode === 'salary') sub += ` · ${fmt(u.salary)}/mo`;
+  else if (u.mode === 'mixed') sub += ` · ${fmt(u.salary + u.freelance)}/mo`;
+  else if (u.mode === 'target') sub += ` · ${fmt(u.target)} target`;
+  document.getElementById('s-mode-sub').textContent = sub;
+
+  const d = u.cycleDay, sfx = d===1?'st':d===2?'nd':d===3?'rd':'th';
+  document.getElementById('s-cycle-sub').textContent = `Starts on the ${d}${sfx} of each month`;
+
+  // break-ui: proper pluralization
+  const dc = S.expenses.filter(e => e.del).length;
+  document.getElementById('s-deleted-sub').textContent = dc === 0 ? 'Empty' : plural(dc, 'item');
+}
+
+// ─── Add Expense ─────────────────────────────────────────────────
+function openSheet() {
+  S.form = { catId: null, payment: 'Cash' };
+  document.getElementById('exp-amount').value = '';
+  document.getElementById('exp-notes').value = '';
+  document.getElementById('exp-date').value = new Date().toISOString().split('T')[0];
+  document.getElementById('exp-cat-name').textContent = 'Select category…';
+  document.getElementById('exp-cat-name').style.color = 'var(--gray-2)';
+  document.getElementById('exp-cat-icon').textContent = '📂';
+  document.querySelectorAll('#pay-seg .seg-opt').forEach((e,i) => e.classList.toggle('active', i===0));
+  setBtnEnabled('btn-save', false);
+
+  const overlay = document.getElementById('modal-overlay');
+  const sheet   = document.getElementById('add-sheet');
+  overlay.classList.remove('closing');
+  overlay.classList.add('visible');
+  sheet.classList.remove('close');
+  requestAnimationFrame(() => sheet.classList.add('open'));
+  setupDrag();
+}
+
+function closeSheet() {
+  const overlay = document.getElementById('modal-overlay');
+  const sheet   = document.getElementById('add-sheet');
+  // Emil: asymmetric exit — faster (220ms, ease-in applied by .close class)
+  sheet.classList.add('close');
+  sheet.classList.remove('open');
+  overlay.classList.add('closing');
+  overlay.classList.remove('visible');
+  setTimeout(() => { sheet.classList.remove('close'); overlay.classList.remove('closing'); }, 250);
+}
+
+function pickPayment(el, method) {
+  document.querySelectorAll('#pay-seg .seg-opt').forEach(e => e.classList.remove('active'));
+  el.classList.add('active');
+  S.form.payment = method;
+}
+function checkSaveBtn() {
+  setBtnEnabled('btn-save', parseFloat(document.getElementById('exp-amount').value) > 0 && S.form.catId != null);
+}
+function setBtnEnabled(id, on) {
+  const el = document.getElementById(id);
+  el.style.opacity = on ? '1' : '0.38';
+  el.style.pointerEvents = on ? 'auto' : 'none';
+}
+function saveExpense() {
+  const amount = parseFloat(document.getElementById('exp-amount').value);
+  if (!amount || !S.form.catId) return;
+  S.expenses.unshift({
+    id: S.nextId++, amount,
+    catId: S.form.catId, method: S.form.payment,
+    date: document.getElementById('exp-date').value,
+    notes: document.getElementById('exp-notes').value,
+    del: false
+  });
+  closeSheet();
+  renderHome(); renderHistory(); renderBudgets(); updateSubtexts();
+}
+
+// ─── Category picker ──────────────────────────────────────────────
+function renderCatPicker() {
+  document.getElementById('cat-picker-list').innerHTML = S.cats.map(c => `
+    <div class="list-row" onclick="pickCat(${c.id})">
+      <div class="list-row-icon" style="background:${c.color}22;flex-shrink:0">${c.icon}</div>
+      <div class="list-row-body"><div class="list-row-title">${c.name}</div></div>
+      <div style="color:var(--coral);font-size:18px;flex-shrink:0">${c.id === S.form.catId ? '✓' : ''}</div>
+    </div>`).join('');
+}
+function pickCat(id) {
+  S.form.catId = id;
+  const c = cat(id);
+  document.getElementById('exp-cat-icon').textContent = c.icon;
+  document.getElementById('exp-cat-name').textContent = c.name;
+  document.getElementById('exp-cat-name').style.color = 'var(--navy)';
+  checkSaveBtn();
+  goBack();
+}
+
+// ─── Budget edit ──────────────────────────────────────────────────
+function openBudgetEdit(id) {
+  S.editCatId = id;
+  const c = cat(id);
+  document.getElementById('budget-edit-title').textContent = c.name;
+  document.getElementById('edit-name').value  = c.name;
+  document.getElementById('edit-limit').value = c.limit ?? '';
+  document.getElementById('edit-carryover').className = 'toggle' + (c.carryover ? ' on' : '');
+  navigate('screen-budget-edit');
+}
+function saveBudgetEdit() {
+  const c = cat(S.editCatId);
+  c.name = document.getElementById('edit-name').value || c.name;
+  const v = parseFloat(document.getElementById('edit-limit').value);
+  c.limit = isNaN(v) || v <= 0 ? null : v;
+  c.carryover = document.getElementById('edit-carryover').classList.contains('on');
+  renderBudgets(); renderHome(); goBack();
+}
+
+// ─── Delete / restore ─────────────────────────────────────────────
+function softDelete(id) {
+  if (!confirm('Delete this expense? You can restore it from Recently Deleted.')) return;
+  const e = S.expenses.find(x => x.id === id);
+  if (e) e.del = true;
+  renderHistory(); renderHome(); renderBudgets(); updateSubtexts();
+}
+function renderDeleted() {
+  const del = S.expenses.filter(e => e.del);
+  const el  = document.getElementById('deleted-list');
+  if (!del.length) {
+    el.innerHTML = `<div class="empty-state" style="padding:40px 20px"><div class="empty-icon">🗑</div><div class="empty-title">Nothing here</div><div class="empty-sub">Deleted expenses appear here for 30 days</div></div>`;
+    return;
+  }
+  el.innerHTML = del.map(e => {
+    const c = cat(e.catId) || {};
+    return `<div class="expense-row" style="align-items:flex-start">
+      <div class="expense-icon" style="background:${c.color||'#eee'}22;margin-top:2px">${c.icon||'📦'}</div>
+      <div class="expense-body">
+        <div class="expense-name" title="${e.notes||c.name}">${e.notes || c.name}</div>
+        <div class="expense-meta">${c.name} · ${fmt(e.amount)} · ${fmtDate(e.date)}</div>
+        <div style="display:flex;gap:6px;margin-top:8px">
+          <button class="btn-sm btn-restore" onclick="restore(${e.id})">Restore</button>
+          <button class="btn-sm btn-danger"  onclick="permDelete(${e.id})">Delete</button>
+        </div>
+      </div>
+      <div class="expense-amount" style="color:var(--gray)">−${fmt(e.amount)}</div>
+    </div>`;
+  }).join('');
+}
+function restore(id) {
+  const e = S.expenses.find(x => x.id === id);
+  if (e) e.del = false;
+  renderDeleted(); renderHome(); renderHistory(); renderBudgets(); updateSubtexts();
+}
+function permDelete(id) {
+  S.expenses = S.expenses.filter(x => x.id !== id);
+  renderDeleted(); updateSubtexts();
+}
+
+// ─── Onboarding ───────────────────────────────────────────────────
+let obMode = null;
+function selectMode(mode) {
+  obMode = mode;
+  ['salary','mixed','target'].forEach(m => document.getElementById('mode-'+m).classList.toggle('selected', m === mode));
+  setBtnEnabled('btn-mode-next', true);
+}
+function renderObFields() {
+  const titles = { salary:'Your monthly salary', mixed:'Your income', target:'Your savings goal' };
+  const subs   = { salary:'Enter your take-home pay after tax.', mixed:'Enter salary and freelance earnings.', target:'How much do you want to save each month?' };
+  document.getElementById('ob-entry-title').textContent = titles[obMode||'salary'];
+  document.getElementById('ob-entry-sub').textContent   = subs[obMode||'salary'];
+  const c = document.getElementById('ob-fields');
+  if (obMode === 'salary') {
+    c.innerHTML = `<div class="input-group"><div class="input-label">Monthly Salary</div><div class="input-wrap"><span class="input-prefix">₱</span><input type="number" id="ob-salary" placeholder="35,000" inputmode="decimal" value="35000"></div></div>
+      <div class="input-group"><div class="input-label">Expected Savings</div><div class="input-wrap"><span class="input-prefix">₱</span><input type="number" id="ob-expected" placeholder="7,000" inputmode="decimal" value="7000"></div></div>`;
+  } else if (obMode === 'mixed') {
+    c.innerHTML = `<div class="input-group"><div class="input-label">Monthly Salary</div><div class="input-wrap"><span class="input-prefix">₱</span><input type="number" id="ob-salary" inputmode="decimal"></div></div>
+      <div class="input-group"><div class="input-label">Freelance / Other</div><div class="input-wrap"><span class="input-prefix">₱</span><input type="number" id="ob-freelance" inputmode="decimal"></div></div>
+      <div class="input-group"><div class="input-label">Expected Savings</div><div class="input-wrap"><span class="input-prefix">₱</span><input type="number" id="ob-expected" inputmode="decimal"></div></div>`;
+  } else {
+    c.innerHTML = `<div class="input-group"><div class="input-label">Savings Target</div><div class="input-wrap"><span class="input-prefix">₱</span><input type="number" id="ob-target" inputmode="decimal"></div></div>`;
+  }
+}
+function completeOnboarding() {
+  const mode = obMode || 'salary';
+  S.user.mode = mode;
+  if (mode === 'salary') {
+    S.user.salary   = +document.getElementById('ob-salary')?.value || 35000;
+    S.user.expected = +document.getElementById('ob-expected')?.value || 7000;
+  } else if (mode === 'mixed') {
+    S.user.salary    = +document.getElementById('ob-salary')?.value    || 0;
+    S.user.freelance = +document.getElementById('ob-freelance')?.value || 0;
+    S.user.expected  = +document.getElementById('ob-expected')?.value  || 0;
+  } else {
+    S.user.target = +document.getElementById('ob-target')?.value || 0;
+  }
+  navigate('screen-app');
+  renderHome(); renderHistory(); renderBudgets(); updateSubtexts();
+}
+
+// ─── Settings: Income ─────────────────────────────────────────────
+let emVal = null;
+function initEditIncome() {
+  emVal = S.user.mode;
+  ['salary','mixed','target'].forEach(m => document.getElementById('edit-mode-'+m).classList.toggle('selected', m === emVal));
+  renderEditFields();
+}
+function editMode(m) {
+  emVal = m;
+  ['salary','mixed','target'].forEach(x => document.getElementById('edit-mode-'+x).classList.toggle('selected', x === m));
+  renderEditFields();
+}
+function renderEditFields() {
+  const c = document.getElementById('edit-income-fields');
+  if (emVal === 'salary') {
+    c.innerHTML = `<div class="input-group"><div class="input-label">Monthly Salary</div><div class="input-wrap"><span class="input-prefix">₱</span><input type="number" id="ei-salary" inputmode="decimal" value="${S.user.salary||''}"></div></div>
+      <div class="input-group"><div class="input-label">Expected Savings</div><div class="input-wrap"><span class="input-prefix">₱</span><input type="number" id="ei-expected" inputmode="decimal" value="${S.user.expected||''}"></div></div>`;
+  } else if (emVal === 'mixed') {
+    c.innerHTML = `<div class="input-group"><div class="input-label">Monthly Salary</div><div class="input-wrap"><span class="input-prefix">₱</span><input type="number" id="ei-salary" inputmode="decimal" value="${S.user.salary||''}"></div></div>
+      <div class="input-group"><div class="input-label">Freelance Income</div><div class="input-wrap"><span class="input-prefix">₱</span><input type="number" id="ei-freelance" inputmode="decimal" value="${S.user.freelance||''}"></div></div>
+      <div class="input-group"><div class="input-label">Expected Savings</div><div class="input-wrap"><span class="input-prefix">₱</span><input type="number" id="ei-expected" inputmode="decimal" value="${S.user.expected||''}"></div></div>`;
+  } else {
+    c.innerHTML = `<div class="input-group"><div class="input-label">Savings Target</div><div class="input-wrap"><span class="input-prefix">₱</span><input type="number" id="ei-target" inputmode="decimal" value="${S.user.target||''}"></div></div>`;
+  }
+}
+function saveIncome() {
+  S.user.mode = emVal;
+  if (emVal === 'salary') {
+    S.user.salary   = +document.getElementById('ei-salary')?.value    || 0;
+    S.user.expected = +document.getElementById('ei-expected')?.value  || 0;
+  } else if (emVal === 'mixed') {
+    S.user.salary    = +document.getElementById('ei-salary')?.value    || 0;
+    S.user.freelance = +document.getElementById('ei-freelance')?.value || 0;
+    S.user.expected  = +document.getElementById('ei-expected')?.value  || 0;
+  } else {
+    S.user.target = +document.getElementById('ei-target')?.value || 0;
+  }
+  renderHome(); updateSubtexts(); goBack();
+}
+
+// ─── Settings: Cycle ──────────────────────────────────────────────
+function renderCycle() {
+  document.getElementById('cycle-list').innerHTML = [1,5,10,15,20,25].map(d => {
+    const sfx = d===1?'st':d===2?'nd':d===3?'rd':'th';
+    const sel = d === S.user.cycleDay;
+    return `<div class="list-row" onclick="setCycleDay(${d})">
+      <div class="list-row-body"><div class="list-row-title">${d}${sfx} of each month</div></div>
+      <div style="color:var(--coral);font-size:18px;flex-shrink:0">${sel?'✓':''}</div>
+    </div>`;
+  }).join('') + `<div class="list-row">
+    <div class="list-row-body"><div class="list-row-title">Custom</div><div class="list-row-sub">Enter any day 1–28</div></div>
+    <input type="number" min="1" max="28" value="${S.user.cycleDay}" style="width:50px;text-align:center;background:var(--gray-light);border-radius:8px;padding:6px;font-size:15px;font-weight:600;color:var(--navy);font-family:var(--font)" onchange="setCycleDay(parseInt(this.value))">
+  </div>`;
+}
+function setCycleDay(d) {
+  S.user.cycleDay = Math.max(1, Math.min(28, d || 1));
+  renderCycle(); updateSubtexts();
+}
+
+// ─── Sheet drag-to-dismiss with velocity detection ───────────────
+// Apple Design: rubber-band + velocity handoff
+function rubberband(over) {
+  const dim = 300, k = 0.55;
+  return (over * dim * k) / (dim + k * Math.abs(over));
+}
+function setupDrag() {
+  const sheet = document.getElementById('add-sheet');
+  let startY = 0, curY = 0, startT = 0, dragging = false;
+
+  function onStart(e) {
+    if (e.target.closest('input,select,textarea')) return;
+    dragging = true; startT = Date.now();
+    startY = e.touches ? e.touches[0].clientY : e.clientY;
+    sheet.style.transition = 'none';
+  }
+  function onMove(e) {
+    if (!dragging) return;
+    curY = e.touches ? e.touches[0].clientY : e.clientY;
+    const dy = curY - startY;
+    if (dy <= 0) {
+      sheet.style.transform = `translateY(${rubberband(dy)}px)`;
+    } else {
+      sheet.style.transform = `translateY(${dy}px)`;
+    }
+  }
+  function onEnd() {
+    if (!dragging) return;
+    dragging = false;
+    sheet.style.transition = '';
+    const dy  = curY - startY;
+    const vel = dy / (Date.now() - startT); // px/ms
+    // Apple: dismiss on velocity OR distance
+    if (dy > 100 || vel > 0.4) {
+      closeSheet();
+    } else {
+      // Spring back
+      sheet.style.transform = '';
+    }
+  }
+  sheet.addEventListener('touchstart', onStart, { passive: true });
+  sheet.addEventListener('touchmove',  onMove,  { passive: true });
+  sheet.addEventListener('touchend',   onEnd);
+  sheet.addEventListener('mousedown',  onStart);
+  document.addEventListener('mousemove', onMove);
+  document.addEventListener('mouseup',   onEnd);
+}
+
+// ─── Clock ────────────────────────────────────────────────────────
+function tick() {
+  const now = new Date();
+  const t = now.getHours().toString().padStart(2,'0') + ':' + now.getMinutes().toString().padStart(2,'0');
+  document.querySelectorAll('.status-bar .time').forEach(el => el.textContent = t);
+}
+tick(); setInterval(tick, 10000);
+</script>
+</body>
+</html>
