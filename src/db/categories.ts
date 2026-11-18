@@ -6,7 +6,7 @@ export interface CategoryRow {
   icon: string;
   color: string;
   monthly_budget: number;
-  carryover_enabled: number;
+  carryover_enabled: number; // shortcut: SQLite stores 0/1; callers bridge to boolean manually, upgrade to a typed wrapper when categories gain more boolean flags
   deleted_at: string | null;
   created_at: string;
   updated_at: string;

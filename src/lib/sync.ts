@@ -12,13 +12,9 @@ export async function drainSyncQueue(): Promise<void> {
 
   for (const item of pending) {
     const payload = { ...JSON.parse(item.payload), user_id: userId };
-    let error: unknown;
-
-    if (item.operation === 'create' || item.operation === 'update') {
-      ({ error } = await supabase.from(item.table_name).upsert(payload));
-    } else {
-      ({ error } = await supabase.from(item.table_name).delete().eq('id', item.row_id));
-    }
+    const { error } = item.operation === 'delete'
+      ? await supabase.from(item.table_name).delete().eq('id', item.row_id)
+      : await supabase.from(item.table_name).upsert(payload);
 
     if (!error) markReplicated(db, item.id);
   }

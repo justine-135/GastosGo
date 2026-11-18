@@ -1,5 +1,6 @@
 import { DbDriver } from './driver';
 import { generateId } from '../utils/generateId';
+import { enqueue } from './syncQueue';
 
 export interface ExpenseRow {
   id: string;
@@ -30,6 +31,15 @@ export function insertExpense(db: DbDriver, input: InsertExpenseInput): string {
      VALUES (?, ?, ?, ?, ?, ?, ?)`,
     [expenseId, input.amount, input.categoryId ?? null, input.paymentMethod, input.date, input.merchant ?? null, input.notes ?? null],
   );
+  enqueue(db, 'expenses', 'create', expenseId, {
+    id: expenseId,
+    amount: input.amount,
+    category_id: input.categoryId ?? null,
+    payment_method: input.paymentMethod,
+    date: input.date,
+    merchant: input.merchant ?? null,
+    notes: input.notes ?? null,
+  });
   return expenseId;
 }
 
@@ -44,6 +54,7 @@ export function softDeleteExpense(db: DbDriver, id: string): void {
     `UPDATE expenses SET deleted_at = datetime('now'), updated_at = datetime('now') WHERE id = ?`,
     [id],
   );
+  enqueue(db, 'expenses', 'delete', id, { id });
 }
 
 export function listDeletedExpenses(db: DbDriver): ExpenseRow[] {
@@ -57,4 +68,5 @@ export function restoreExpense(db: DbDriver, id: string): void {
     `UPDATE expenses SET deleted_at = NULL, updated_at = datetime('now') WHERE id = ?`,
     [id],
   );
+  enqueue(db, 'expenses', 'update', id, { id, deleted_at: null });
 }
