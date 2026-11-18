@@ -4,8 +4,8 @@
 
 **Blocked by:** 01
 
-**Status:** ready-for-agent
+**Status:** done
 
-- [ ] History tab lists Expenses grouped/sorted by date, most recent first (`date` string compare)
-- [ ] Relative dates ("Today" / "Yesterday") via a `fmtDate` util; peso formatting
-- [ ] Reads from SQLite; reflects newly logged expenses
+- [x] History tab lists Expenses grouped/sorted by date, most recent first (`date` string compare)
+- [x] Relative dates ("Today" / "Yesterday") via a `fmtDate` util; peso formatting
+- [x] Reads from SQLite; reflects newly logged expenses
