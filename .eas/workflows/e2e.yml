@@ -1,0 +1,20 @@
+on:
+  pull_request:
+    branches:
+      - "*"
+
+jobs:
+  build:
+    type: build
+    params:
+      platform: android
+      profile: e2e-test
+    # iOS builds require a macOS runner; add platform: ios here when running on EAS macOS runners.
+
+  test:
+    type: maestro
+    needs: build
+    params:
+      flow_path:
+        - .maestro/onboarding.yaml
+        - .maestro/add-expense.yaml
