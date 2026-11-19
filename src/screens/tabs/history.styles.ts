@@ -1,54 +1,152 @@
-import { StyleSheet } from 'react-native';
+import { Platform, StyleSheet } from 'react-native';
+
+const colors = {
+  bg: '#F7F7F9',
+  card: '#FFFFFF',
+  navy: '#111827',
+  gray: '#6B7280',
+  grayLight: '#F3F4F6',
+} as const;
+
+const shadowSm = Platform.OS === 'ios'
+  ? { shadowColor: '#000', shadowOpacity: 0.07, shadowRadius: 10, shadowOffset: { width: 0, height: 2 } }
+  : { elevation: 2 };
 
 export const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F8FAFC',
+    backgroundColor: colors.bg,
   },
-  sectionHeader: {
+  largeHeader: {
     paddingHorizontal: 20,
     paddingTop: 20,
-    paddingBottom: 6,
-    backgroundColor: '#F8FAFC',
+    paddingBottom: 12,
+    height: 96,
+    justifyContent: 'flex-end',
+  },
+  largeTitle: {
+    fontSize: 28,
+    fontWeight: '800',
+    fontFamily: 'Inter_800ExtraBold',
+    color: colors.navy,
+    letterSpacing: -1,
+  },
+  monthLabel: {
+    fontSize: 13,
+    fontFamily: 'Inter_400Regular',
+    color: colors.gray,
+    marginTop: 2,
+  },
+  sectionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingTop: 20,
+    paddingBottom: 8,
+    paddingHorizontal: 20,
+    backgroundColor: colors.bg,
   },
   sectionHeaderText: {
     fontSize: 13,
     fontWeight: '600',
-    color: '#64748B',
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
+    fontFamily: 'Inter_600SemiBold',
+    color: colors.gray,
+    letterSpacing: 0.52,
   },
-  empty: {
-    marginTop: 64,
-    textAlign: 'center',
-    color: '#64748B',
-    fontSize: 15,
+  dayTotalPill: {
+    backgroundColor: colors.grayLight,
+    borderRadius: 100,
+    paddingVertical: 4,
+    paddingHorizontal: 10,
+  },
+  dayTotalText: {
+    fontSize: 13,
+    fontWeight: '600',
+    fontFamily: 'Inter_600SemiBold',
+    color: colors.navy,
+    fontVariant: ['tabular-nums'],
+  },
+  cardWrapper: {
+    backgroundColor: colors.card,
+    marginHorizontal: 20,
+    marginBottom: 0,
+    ...shadowSm,
+  },
+  cardWrapperFirst: {
+    borderTopLeftRadius: 16,
+    borderTopRightRadius: 16,
   },
   row: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 20,
-    paddingVertical: 14,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: '#E2E8F0',
+    paddingVertical: 12,
+    gap: 14,
+  },
+  rowFirst: {
+    borderTopLeftRadius: 16,
+    borderTopRightRadius: 16,
+  },
+  rowLast: {
+    borderBottomLeftRadius: 16,
+    borderBottomRightRadius: 16,
+    marginBottom: 8,
+  },
+  rowPressed: {
+    backgroundColor: colors.grayLight,
+  },
+  categoryIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  categoryEmoji: {
+    fontSize: 18,
   },
   rowMain: {
     flex: 1,
   },
   merchant: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#0F172A',
+    fontSize: 15,
+    fontWeight: '500',
+    fontFamily: 'Inter_500Medium',
+    color: colors.navy,
   },
   meta: {
-    fontSize: 13,
-    color: '#64748B',
+    fontSize: 12,
+    fontFamily: 'Inter_400Regular',
+    color: colors.gray,
     marginTop: 2,
   },
   amount: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: '#0F172A',
+    fontSize: 15,
+    fontWeight: '600',
+    fontFamily: 'Inter_600SemiBold',
+    color: colors.navy,
     fontVariant: ['tabular-nums'],
+  },
+  emptyContainer: {
+    padding: 60,
+    paddingHorizontal: 40,
+    alignItems: 'center',
+  },
+  emptyIcon: {
+    fontSize: 48,
+    marginBottom: 12,
+  },
+  emptyTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    fontFamily: 'Inter_700Bold',
+    color: colors.navy,
+    marginBottom: 4,
+  },
+  emptySub: {
+    fontSize: 14,
+    fontFamily: 'Inter_400Regular',
+    color: colors.gray,
+    lineHeight: 22,
   },
 });
