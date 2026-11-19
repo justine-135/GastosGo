@@ -1,5 +1,5 @@
-import { useCallback, useState } from 'react';
-import { Alert, ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import { useCallback, useRef, useEffect, useState } from 'react';
+import { Alert, Animated, ScrollView, Text, TouchableOpacity, View, ViewStyle } from 'react-native';
 import { useFocusEffect, router } from 'expo-router';
 import { getDb } from '../../src/db';
 import { listCategories, CategoryRow } from '../../src/db/categories';
@@ -9,6 +9,22 @@ import { spendingCap, budgetedSpent, CategoryBudgetStatus } from '../../src/util
 import { fmtPeso } from '../../src/utils/fmtPeso';
 import { colors } from '../../src/theme';
 import { styles } from '../../src/screens/tabs/budgets.styles';
+
+function ProgressBar({ pct, color, trackStyle, fillStyle }: { pct: number; color: string; trackStyle: ViewStyle; fillStyle: ViewStyle }) {
+  const widthAnim = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    Animated.timing(widthAnim, { toValue: pct * 100, duration: 500, useNativeDriver: false }).start();
+  }, [pct, widthAnim]);
+
+  return (
+    <View style={trackStyle}>
+      <Animated.View
+        style={[fillStyle, { width: widthAnim.interpolate({ inputRange: [0, 100], outputRange: ['0%', '100%'] }), backgroundColor: color }]}
+      />
+    </View>
+  );
+}
 
 function progressColor(ratio: number): string {
   if (ratio > 0.85) return colors.red;
@@ -86,11 +102,7 @@ export default function BudgetsScreen() {
             </Text>
           </View>
         </View>
-        <View style={styles.summaryProgressTrack}>
-          <View
-            style={[styles.summaryProgressFill, { width: `${summaryRatio * 100}%`, backgroundColor: progressColor(summaryRatio) }]}
-          />
-        </View>
+        <ProgressBar pct={summaryRatio} color={progressColor(summaryRatio)} trackStyle={styles.summaryProgressTrack} fillStyle={styles.summaryProgressFill} />
       </View>
 
       <TouchableOpacity style={styles.cycleRow} onPress={handleCycleDayPress}>
@@ -128,11 +140,7 @@ export default function BudgetsScreen() {
                       {hasLimit && <Text style={styles.usedPercent}>{usedPct}% used</Text>}
                     </View>
                     {hasLimit && (
-                      <View style={styles.rowProgressTrack}>
-                        <View
-                          style={[styles.rowProgressFill, { width: `${fillRatio * 100}%`, backgroundColor: progressColor(fillRatio) }]}
-                        />
-                      </View>
+                      <ProgressBar pct={fillRatio} color={progressColor(fillRatio)} trackStyle={styles.rowProgressTrack} fillStyle={styles.rowProgressFill} />
                     )}
                   </View>
                   <View style={styles.rowRight}>

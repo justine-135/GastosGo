@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { Platform, Pressable, Text, TextInput, View } from 'react-native';
+import { Animated, Platform, Pressable, Text, TextInput, View } from 'react-native';
 import {
   BottomSheetModal,
   BottomSheetModalProvider,
@@ -22,6 +22,7 @@ const PAYMENT_METHODS = ['Cash', 'GCash', 'Card', 'Others'];
 export default function AddExpenseScreen() {
   const router = useRouter();
   const sheetRef = useRef<BottomSheetModal>(null);
+  const saveScale = useRef(new Animated.Value(1)).current;
 
   useEffect(() => {
     sheetRef.current?.present();
@@ -161,10 +162,13 @@ export default function AddExpenseScreen() {
               </View>
             </View>
 
+            <Animated.View style={{ transform: [{ scale: saveScale }] }}>
             <Pressable
               style={[styles.saveButton, !canSave && styles.saveButtonDisabled]}
               disabled={!canSave}
               onPress={save}
+              onPressIn={() => Animated.timing(saveScale, { toValue: 0.97, duration: 120, useNativeDriver: true }).start()}
+              onPressOut={() => Animated.timing(saveScale, { toValue: 1, duration: 120, useNativeDriver: true }).start()}
             >
               <LinearGradient
                 colors={['#7389F9', '#4F6EF7']}
@@ -175,6 +179,7 @@ export default function AddExpenseScreen() {
                 <Text style={styles.saveText}>Save</Text>
               </LinearGradient>
             </Pressable>
+            </Animated.View>
           </View>
         </BottomSheetView>
       </BottomSheetModal>

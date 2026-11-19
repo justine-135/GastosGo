@@ -1,5 +1,5 @@
 import { useCallback, useRef, useEffect, useState } from 'react';
-import { Alert, Animated, ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import { Alert, Animated, ScrollView, Text, TouchableOpacity, View, ViewStyle } from 'react-native';
 import { useFocusEffect } from 'expo-router';
 import { getDb } from '../../src/db';
 import { listExpenses, softDeleteExpense, ExpenseRow } from '../../src/db/expenses';
@@ -30,6 +30,22 @@ function deriveIncome(settings: AppSettings): number {
   if (settings.incomeMode === 'salary') return settings.monthlySalary;
   if (settings.incomeMode === 'mixed') return settings.monthlySalary + settings.freelanceIncome;
   return settings.savingsTarget;
+}
+
+function ProgressBar({ pct, color, trackStyle, fillStyle }: { pct: number; color: string; trackStyle: ViewStyle; fillStyle: ViewStyle }) {
+  const widthAnim = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    Animated.timing(widthAnim, { toValue: pct * 100, duration: 500, useNativeDriver: false }).start();
+  }, [pct, widthAnim]);
+
+  return (
+    <View style={trackStyle}>
+      <Animated.View
+        style={[fillStyle, { width: widthAnim.interpolate({ inputRange: [0, 100], outputRange: ['0%', '100%'] }), backgroundColor: color }]}
+      />
+    </View>
+  );
 }
 
 function useEnterAnimation(delay: number) {
@@ -185,14 +201,7 @@ export default function HomeScreen() {
             </View>
           </View>
 
-          <View style={styles.progressTrack}>
-            <View
-              style={[
-                styles.progressFill,
-                { width: `${Math.round(capPct * 100)}%` as unknown as number, backgroundColor: barFillColor },
-              ]}
-            />
-          </View>
+          <ProgressBar pct={capPct} color={barFillColor} trackStyle={styles.progressTrack} fillStyle={styles.progressFill} />
 
           {budgetedCategories.map((category, index) => {
             const statusEntry = categoryStatuses.find(s => s.categoryId === category.id);
@@ -204,14 +213,7 @@ export default function HomeScreen() {
               <View key={category.id} style={[styles.catRow, index === 0 && styles.catRowFirst]}>
                 <Text style={styles.catEmoji}>{category.icon}</Text>
                 <Text style={styles.catName}>{category.name}</Text>
-                <View style={styles.catBarTrack}>
-                  <View
-                    style={[
-                      styles.catBarFill,
-                      { width: `${Math.round(catPct * 100)}%` as unknown as number, backgroundColor: catFill },
-                    ]}
-                  />
-                </View>
+                <ProgressBar pct={catPct} color={catFill} trackStyle={styles.catBarTrack} fillStyle={styles.catBarFill} />
                 <Text style={[styles.catRemaining, remaining < 0 && { color: colors.red }]}>
                   {fmtPeso(remaining)}
                 </Text>
