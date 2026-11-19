@@ -100,6 +100,7 @@ export default function RootLayout() {
           name="add-expense"
           options={{ presentation: 'modal', headerShown: false }}
         />
+        <Stack.Screen name="category-picker" options={{ headerShown: false }} />
       </Stack>
       {cyclePromptData && (
         <NewCyclePrompt
