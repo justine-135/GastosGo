@@ -23,7 +23,7 @@ In Target Mode, Expected Savings is `0` — the Savings Target is already baked 
 _Avoid_: savings difference, gap amount
 
 **Expected Savings**:
-The monthly savings figure the user commits to in Salary and Mixed modes — the baseline the Savings Gap is measured against. A first-class user input, entered during onboarding. Distinct from Savings Target, which is only used in Target Mode; Expected Savings is `0` in Target Mode.
+The monthly savings figure the user commits to in Salary and Mixed modes — the baseline the Savings Gap is measured against. A first-class user input, entered during onboarding. Distinct from Savings Target, which is only used in Target Mode; Expected Savings is `0` in Target Mode. The value in effect at the start of a Budget Cycle is used for that entire cycle; changes take effect on the next cycle.
 _Avoid_: savings goal, target savings (those are Savings Target)
 
 **Savings Target**:
@@ -31,11 +31,15 @@ The savings goal set in Target Mode, where the user logs no income. Used as the 
 _Avoid_: expected savings, savings goal
 
 **Budget Cycle**:
-The recurring period (default: calendar month) against which budgets and the savings gap are measured. Starts on a user-configured day of month; defaults to the 1st.
+The recurring period (default: calendar month) against which budgets and the savings gap are measured. Starts on a user-configured day of month; defaults to the 1st. Each cycle produces a Cycle Snapshot when it begins.
 _Avoid_: month, billing period
 
+**Cycle Snapshot**:
+An immutable record created on the first app open of each new Budget Cycle, after the user reviews (and optionally updates) their income figures via a prompt. Captures the confirmed income figures (salary, freelance) and Expected Savings for that cycle. Used to correctly calculate the Savings Gap for past cycles.
+_Avoid_: cycle record, income history, settings snapshot
+
 **Income Mode**:
-One of three user-selected configurations that determines how the savings gap is calculated: Salary, Mixed, or Target.
+One of three user-selected configurations that determines how the savings gap is calculated: Salary, Mixed, or Target. Income figures (salary, freelance) are stored per Budget Cycle — the user may update them between cycles. The figure in effect at cycle start is used for that entire cycle; past cycle income is preserved as recorded.
 _Avoid_: income type, savings mode
 
 ### Income modes
@@ -53,11 +57,15 @@ _Avoid_: goal mode, no-income mode
 ### Categories and budgets
 
 **Category**:
-A user-defined label that groups expenses (e.g. Food, Transport). May have an optional monthly spending limit. The 7 default categories are seeded on first launch.
+A label that groups expenses (e.g. Food, Transport). May have an optional Category Limit and Budget Carryover setting. 7 default categories are seeded on first launch; they are fully editable (name, limit, carryover) and deletable — "default" only means seeded, not locked.
 _Avoid_: tag, label, group
 
+**Category Limit**:
+The optional monthly spending ceiling set on a single Category (e.g. ₱5,000 for Food). Only categories with a Category Limit set contribute to the Spending Cap.
+_Avoid_: monthly limit, budget limit
+
 **Spending Cap**:
-The sum of all budgeted Category limits for the current Budget Cycle. Only categories with a limit set contribute. Used on the Home screen to show total remaining spendable amount (`Spending Cap − expenses in budgeted categories`).
+The sum of all Category Limits for the current Budget Cycle. Only categories with a Category Limit set contribute. Used on the Home screen to show total remaining spendable amount (`Spending Cap − expenses in budgeted categories`).
 _Avoid_: total budget, monthly cap
 
 **Budget Carryover**:
@@ -81,7 +89,7 @@ _Avoid_: automatic, silent log
 ### Payments
 
 **Payment Method**:
-A tag on an expense indicating how it was paid (Cash, GCash, Card, Others, or a user-defined custom value). Not a balance-tracking account.
+A tag on an expense indicating how it was paid. MVP options: Cash, GCash, Card, Others (fixed set, shown as a segmented control). Custom payment method values are out of scope for MVP.
 _Avoid_: wallet, account, source
 
 ### Security

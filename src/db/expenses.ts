@@ -43,7 +43,13 @@ export function insertExpense(db: DbDriver, input: InsertExpenseInput): string {
   return expenseId;
 }
 
-export function listExpenses(db: DbDriver): ExpenseRow[] {
+export function listExpenses(db: DbDriver, since?: string): ExpenseRow[] {
+  if (since) {
+    return db.query<ExpenseRow>(
+      `SELECT * FROM expenses WHERE deleted_at IS NULL AND date >= ? ORDER BY date DESC, created_at DESC`,
+      [since],
+    );
+  }
   return db.query<ExpenseRow>(
     `SELECT * FROM expenses WHERE deleted_at IS NULL ORDER BY date DESC, created_at DESC`,
   );

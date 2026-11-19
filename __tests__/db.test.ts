@@ -5,6 +5,7 @@ import { runMigrations } from '../src/db/migrations';
 import { insertExpense, listExpenses, softDeleteExpense, listDeletedExpenses, restoreExpense } from '../src/db/expenses';
 import { seedDefaultCategories, listCategories } from '../src/db/categories';
 import { isFirstLaunch, markLaunched } from '../src/db/firstLaunch';
+import { insertCycleSnapshot, getLatestCycleSnapshot } from '../src/db/cycleSnapshots';
 
 describe('SQLite query layer', () => {
   let driver: DbDriver;
@@ -134,6 +135,71 @@ describe('SQLite query layer', () => {
       restoreExpense(driver, expenseId);
       expect(listExpenses(driver)).toHaveLength(1);
       expect(listDeletedExpenses(driver)).toHaveLength(0);
+    });
+  });
+
+  describe('insertCycleSnapshot / getLatestCycleSnapshot', () => {
+    it('inserted snapshot is returned by getLatestCycleSnapshot', () => {
+      insertCycleSnapshot(driver, {
+        cycleStartDate: '2024-01-01',
+        incomeMode: 'salary',
+        monthlySalary: 50000,
+        freelanceIncome: 0,
+        expectedSavings: 10000,
+        savingsTarget: 0,
+      });
+      const snapshot = getLatestCycleSnapshot(driver);
+      expect(snapshot).toBeDefined();
+      expect(snapshot!.cycle_start_date).toBe('2024-01-01');
+      expect(snapshot!.income_mode).toBe('salary');
+      expect(snapshot!.monthly_salary).toBe(50000);
+    });
+
+    it('returns undefined when no snapshot exists', () => {
+      expect(getLatestCycleSnapshot(driver)).toBeUndefined();
+    });
+
+    it('returns the most recent snapshot when multiple exist', () => {
+      insertCycleSnapshot(driver, { cycleStartDate: '2024-01-01', incomeMode: 'salary', monthlySalary: 40000, freelanceIncome: 0, expectedSavings: 8000, savingsTarget: 0 });
+      insertCycleSnapshot(driver, { cycleStartDate: '2024-02-01', incomeMode: 'salary', monthlySalary: 45000, freelanceIncome: 0, expectedSavings: 9000, savingsTarget: 0 });
+      const snapshot = getLatestCycleSnapshot(driver);
+      expect(snapshot!.cycle_start_date).toBe('2024-02-01');
+    });
+
+    it('rejects duplicate cycle_start_date', () => {
+      insertCycleSnapshot(driver, { cycleStartDate: '2024-01-01', incomeMode: 'salary', monthlySalary: 50000, freelanceIncome: 0, expectedSavings: 10000, savingsTarget: 0 });
+      expect(() =>
+        insertCycleSnapshot(driver, { cycleStartDate: '2024-01-01', incomeMode: 'salary', monthlySalary: 60000, freelanceIncome: 0, expectedSavings: 10000, savingsTarget: 0 }),
+      ).toThrow();
+    });
+  });
+
+  describe('listExpenses with since filter', () => {
+    let categoryId: string;
+
+    beforeEach(() => {
+      seedDefaultCategories(driver);
+      categoryId = listCategories(driver)[0].id as string;
+    });
+
+    it('excludes expenses before since date', () => {
+      insertExpense(driver, { amount: 100, categoryId, paymentMethod: 'Cash', date: '2024-01-10' });
+      insertExpense(driver, { amount: 200, categoryId, paymentMethod: 'Cash', date: '2024-01-20' });
+      const expenses = listExpenses(driver, '2024-01-15');
+      expect(expenses).toHaveLength(1);
+      expect(expenses[0].date).toBe('2024-01-20');
+    });
+
+    it('includes expenses on the since date', () => {
+      insertExpense(driver, { amount: 150, categoryId, paymentMethod: 'Cash', date: '2024-01-15' });
+      const expenses = listExpenses(driver, '2024-01-15');
+      expect(expenses).toHaveLength(1);
+    });
+
+    it('returns all expenses when since is not provided', () => {
+      insertExpense(driver, { amount: 100, categoryId, paymentMethod: 'Cash', date: '2024-01-10' });
+      insertExpense(driver, { amount: 200, categoryId, paymentMethod: 'Cash', date: '2024-01-20' });
+      expect(listExpenses(driver)).toHaveLength(2);
     });
   });
 

@@ -44,6 +44,17 @@ CREATE TABLE IF NOT EXISTS sync_queue (
   payload    TEXT NOT NULL,
   created_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
+
+CREATE TABLE IF NOT EXISTS cycle_snapshots (
+  id               TEXT PRIMARY KEY,
+  cycle_start_date TEXT NOT NULL UNIQUE,
+  income_mode      TEXT NOT NULL,
+  monthly_salary   REAL NOT NULL DEFAULT 0,
+  freelance_income REAL NOT NULL DEFAULT 0,
+  expected_savings REAL NOT NULL DEFAULT 0,
+  savings_target   REAL NOT NULL DEFAULT 0,
+  created_at       TEXT NOT NULL DEFAULT (datetime('now'))
+);
 `;
 
 export function runMigrations(db: DbDriver): void {

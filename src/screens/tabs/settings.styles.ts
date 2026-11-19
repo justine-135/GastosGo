@@ -1,68 +1,110 @@
 import { StyleSheet } from 'react-native';
+import { colors } from '../../theme/colors';
+import { shadows } from '../../theme/shadows';
+import { spacing } from '../../theme/spacing';
 
 export const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F8FAFC',
+    backgroundColor: colors.bg,
   },
-  sectionHeader: {
-    paddingHorizontal: 20,
-    paddingTop: 24,
-    paddingBottom: 8,
-    fontSize: 13,
+  scrollContent: {
+    paddingTop: spacing.navBarHeight + 8,
+    paddingBottom: 40,
+  },
+  pageTitle: {
+    fontSize: 28,
+    fontWeight: '800',
+    fontFamily: 'Inter_800ExtraBold',
+    color: colors.navy,
+    paddingHorizontal: spacing.screenHPad,
+    paddingTop: 8,
+    paddingBottom: 20,
+  },
+  sectionLabel: {
+    fontSize: 12,
     fontWeight: '600',
-    color: '#64748B',
+    fontFamily: 'Inter_600SemiBold',
+    color: colors.gray,
     textTransform: 'uppercase',
-    letterSpacing: 0.5,
+    letterSpacing: 0.6,
+    paddingHorizontal: spacing.screenHPad,
+    marginBottom: 8,
   },
-  empty: {
-    paddingHorizontal: 20,
-    paddingVertical: 16,
-    color: '#94A3B8',
-    fontSize: 15,
+  card: {
+    backgroundColor: colors.card,
+    borderRadius: spacing.radiusCard,
+    marginHorizontal: spacing.screenHPad,
+    marginBottom: 16,
+    overflow: 'hidden',
+    ...shadows.sm,
   },
   row: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 20,
     paddingVertical: 14,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: '#E2E8F0',
-    backgroundColor: '#FFFFFF',
+    paddingHorizontal: spacing.screenHPad,
+    gap: 14,
   },
-  icon: {
-    fontSize: 24,
-    marginRight: 12,
+  rowBorder: {
+    borderTopWidth: 0.5,
+    borderTopColor: colors.sep,
   },
-  rowMain: {
+  iconSlot: {
+    width: 36,
+    height: 36,
+    borderRadius: spacing.radiusIconSm,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  rowBody: {
     flex: 1,
   },
-  category: {
+  rowTitle: {
     fontSize: 16,
-    fontWeight: '600',
-    color: '#0F172A',
+    fontWeight: '500',
+    fontFamily: 'Inter_500Medium',
+    color: colors.navy,
   },
-  meta: {
+  rowSubtitle: {
     fontSize: 13,
-    color: '#64748B',
-    marginTop: 2,
+    fontFamily: 'Inter_400Regular',
+    color: colors.gray,
+    marginTop: 1,
   },
-  amount: {
-    fontSize: 16,
+  soonBadge: {
+    borderRadius: spacing.radiusPill,
+    paddingVertical: 3,
+    paddingHorizontal: 8,
+    backgroundColor: colors.goldBg,
+  },
+  soonBadgeText: {
+    fontSize: 11,
     fontWeight: '700',
-    color: '#94A3B8',
-    fontVariant: ['tabular-nums'],
-    marginRight: 12,
+    fontFamily: 'Inter_700Bold',
+    color: colors.gold,
   },
-  restoreButton: {
-    paddingHorizontal: 14,
-    paddingVertical: 7,
-    backgroundColor: '#0EA5E9',
-    borderRadius: 8,
+  footer: {
+    alignItems: 'center',
+    paddingVertical: 32,
+    gap: 8,
   },
-  restoreLabel: {
-    color: '#FFFFFF',
-    fontSize: 13,
+  footerLogo: {
+    width: 48,
+    height: 48,
+    borderRadius: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  footerAppName: {
+    fontSize: 17,
     fontWeight: '600',
+    fontFamily: 'Inter_600SemiBold',
+    color: colors.navy,
+  },
+  footerVersion: {
+    fontSize: 13,
+    fontFamily: 'Inter_400Regular',
+    color: colors.gray,
   },
 });

@@ -5,6 +5,12 @@
       "Bash(expo *)",
       "Bash(git add .)",
       "Bash(git commit -m *)",
+      "Bash(git commit --allow-empty -m *)",
+      "Bash(git cherry-pick *)",
+      "Bash(git merge *)",
+      "Bash(git checkout *)",
+      "Bash(git branch *)",
+      "Bash(git log *)",
       "Bash(git status)",
       "Bash(git diff *)",
       "PowerShell(& \"C:\\Users\\Win 10\\.maestro\\maestro\\bin\\maestro.bat\" *)"
