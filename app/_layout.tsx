@@ -1,6 +1,14 @@
 import { useEffect, useState } from 'react';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { Stack, router } from 'expo-router';
+import { useFonts } from 'expo-font';
+import {
+  Inter_400Regular,
+  Inter_500Medium,
+  Inter_600SemiBold,
+  Inter_700Bold,
+  Inter_800ExtraBold,
+} from '@expo-google-fonts/inter';
 import { AppState } from 'react-native';
 import { getDb } from '../src/db';
 import { hasCompletedOnboarding, loadSettings } from '../src/db/settings';
@@ -24,6 +32,13 @@ interface CyclePromptData {
 }
 
 export default function RootLayout() {
+  const [fontsLoaded] = useFonts({
+    Inter_400Regular,
+    Inter_500Medium,
+    Inter_600SemiBold,
+    Inter_700Bold,
+    Inter_800ExtraBold,
+  });
   const [cyclePromptData, setCyclePromptData] = useState<CyclePromptData | null>(null);
 
   useEffect(() => {
@@ -73,6 +88,8 @@ export default function RootLayout() {
     });
     return () => sub.remove();
   }, []);
+
+  if (!fontsLoaded) return null;
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
