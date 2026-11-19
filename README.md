@@ -10,11 +10,11 @@ Personal finance tracker for working Filipinos and students. Instead of listing 
 
 | Home | Add Expense |
 |------|-------------|
-| ![Home screen](assets/screenshots/home.png) | ![Add Expense sheet](assets/screenshots/add-expense.png) |
+| ![Home screen](assets/screenshots/home.svg) | ![Add Expense sheet](assets/screenshots/add-expense.svg) |
 
 | Budgets | History |
 |---------|---------|
-| ![Budgets screen](assets/screenshots/budgets.png) | ![History screen](assets/screenshots/history.png) |
+| ![Budgets screen](assets/screenshots/budgets.svg) | ![History screen](assets/screenshots/history.svg) |
 
 ---
 
