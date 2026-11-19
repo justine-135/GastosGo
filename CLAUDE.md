@@ -1,3 +1,16 @@
+## Code style
+
+- No inline comments mixed with code. If a section needs explanation, create a file under `docs/` explaining it — keep code comment-free.
+- Use descriptive variable names. Avoid vague names like `data`, `item`, `val`, `temp`, `x`, or single-letter identifiers outside loop indices.
+
+## Dependency checks
+
+Before diagnosing missing-module errors, see `docs/agents/dependency-checks.md`.
+
+## Git hooks
+
+Run `sh scripts/install-hooks.sh` after a fresh clone to wire the pre-commit hook.
+
 ## Agent skills
 
 ### Issue tracker

@@ -1,0 +1,19 @@
+{
+  "extends": "expo/tsconfig.base",
+  "compilerOptions": {
+    "strict": true,
+    "types": [
+      "jest",
+      "node"
+    ]
+  },
+  "include": [
+    "app",
+    "src",
+    "__tests__"
+  ],
+  "exclude": [
+    "node_modules",
+    "supabase"
+  ]
+}
