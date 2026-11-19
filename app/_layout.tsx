@@ -101,6 +101,7 @@ export default function RootLayout() {
           options={{ presentation: 'modal', headerShown: false }}
         />
         <Stack.Screen name="category-picker" options={{ headerShown: false }} />
+        <Stack.Screen name="budget-edit" options={{ headerShown: false }} />
       </Stack>
       {cyclePromptData && (
         <NewCyclePrompt

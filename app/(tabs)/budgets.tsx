@@ -1,18 +1,23 @@
 import { useCallback, useState } from 'react';
-import { Alert, FlatList, Modal, Switch, Text, TextInput, TouchableOpacity, View } from 'react-native';
-import { useFocusEffect } from 'expo-router';
+import { Alert, ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import { useFocusEffect, router } from 'expo-router';
 import { getDb } from '../../src/db';
-import { listCategories, updateCategoryBudget, CategoryRow } from '../../src/db/categories';
+import { listCategories, CategoryRow } from '../../src/db/categories';
 import { listExpenses } from '../../src/db/expenses';
 import { loadSettings, saveSettings } from '../../src/db/settings';
 import { spendingCap, budgetedSpent, CategoryBudgetStatus } from '../../src/utils/computeSpendingCap';
 import { fmtPeso } from '../../src/utils/fmtPeso';
+import { colors } from '../../src/theme';
 import { styles } from '../../src/screens/tabs/budgets.styles';
 
-interface EditingCategory {
-  category: CategoryRow;
-  budgetInput: string;
-  carryoverEnabled: boolean;
+function progressColor(ratio: number): string {
+  if (ratio > 0.85) return colors.red;
+  if (ratio > 0.6) return colors.amber;
+  return colors.green;
+}
+
+function currentMonthLabel(): string {
+  return new Date().toLocaleDateString('en-PH', { month: 'long', year: 'numeric' });
 }
 
 export default function BudgetsScreen() {
@@ -20,7 +25,6 @@ export default function BudgetsScreen() {
   const [statusById, setStatusById] = useState<Record<string, CategoryBudgetStatus>>({});
   const [cap, setCap] = useState(0);
   const [cycleStartDay, setCycleStartDay] = useState(1);
-  const [editing, setEditing] = useState<EditingCategory | null>(null);
 
   const reload = useCallback(() => {
     const db = getDb();
@@ -60,31 +64,33 @@ export default function BudgetsScreen() {
     );
   }, [cycleStartDay, reload]);
 
-  const handleCategoryPress = useCallback((category: CategoryRow) => {
-    setEditing({
-      category,
-      budgetInput: category.monthly_budget > 0 ? String(category.monthly_budget) : '',
-      carryoverEnabled: category.carryover_enabled === 1,
-    });
-  }, []);
-
-  const handleSave = useCallback(() => {
-    if (!editing) return;
-    const parsedBudget = parseFloat(editing.budgetInput);
-    const monthlyBudget = isNaN(parsedBudget) || parsedBudget < 0 ? 0 : parsedBudget;
-    updateCategoryBudget(getDb(), editing.category.id, monthlyBudget, editing.carryoverEnabled);
-    setEditing(null);
-    reload();
-  }, [editing, reload]);
-
-  const totalSpent = Object.values(statusById).reduce((sum, s) => sum + s.spent, 0);
+  const totalSpent = Object.values(statusById).reduce((sum, status) => sum + status.spent, 0);
+  const summaryRatio = cap > 0 ? Math.min(totalSpent / cap, 1) : 0;
 
   return (
-    <View style={styles.container}>
-      <View style={styles.capCard}>
-        <Text style={styles.capLabel}>Spending Cap</Text>
-        <Text style={styles.capAmount}>{fmtPeso(cap)}</Text>
-        <Text style={styles.capSub}>{fmtPeso(cap - totalSpent)} remaining</Text>
+    <ScrollView style={styles.container} contentContainerStyle={{ paddingBottom: 32 }}>
+      <Text style={styles.largeTitle}>Budgets</Text>
+      <Text style={styles.monthLabel}>{currentMonthLabel()}</Text>
+
+      <View style={styles.summaryCard}>
+        <View style={styles.summaryRing} />
+        <View style={styles.summaryColumns}>
+          <View>
+            <Text style={styles.summaryColLabel}>Total Cap</Text>
+            <Text style={styles.summaryAmount}>{fmtPeso(cap)}</Text>
+          </View>
+          <View style={{ alignItems: 'flex-end' }}>
+            <Text style={styles.summaryColLabel}>Spent</Text>
+            <Text style={[styles.summaryAmount, totalSpent > cap && cap > 0 ? styles.summaryAmountOver : undefined]}>
+              {fmtPeso(totalSpent)}
+            </Text>
+          </View>
+        </View>
+        <View style={styles.summaryProgressTrack}>
+          <View
+            style={[styles.summaryProgressFill, { width: `${summaryRatio * 100}%`, backgroundColor: progressColor(summaryRatio) }]}
+          />
+        </View>
       </View>
 
       <TouchableOpacity style={styles.cycleRow} onPress={handleCycleDayPress}>
@@ -94,76 +100,53 @@ export default function BudgetsScreen() {
         </View>
       </TouchableOpacity>
 
-      <FlatList
-        data={categories}
-        keyExtractor={(category) => category.id}
-        ListEmptyComponent={<Text style={styles.empty}>No categories found.</Text>}
-        renderItem={({ item: category }) => {
-          const status = statusById[category.id];
-          const fillRatio = status && status.limit > 0 ? Math.min(status.spent / status.limit, 1) : 0;
-          const isOverBudget = status && status.spent > status.limit;
-          return (
-            <TouchableOpacity onPress={() => handleCategoryPress(category)} activeOpacity={0.7}>
-              <View style={styles.row}>
-                <Text style={styles.icon}>{category.icon}</Text>
-                <View style={styles.rowMain}>
-                  <Text style={styles.categoryName}>{category.name}</Text>
-                  {category.monthly_budget > 0 ? (
-                    <>
-                      <Text style={styles.limitText}>
-                        {fmtPeso(status?.spent ?? 0)} / {fmtPeso(category.monthly_budget)}
-                      </Text>
-                      <View style={styles.progressBar}>
+      {categories.length === 0 ? (
+        <Text style={styles.empty}>No categories found.</Text>
+      ) : (
+        <View style={styles.rowsCard}>
+          {categories.map((category, index) => {
+            const status = statusById[category.id];
+            const hasLimit = category.monthly_budget > 0;
+            const spent = status?.spent ?? 0;
+            const fillRatio = hasLimit ? Math.min(spent / category.monthly_budget, 1) : 0;
+            const usedPct = hasLimit ? Math.round(fillRatio * 100) : 0;
+
+            return (
+              <View key={category.id}>
+                {index > 0 && <View style={styles.rowSeparator} />}
+                <TouchableOpacity
+                  activeOpacity={0.7}
+                  style={styles.row}
+                  onPress={() => router.push({ pathname: '/budget-edit', params: { categoryId: category.id } })}
+                >
+                  <View style={[styles.iconBox, { backgroundColor: `${category.color}22` }]}>
+                    <Text style={styles.iconEmoji}>{category.icon}</Text>
+                  </View>
+                  <View style={styles.rowMain}>
+                    <View style={styles.rowTopLine}>
+                      <Text style={styles.categoryName}>{category.name}</Text>
+                      {hasLimit && <Text style={styles.usedPercent}>{usedPct}% used</Text>}
+                    </View>
+                    {hasLimit && (
+                      <View style={styles.rowProgressTrack}>
                         <View
-                          style={[
-                            styles.progressFill,
-                            { width: `${fillRatio * 100}%`, backgroundColor: isOverBudget ? '#EF4444' : '#3B82F6' },
-                          ]}
+                          style={[styles.rowProgressFill, { width: `${fillRatio * 100}%`, backgroundColor: progressColor(fillRatio) }]}
                         />
                       </View>
-                    </>
-                  ) : (
-                    <Text style={styles.limitText}>No limit set</Text>
-                  )}
-                </View>
-                <Text style={styles.chevron}>›</Text>
+                    )}
+                  </View>
+                  <View style={styles.rowRight}>
+                    <Text style={styles.spentAmount}>{fmtPeso(spent)}</Text>
+                    {hasLimit && <Text style={styles.ofAmount}>of {fmtPeso(category.monthly_budget)}</Text>}
+                  </View>
+                </TouchableOpacity>
               </View>
-            </TouchableOpacity>
-          );
-        }}
-      />
+            );
+          })}
+        </View>
+      )}
 
-      <Modal visible={editing !== null} transparent animationType="slide" onRequestClose={() => setEditing(null)}>
-        <TouchableOpacity style={styles.modalOverlay} activeOpacity={1} onPress={() => setEditing(null)}>
-          <TouchableOpacity activeOpacity={1} onPress={() => {}}>
-            <View style={styles.modalSheet}>
-              <Text style={styles.modalTitle}>{editing?.category.name}</Text>
-
-              <Text style={styles.fieldLabel}>Monthly Limit (₱)</Text>
-              <TextInput
-                style={styles.textInput}
-                value={editing?.budgetInput ?? ''}
-                onChangeText={(text) => setEditing(prev => prev ? { ...prev, budgetInput: text } : null)}
-                keyboardType="numeric"
-                placeholder="0 = no limit"
-                placeholderTextColor="#94A3B8"
-              />
-
-              <View style={styles.toggleRow}>
-                <Text style={styles.toggleLabel}>Budget Carryover</Text>
-                <Switch
-                  value={editing?.carryoverEnabled ?? false}
-                  onValueChange={(value) => setEditing(prev => prev ? { ...prev, carryoverEnabled: value } : null)}
-                />
-              </View>
-
-              <TouchableOpacity style={styles.saveButton} onPress={handleSave}>
-                <Text style={styles.saveButtonText}>Save</Text>
-              </TouchableOpacity>
-            </View>
-          </TouchableOpacity>
-        </TouchableOpacity>
-      </Modal>
-    </View>
+      <Text style={styles.helperText}>Tap a category to edit its limit</Text>
+    </ScrollView>
   );
 }
