@@ -13,7 +13,7 @@ import { insertExpense } from '../src/db/expenses';
 import { listCategories } from '../src/db/categories';
 import { fmtDate } from '../src/utils/fmtDate';
 import { todayStr } from '../src/utils/fmtPeso';
-import { styles } from './add-expense.styles';
+import { styles } from '../src/screens/add-expense.styles';
 
 const PAYMENT_METHODS = ['Cash', 'GCash', 'Card', 'Others'];
 

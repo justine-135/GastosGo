@@ -6,7 +6,7 @@ import { listExpenses, ExpenseRow } from '../../src/db/expenses';
 import { fmtPeso, todayStr } from '../../src/utils/fmtPeso';
 import { fmtDate } from '../../src/utils/fmtDate';
 import { groupByDate } from '../../src/utils/groupByDate';
-import { styles } from './history.styles';
+import { styles } from '../../src/screens/tabs/history.styles';
 
 export default function HistoryScreen() {
   const [sections, setSections] = useState<Array<{ date: string; expenses: ExpenseRow[] }>>([]);

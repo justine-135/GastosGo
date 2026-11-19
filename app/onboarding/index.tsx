@@ -3,7 +3,7 @@ import { View, Text, TouchableOpacity } from 'react-native';
 import { router } from 'expo-router';
 import { getDb } from '../../src/db';
 import { saveSettings, markOnboardingDone, IncomeMode } from '../../src/db/settings';
-import { styles } from './index.styles';
+import { styles } from '../../src/screens/onboarding/index.styles';
 
 const MODES: { key: IncomeMode; label: string; description: string }[] = [
   { key: 'salary', label: 'Salary', description: 'Fixed monthly income' },

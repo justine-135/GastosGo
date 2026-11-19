@@ -1,7 +1,7 @@
 import { Tabs, useRouter } from 'expo-router';
 import { Pressable, View } from 'react-native';
 import { Feather } from '@expo/vector-icons';
-import { styles } from './_layout.styles';
+import { styles } from '../../src/screens/tabs/_layout.styles';
 
 function AddFab() {
   const router = useRouter();

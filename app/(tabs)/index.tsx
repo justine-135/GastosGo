@@ -9,7 +9,7 @@ import { computeGap, GapResult } from '../../src/utils/computeGap';
 import { remainingSpendable } from '../../src/utils/computeSpendingCap';
 import { fmtPeso, todayStr } from '../../src/utils/fmtPeso';
 import { fmtDate } from '../../src/utils/fmtDate';
-import { styles } from './index.styles';
+import { styles } from '../../src/screens/tabs/index.styles';
 
 export default function HomeScreen() {
   const [expenses, setExpenses] = useState<ExpenseRow[]>([]);

@@ -3,7 +3,7 @@ import { View, Text, TextInput, TouchableOpacity } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { getDb } from '../../src/db';
 import { saveSettings, markOnboardingDone, IncomeMode } from '../../src/db/settings';
-import { styles } from './amounts.styles';
+import { styles } from '../../src/screens/onboarding/amounts.styles';
 
 export default function OnboardingAmounts() {
   const { mode } = useLocalSearchParams<{ mode: IncomeMode }>();

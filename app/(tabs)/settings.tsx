@@ -5,7 +5,7 @@ import { getDb } from '../../src/db';
 import { listDeletedExpenses, restoreExpense, ExpenseRow } from '../../src/db/expenses';
 import { listCategories, CategoryRow } from '../../src/db/categories';
 import { fmtPeso } from '../../src/utils/fmtPeso';
-import { styles } from './settings.styles';
+import { styles } from '../../src/screens/tabs/settings.styles';
 
 export default function SettingsScreen() {
   const [deletedExpenses, setDeletedExpenses] = useState<ExpenseRow[]>([]);

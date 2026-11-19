@@ -7,7 +7,7 @@ import { listExpenses } from '../../src/db/expenses';
 import { loadSettings, saveSettings } from '../../src/db/settings';
 import { spendingCap, budgetedSpent, CategoryBudgetStatus } from '../../src/utils/computeSpendingCap';
 import { fmtPeso } from '../../src/utils/fmtPeso';
-import { styles } from './budgets.styles';
+import { styles } from '../../src/screens/tabs/budgets.styles';
 
 interface EditingCategory {
   category: CategoryRow;
