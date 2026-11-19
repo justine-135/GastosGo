@@ -1,39 +1,70 @@
-import { useCallback, useState } from 'react';
-import { Alert, FlatList, Text, TouchableOpacity, View } from 'react-native';
+import { useCallback, useRef, useEffect, useState } from 'react';
+import { Alert, Animated, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import { useFocusEffect } from 'expo-router';
 import { getDb } from '../../src/db';
 import { listExpenses, softDeleteExpense, ExpenseRow } from '../../src/db/expenses';
 import { listCategories, CategoryRow } from '../../src/db/categories';
-import { loadSettings } from '../../src/db/settings';
+import { loadSettings, AppSettings } from '../../src/db/settings';
 import { getLatestCycleSnapshot } from '../../src/db/cycleSnapshots';
 import { cycleStartDate } from '../../src/utils/cycleDate';
 import { computeGap, GapResult } from '../../src/utils/computeGap';
-import { remainingSpendable } from '../../src/utils/computeSpendingCap';
+import { remainingSpendable, spendingCap, budgetedSpent } from '../../src/utils/computeSpendingCap';
 import { fmtPeso, todayStr } from '../../src/utils/fmtPeso';
 import { fmtDate } from '../../src/utils/fmtDate';
+import { colors } from '../../src/theme';
 import { styles } from '../../src/screens/tabs/index.styles';
 
+interface HomeData {
+  gap: GapResult;
+  income: number;
+  totalExpenses: number;
+  spendable: number | null;
+  cap: number;
+  categories: CategoryRow[];
+  expenses: ExpenseRow[];
+  categoriesById: Record<string, CategoryRow>;
+  settings: AppSettings;
+}
+
+function deriveIncome(settings: AppSettings): number {
+  if (settings.incomeMode === 'salary') return settings.monthlySalary;
+  if (settings.incomeMode === 'mixed') return settings.monthlySalary + settings.freelanceIncome;
+  return settings.savingsTarget;
+}
+
+function useEnterAnimation(delay: number) {
+  const opacity = useRef(new Animated.Value(0)).current;
+  const translateY = useRef(new Animated.Value(16)).current;
+  const scale = useRef(new Animated.Value(0.98)).current;
+  const ran = useRef(false);
+
+  useEffect(() => {
+    if (ran.current) return;
+    ran.current = true;
+    Animated.parallel([
+      Animated.timing(opacity, { toValue: 1, duration: 500, delay, useNativeDriver: true }),
+      Animated.timing(translateY, { toValue: 0, duration: 500, delay, useNativeDriver: true }),
+      Animated.timing(scale, { toValue: 1, duration: 500, delay, useNativeDriver: true }),
+    ]).start();
+  }, [delay, opacity, translateY, scale]);
+
+  return { opacity, transform: [{ translateY }, { scale }] };
+}
+
 export default function HomeScreen() {
-  const [expenses, setExpenses] = useState<ExpenseRow[]>([]);
-  const [categoriesById, setCategoriesById] = useState<Record<string, CategoryRow>>({});
-  const [gap, setGap] = useState<GapResult | null>(null);
-  const [spendable, setSpendable] = useState<number | null>(null);
+  const [homeData, setHomeData] = useState<HomeData | null>(null);
 
   const reload = useCallback(() => {
     const db = getDb();
     const settings = loadSettings(db);
     const today = todayStr();
     const since = cycleStartDate(today, settings.budgetCycleDay);
-
     const loaded = listExpenses(db, since);
-    setExpenses(loaded);
-
     const allCategories = listCategories(db);
     const byId: Record<string, CategoryRow> = {};
     for (const category of allCategories) byId[category.id] = category;
-    setCategoriesById(byId);
-
     const snapshot = getLatestCycleSnapshot(db);
+    const totalExpenses = loaded.reduce((sum, e) => sum + e.amount, 0);
     const gapInput = snapshot
       ? {
           incomeMode: snapshot.income_mode,
@@ -41,13 +72,26 @@ export default function HomeScreen() {
           freelanceIncome: snapshot.freelance_income,
           expectedSavings: snapshot.expected_savings,
           savingsTarget: snapshot.savings_target,
-          totalExpenses: loaded.reduce((sum, e) => sum + e.amount, 0),
+          totalExpenses,
         }
-      : { ...settings, totalExpenses: loaded.reduce((sum, e) => sum + e.amount, 0) };
-    setGap(computeGap(gapInput));
-
+      : { ...settings, totalExpenses };
+    const gap = computeGap(gapInput);
     const hasBudgetedCategories = allCategories.some(c => c.monthly_budget > 0);
-    setSpendable(hasBudgetedCategories ? remainingSpendable(allCategories, loaded, settings.budgetCycleDay) : null);
+    const spendable = hasBudgetedCategories
+      ? remainingSpendable(allCategories, loaded, settings.budgetCycleDay)
+      : null;
+    const cap = spendingCap(allCategories);
+    setHomeData({
+      gap,
+      income: deriveIncome(settings),
+      totalExpenses,
+      spendable,
+      cap,
+      categories: allCategories,
+      expenses: loaded,
+      categoriesById: byId,
+      settings,
+    });
   }, []);
 
   useFocusEffect(reload);
@@ -67,44 +111,152 @@ export default function HomeScreen() {
   }, [reload]);
 
   const today = todayStr();
+  const gapAnim = useEnterAnimation(60);
+  const capAnim = useEnterAnimation(120);
+
+  if (!homeData) return <View style={styles.container} />;
+
+  const { gap, income, totalExpenses, spendable, cap, categories, expenses, categoriesById } = homeData;
+  const isOnTrack = gap.onTrack;
+  const heroColor = isOnTrack ? colors.green : colors.red;
+  const ringColor = isOnTrack ? colors.green : colors.red;
+
+  const budgetedCategories = categories.filter(c => c.monthly_budget > 0);
+  const categoryStatuses = budgetedSpent(expenses, categories);
+  const recentExpenses = expenses.slice(0, 5);
+  const spentSoFar = cap - (spendable ?? 0);
+  const capPct = cap > 0 ? Math.min(1, spentSoFar / cap) : 0;
+  const barFillColor = capPct >= 1 ? colors.red : capPct >= 0.75 ? colors.amber : colors.green;
 
   return (
-    <View style={styles.container}>
-      {gap && (
-        <View style={[styles.gapCard, gap.onTrack ? styles.gapOnTrack : styles.gapAtRisk]}>
-          <Text style={styles.gapLabel}>Savings Gap</Text>
-          <Text style={styles.gapAmount}>{fmtPeso(gap.gap)}</Text>
-          <Text style={styles.gapStatus}>{gap.onTrack ? 'On track ✓' : 'At risk ✗'}</Text>
+    <ScrollView
+      style={styles.container}
+      contentContainerStyle={styles.scrollContent}
+      showsVerticalScrollIndicator={false}
+    >
+      <Animated.View style={[styles.gapCard, gapAnim]}>
+        <View style={[styles.gapRing, { borderColor: ringColor }]} />
+        <View style={[styles.gapDot, { backgroundColor: ringColor }]} />
+
+        <Text style={styles.gapLabel}>SAVINGS GAP</Text>
+        <Text style={[styles.gapAmount, { color: heroColor }]}>
+          {gap.gap < 0 ? '−' : ''}{fmtPeso(Math.abs(gap.gap))}
+        </Text>
+
+        <View style={[styles.statusPill, { backgroundColor: isOnTrack ? colors.greenBg : colors.redBg }]}>
+          <Text style={[styles.statusPillText, { color: isOnTrack ? colors.green : colors.red }]}>
+            {isOnTrack ? '✓ On Track' : '⚠ At Risk'}
+          </Text>
         </View>
-      )}
+        <Text style={styles.gapDescription}>
+          {isOnTrack
+            ? 'You are within your savings target this cycle.'
+            : 'Your spending exceeds your savings target.'}
+        </Text>
+
+        <View style={styles.detailRows}>
+          <View style={styles.detailRow}>
+            <Text style={styles.detailLabel}>Income</Text>
+            <Text style={styles.detailValue}>{fmtPeso(income)}</Text>
+          </View>
+          <View style={styles.detailRow}>
+            <Text style={styles.detailLabel}>Spent</Text>
+            <Text style={styles.detailValue}>{fmtPeso(totalExpenses)}</Text>
+          </View>
+          <View style={styles.detailRow}>
+            <Text style={styles.detailLabel}>Expected Savings</Text>
+            <Text style={styles.detailValue}>{fmtPeso(gap.expectedSavings)}</Text>
+          </View>
+        </View>
+      </Animated.View>
+
       {spendable !== null && (
-        <View style={styles.spendableCard}>
-          <Text style={styles.spendableLabel}>Remaining Spendable</Text>
-          <Text style={styles.spendableAmount}>{fmtPeso(spendable)}</Text>
-        </View>
-      )}
-      <FlatList
-        data={expenses}
-        keyExtractor={(expense) => expense.id}
-        ListEmptyComponent={<Text style={styles.empty}>No expenses yet. Tap + to log one.</Text>}
-        renderItem={({ item: expense }) => {
-          const category = expense.category_id ? categoriesById[expense.category_id] : undefined;
-          return (
-            <TouchableOpacity onLongPress={() => handleDelete(expense)} activeOpacity={0.7}>
-              <View style={styles.row}>
-                <Text style={styles.icon}>{category?.icon ?? '📦'}</Text>
-                <View style={styles.rowMain}>
-                  <Text style={styles.category}>{category?.name ?? 'Uncategorized'}</Text>
-                  <Text style={styles.meta}>
-                    {fmtDate(expense.date, today)} · {expense.payment_method}
-                  </Text>
+        <Animated.View style={[styles.capCard, capAnim]}>
+          <View style={styles.capArc} />
+
+          <View style={styles.capHeader}>
+            <View>
+              <Text style={styles.capCardLabel}>SPENDING CAP</Text>
+              <Text style={styles.capSubLabel}>Remaining this cycle</Text>
+            </View>
+            <View style={styles.capAmountBlock}>
+              <Text style={styles.capAmount}>{fmtPeso(spendable)}</Text>
+              <Text style={styles.capOfLabel}>of {fmtPeso(cap)} cap</Text>
+            </View>
+          </View>
+
+          <View style={styles.progressTrack}>
+            <View
+              style={[
+                styles.progressFill,
+                { width: `${Math.round(capPct * 100)}%` as unknown as number, backgroundColor: barFillColor },
+              ]}
+            />
+          </View>
+
+          {budgetedCategories.map((category, index) => {
+            const statusEntry = categoryStatuses.find(s => s.categoryId === category.id);
+            const spent = statusEntry?.spent ?? 0;
+            const remaining = category.monthly_budget - spent;
+            const catPct = category.monthly_budget > 0 ? Math.min(1, spent / category.monthly_budget) : 0;
+            const catFill = catPct >= 1 ? colors.red : catPct >= 0.75 ? colors.amber : colors.green;
+            return (
+              <View key={category.id} style={[styles.catRow, index === 0 && styles.catRowFirst]}>
+                <Text style={styles.catEmoji}>{category.icon}</Text>
+                <Text style={styles.catName}>{category.name}</Text>
+                <View style={styles.catBarTrack}>
+                  <View
+                    style={[
+                      styles.catBarFill,
+                      { width: `${Math.round(catPct * 100)}%` as unknown as number, backgroundColor: catFill },
+                    ]}
+                  />
                 </View>
-                <Text style={styles.amount}>{fmtPeso(expense.amount)}</Text>
+                <Text style={[styles.catRemaining, remaining < 0 && { color: colors.red }]}>
+                  {fmtPeso(remaining)}
+                </Text>
               </View>
-            </TouchableOpacity>
-          );
-        }}
-      />
-    </View>
+            );
+          })}
+        </Animated.View>
+      )}
+
+      <Text style={styles.recentHeader}>Recent</Text>
+
+      <View style={styles.recentCard}>
+        {recentExpenses.length === 0 ? (
+          <View style={styles.emptyState}>
+            <Text style={styles.emptyEmoji}>📋</Text>
+            <Text style={styles.emptyTitle}>No expenses yet</Text>
+            <Text style={styles.emptyMeta}>Tap + to log one.</Text>
+          </View>
+        ) : (
+          recentExpenses.map((expense, index) => {
+            const category = expense.category_id ? categoriesById[expense.category_id] : undefined;
+            const iconBg = `${category?.color ?? '#8E8E93'}22`;
+            return (
+              <TouchableOpacity
+                key={expense.id}
+                onLongPress={() => handleDelete(expense)}
+                activeOpacity={0.7}
+              >
+                <View style={[styles.expenseRow, index < recentExpenses.length - 1 && styles.expenseRowSep]}>
+                  <View style={[styles.expenseIcon, { backgroundColor: iconBg }]}>
+                    <Text style={styles.expenseEmoji}>{category?.icon ?? '📦'}</Text>
+                  </View>
+                  <View style={styles.expenseMain}>
+                    <Text style={styles.expenseName}>{category?.name ?? 'Uncategorized'}</Text>
+                    <Text style={styles.expenseMeta}>{fmtDate(expense.date, today)}</Text>
+                  </View>
+                  <Text style={styles.expenseAmount}>−{fmtPeso(expense.amount)}</Text>
+                </View>
+              </TouchableOpacity>
+            );
+          })
+        )}
+      </View>
+
+      <View style={styles.bottomPad} />
+    </ScrollView>
   );
 }
