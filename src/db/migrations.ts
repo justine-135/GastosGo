@@ -70,7 +70,20 @@ export function runMigrations(db: DbDriver): void {
   try {
     db.execute(`ALTER TABLE expenses ADD COLUMN deleted_at TEXT`);
   } catch { /* already exists */ }
-  try {
-    db.execute(`ALTER TABLE sync_queue ADD COLUMN row_id TEXT NOT NULL DEFAULT ''`);
-  } catch { /* already exists */ }
+  const syncQueueCols = db.query<{ name: string; type: string }>(`PRAGMA table_info(sync_queue)`);
+  const syncQueueIdType = syncQueueCols.find(col => col.name === 'id')?.type;
+  const syncQueueHasRowId = syncQueueCols.some(col => col.name === 'row_id');
+  if (!syncQueueHasRowId || syncQueueIdType !== 'TEXT') {
+    db.execute(`DROP TABLE IF EXISTS sync_queue`);
+    db.execute(
+      `CREATE TABLE sync_queue (
+        id         TEXT PRIMARY KEY,
+        table_name TEXT NOT NULL,
+        operation  TEXT NOT NULL,
+        row_id     TEXT NOT NULL DEFAULT '',
+        payload    TEXT NOT NULL,
+        created_at TEXT NOT NULL DEFAULT (datetime('now'))
+      )`,
+    );
+  }
 }
