@@ -49,7 +49,7 @@ export default function RootLayout() {
       .catch(() => {});
 
     if (!hasCompletedOnboarding(getDb())) {
-      router.replace('/onboarding');
+      router.replace('/onboarding/welcome');
       return;
     }
 
