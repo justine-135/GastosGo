@@ -1,4 +1,5 @@
 import { Platform, StyleSheet } from 'react-native';
+import { spacing } from '../../theme';
 
 const colors = {
   bg: '#F7F7F9',
@@ -17,9 +18,11 @@ export const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.bg,
   },
+  listContent: {
+    paddingTop: spacing.navBarHeight + 16,
+  },
   largeHeader: {
     paddingHorizontal: 20,
-    paddingTop: 104,
     paddingBottom: 12,
   },
   largeTitle: {

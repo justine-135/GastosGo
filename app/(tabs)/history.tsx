@@ -58,6 +58,7 @@ export default function HistoryScreen() {
         sections={sections}
         keyExtractor={(expense) => expense.id}
         stickySectionHeadersEnabled={false}
+        contentContainerStyle={styles.listContent}
         ListHeaderComponent={
           <View style={styles.largeHeader}>
             <Text style={styles.largeTitle}>History</Text>

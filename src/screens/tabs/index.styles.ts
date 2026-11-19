@@ -7,7 +7,7 @@ export const styles = StyleSheet.create({
     backgroundColor: colors.bg,
   },
   scrollContent: {
-    paddingTop: spacing.navBarHeight + 8,
+    paddingTop: spacing.navBarHeight + 16,
     paddingBottom: 32,
   },
   largeTitle: {
@@ -16,7 +16,6 @@ export const styles = StyleSheet.create({
     color: colors.navy,
     letterSpacing: -1,
     marginHorizontal: 20,
-    marginTop: 16,
     marginBottom: 16,
   },
 
