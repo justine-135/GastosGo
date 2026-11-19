@@ -141,6 +141,7 @@ export const styles = StyleSheet.create({
     color: '#fff',
   },
   slideViewport: {
+    flex: 1,
     overflow: 'hidden',
   },
   slideTrack: {

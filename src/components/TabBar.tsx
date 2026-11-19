@@ -4,9 +4,9 @@ import { BlurView } from 'expo-blur';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Feather } from '@expo/vector-icons';
 import { type BottomTabBarProps, type BottomTabViewRoute } from 'expo-router/build/layouts/Tabs';
-import { useRouter } from 'expo-router';
 import { colors, typography } from '../theme';
 import { styles } from './TabBar.styles';
+import { presentAddExpenseSheet } from '../lib/addExpenseSheet';
 
 const TAB_ROUTES = [
   { name: 'index', label: 'Home', icon: 'home' as const },
@@ -61,7 +61,6 @@ function TabItem({
 }
 
 function FabButton() {
-  const router = useRouter();
   const scale = useRef(new Animated.Value(1)).current;
 
   function handlePressIn() {
@@ -76,7 +75,7 @@ function FabButton() {
     <View style={styles.fabSlot}>
       <Animated.View style={{ transform: [{ scale }] }}>
         <Pressable
-          onPress={() => router.push('/add-expense')}
+          onPress={presentAddExpenseSheet}
           onPressIn={handlePressIn}
           onPressOut={handlePressOut}
           accessibilityRole="button"
