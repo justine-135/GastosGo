@@ -100,6 +100,9 @@ export default function RootLayout() {
           name="add-expense"
           options={{ presentation: 'modal', headerShown: false }}
         />
+        <Stack.Screen name="settings/income-mode" options={{ headerShown: false }} />
+        <Stack.Screen name="settings/budget-cycle" options={{ headerShown: false }} />
+        <Stack.Screen name="settings/recently-deleted" options={{ headerShown: false }} />
       </Stack>
       {cyclePromptData && (
         <NewCyclePrompt
