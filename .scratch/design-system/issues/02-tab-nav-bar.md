@@ -4,7 +4,7 @@
 
 **Blocked by:** 01
 
-**Status:** ready-for-agent
+**Status:** done
 
 - [ ] Custom tab bar component (`src/components/TabBar.tsx`) — 83px height, frosted glass (`rgba(250,250,248,0.85)` + `BlurView`), 0.5px top border, 4 tabs + center FAB
 - [ ] Tab items: 24×24 icon + 10px/500 label; inactive = `gray-2`, active = `brand`; icon SVG press scales to 0.9 (100ms)

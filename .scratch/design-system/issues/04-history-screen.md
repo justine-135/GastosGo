@@ -4,7 +4,7 @@
 
 **Blocked by:** 01, 02
 
-**Status:** ready-for-agent
+**Status:** done
 
 - [ ] Large title "History" (28px/800, `letter-spacing: -1px`) + current month label (13px gray) pinned below the status bar
 - [ ] Date-group headers: `padding: 20px 20px 8px`, 13px/600 gray uppercase, `letter-spacing: 0.04em`; right side: day-total pill (`gray-light` bg, navy `tabular-nums` text)

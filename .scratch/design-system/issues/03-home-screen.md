@@ -4,7 +4,7 @@
 
 **Blocked by:** 01, 02
 
-**Status:** ready-for-agent
+**Status:** done
 
 - [ ] **Savings Gap card** — `border-radius: 24px`, `sh-md`, `margin: 60px 20px 0`; ring+dot background decoration (220×220px teal ring, 10px dot, opacity transitions on state change); 13px/600 uppercase label; 48px/800 hero amount (`letter-spacing: -2.5px`), teal (on-track) or red (at-risk), 400ms color transition; status pill (teal or red); 13px gray status text; detail rows with 0.5px top borders
 - [ ] **Spending Cap card** — `border-radius: 16px`, `sh-sm`, `margin: 14px 20px 0`; arc decoration (180×180px circle, bottom-right, opacity 0.08); header with remaining amount (24px/800) + "of ₱X cap" label; 6px progress bar (spring-animated fill, color by %); per-category rows: emoji, name, inline mini progress bar, remaining (red if negative)

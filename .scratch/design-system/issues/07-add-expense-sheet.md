@@ -4,7 +4,7 @@
 
 **Blocked by:** 01, 02
 
-**Status:** ready-for-agent
+**Status:** done
 
 - [ ] Bottom sheet container — `border-radius: 20px 20px 0 0`, white bg, `sh-lg`; handle: 36×4px `gray-2` centered, 10px top margin; header: 20px/700 title + 30×30 close button (circle, `gray-light` bg, gray `✕`)
 - [ ] Drag-to-dismiss: velocity > 0.4px/ms OR drag > 100px → dismiss; rubberband resistance on upward drag (via `@gorhom/bottom-sheet` snap points + `overDragResistanceFactor`)

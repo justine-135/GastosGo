@@ -4,7 +4,7 @@
 
 **Blocked by:** 01, 02
 
-**Status:** ready-for-agent
+**Status:** done
 
 - [ ] Large title "Budgets" + current month label; helper text "Tap a category to edit its limit" below the category list
 - [ ] **Budgets Summary card** — `margin: 8px 20px 16px`, `border-radius: 16px`, `sh-sm`; ring decoration (180×180px brand ring, top-right, opacity 0.09); two-column: "Total Cap" left + "Spent" right (both 26px/800); 6px progress bar; spent text goes red when over cap

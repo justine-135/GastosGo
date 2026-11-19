@@ -4,7 +4,7 @@
 
 **Blocked by:** 03, 04, 05, 06, 07, 08
 
-**Status:** ready-for-agent
+**Status:** done
 
 - [ ] Audit all `TouchableOpacity` / pressable elements across the app; replace with `Pressable` + Reanimated `useSharedValue` where a scale or opacity animation is needed
 - [ ] Press scale targets per spec: primary button `scale(0.97)`, secondary button `scale(0.97)`, small button `scale(0.95)`, mode card `scale(0.98)`, nav back button `scale(0.92)` + bg circle; all 120ms `ease-out`

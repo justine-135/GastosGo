@@ -4,7 +4,7 @@
 
 **Blocked by:** 01, 02
 
-**Status:** ready-for-agent
+**Status:** done
 
 - [ ] Large title "Settings" (28px/800); scrollable
 - [ ] **Income & Budget section card** — two list rows: "Income Mode" (shows current mode as subtitle) and "Budget Cycle" (shows current day as subtitle); each row: 36×36 icon slot, 16px/500 title, 13px gray subtitle, gray `›` chevron; press → `gray-light`; card has `sh-sm`, `border-radius: 16px`, rows separated by 0.5px border
