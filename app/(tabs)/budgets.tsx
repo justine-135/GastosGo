@@ -84,7 +84,7 @@ export default function BudgetsScreen() {
   const summaryRatio = cap > 0 ? Math.min(totalSpent / cap, 1) : 0;
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={{ paddingBottom: 32 }}>
+    <ScrollView style={styles.container} contentContainerStyle={styles.scrollContent}>
       <Text style={styles.largeTitle}>Budgets</Text>
       <Text style={styles.monthLabel}>{currentMonthLabel()}</Text>
 

@@ -9,7 +9,7 @@ export const styles = StyleSheet.create({
     backgroundColor: colors.bg,
   },
   scrollContent: {
-    paddingTop: spacing.navBarHeight + 8,
+    paddingTop: spacing.navBarHeight + 16,
     paddingBottom: 40,
   },
   pageTitle: {
@@ -18,7 +18,6 @@ export const styles = StyleSheet.create({
     fontFamily: 'Inter_800ExtraBold',
     color: colors.navy,
     paddingHorizontal: spacing.screenHPad,
-    paddingTop: 8,
     paddingBottom: 20,
   },
   sectionLabel: {

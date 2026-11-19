@@ -33,7 +33,9 @@ export function seedDefaultCategories(db: DbDriver): void {
 }
 
 export function listCategories(db: DbDriver): CategoryRow[] {
-  return db.query<CategoryRow>(`SELECT * FROM categories WHERE deleted_at IS NULL ORDER BY name ASC`);
+  return db.query<CategoryRow>(
+    `SELECT * FROM categories WHERE deleted_at IS NULL GROUP BY name ORDER BY name ASC`,
+  );
 }
 
 export function updateCategoryBudget(

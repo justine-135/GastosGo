@@ -6,13 +6,16 @@ export const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.bg,
   },
+  scrollContent: {
+    paddingTop: spacing.navBarHeight + 16,
+    paddingBottom: 32,
+  },
   largeTitle: {
     fontSize: 28,
     fontWeight: '800',
     color: colors.navy,
     letterSpacing: -1,
     marginHorizontal: spacing.screenHPad,
-    marginTop: 16,
   },
   monthLabel: {
     fontSize: 13,

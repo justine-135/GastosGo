@@ -150,6 +150,7 @@ export default function HomeScreen() {
       contentContainerStyle={styles.scrollContent}
       showsVerticalScrollIndicator={false}
     >
+      <Text style={styles.largeTitle}>Home</Text>
       <Animated.View style={[styles.gapCard, gapAnim]}>
         <View style={[styles.gapRing, { borderColor: ringColor }]} />
         <View style={[styles.gapDot, { backgroundColor: ringColor }]} />

@@ -9,7 +9,7 @@ export const styles = StyleSheet.create({
     backgroundColor: colors.bg,
   },
   scrollContent: {
-    paddingTop: spacing.navBarHeight,
+    paddingTop: spacing.navBarHeight + 16,
     paddingBottom: 40,
   },
   infoText: {

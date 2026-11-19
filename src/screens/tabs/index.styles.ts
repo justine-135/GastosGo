@@ -1,5 +1,5 @@
 import { StyleSheet } from 'react-native';
-import { colors, shadows } from '../../theme';
+import { colors, shadows, spacing } from '../../theme';
 
 export const styles = StyleSheet.create({
   container: {
@@ -7,11 +7,20 @@ export const styles = StyleSheet.create({
     backgroundColor: colors.bg,
   },
   scrollContent: {
+    paddingTop: spacing.navBarHeight + 16,
     paddingBottom: 32,
+  },
+  largeTitle: {
+    fontSize: 28,
+    fontWeight: '800',
+    color: colors.navy,
+    letterSpacing: -1,
+    marginHorizontal: 20,
+    marginBottom: 16,
   },
 
   gapCard: {
-    marginTop: 60,
+    marginTop: 0,
     marginHorizontal: 20,
     borderRadius: 24,
     backgroundColor: colors.card,

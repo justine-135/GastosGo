@@ -70,4 +70,7 @@ export function runMigrations(db: DbDriver): void {
   try {
     db.execute(`ALTER TABLE expenses ADD COLUMN deleted_at TEXT`);
   } catch { /* already exists */ }
+  try {
+    db.execute(`ALTER TABLE sync_queue ADD COLUMN row_id TEXT NOT NULL DEFAULT ''`);
+  } catch { /* already exists */ }
 }
