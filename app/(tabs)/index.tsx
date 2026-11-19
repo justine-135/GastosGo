@@ -5,6 +5,8 @@ import { getDb } from '../../src/db';
 import { listExpenses, softDeleteExpense, ExpenseRow } from '../../src/db/expenses';
 import { listCategories, CategoryRow } from '../../src/db/categories';
 import { loadSettings } from '../../src/db/settings';
+import { getLatestCycleSnapshot } from '../../src/db/cycleSnapshots';
+import { cycleStartDate } from '../../src/utils/cycleDate';
 import { computeGap, GapResult } from '../../src/utils/computeGap';
 import { remainingSpendable } from '../../src/utils/computeSpendingCap';
 import { fmtPeso, todayStr } from '../../src/utils/fmtPeso';
@@ -19,15 +21,31 @@ export default function HomeScreen() {
 
   const reload = useCallback(() => {
     const db = getDb();
-    const loaded = listExpenses(db);
+    const settings = loadSettings(db);
+    const today = todayStr();
+    const since = cycleStartDate(today, settings.budgetCycleDay);
+
+    const loaded = listExpenses(db, since);
     setExpenses(loaded);
+
     const allCategories = listCategories(db);
     const byId: Record<string, CategoryRow> = {};
     for (const category of allCategories) byId[category.id] = category;
     setCategoriesById(byId);
-    const settings = loadSettings(db);
-    const totalExpenses = loaded.reduce((sum, e) => sum + e.amount, 0);
-    setGap(computeGap({ ...settings, totalExpenses }));
+
+    const snapshot = getLatestCycleSnapshot(db);
+    const gapInput = snapshot
+      ? {
+          incomeMode: snapshot.income_mode,
+          monthlySalary: snapshot.monthly_salary,
+          freelanceIncome: snapshot.freelance_income,
+          expectedSavings: snapshot.expected_savings,
+          savingsTarget: snapshot.savings_target,
+          totalExpenses: loaded.reduce((sum, e) => sum + e.amount, 0),
+        }
+      : { ...settings, totalExpenses: loaded.reduce((sum, e) => sum + e.amount, 0) };
+    setGap(computeGap(gapInput));
+
     const hasBudgetedCategories = allCategories.some(c => c.monthly_budget > 0);
     setSpendable(hasBudgetedCategories ? remainingSpendable(allCategories, loaded, settings.budgetCycleDay) : null);
   }, []);
