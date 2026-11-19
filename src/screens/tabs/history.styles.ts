@@ -19,10 +19,8 @@ export const styles = StyleSheet.create({
   },
   largeHeader: {
     paddingHorizontal: 20,
-    paddingTop: 20,
+    paddingTop: 104,
     paddingBottom: 12,
-    height: 96,
-    justifyContent: 'flex-end',
   },
   largeTitle: {
     fontSize: 28,
