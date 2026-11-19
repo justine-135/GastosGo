@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { Stack, router } from 'expo-router';
 import { AppState } from 'react-native';
@@ -9,8 +9,6 @@ import { drainSyncQueue } from '../src/lib/sync';
 import { registerForPushNotifications } from '../src/lib/notifications';
 
 export default function RootLayout() {
-  const [ready, setReady] = useState(false);
-
   useEffect(() => {
     getDb();
     signInAnonymously()
@@ -18,12 +16,8 @@ export default function RootLayout() {
       .then(registerForPushNotifications)
       .catch(() => {});
 
-    const onboardingDone = hasCompletedOnboarding(getDb());
-    if (!onboardingDone) {
-      setReady(true);
+    if (!hasCompletedOnboarding(getDb())) {
       router.replace('/onboarding');
-    } else {
-      setReady(true);
     }
 
     const sub = AppState.addEventListener('change', (state) => {
@@ -31,8 +25,6 @@ export default function RootLayout() {
     });
     return () => sub.remove();
   }, []);
-
-  if (!ready) return null;
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>

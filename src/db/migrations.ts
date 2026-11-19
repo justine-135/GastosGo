@@ -52,7 +52,11 @@ export function runMigrations(db: DbDriver): void {
   }
   try {
     db.execute(`ALTER TABLE categories ADD COLUMN carryover_enabled INTEGER NOT NULL DEFAULT 0`);
-  } catch {
-    // column already exists on installs that received the schema from the start
-  }
+  } catch { /* already exists */ }
+  try {
+    db.execute(`ALTER TABLE categories ADD COLUMN deleted_at TEXT`);
+  } catch { /* already exists */ }
+  try {
+    db.execute(`ALTER TABLE expenses ADD COLUMN deleted_at TEXT`);
+  } catch { /* already exists */ }
 }
