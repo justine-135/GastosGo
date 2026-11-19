@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity } from 'react-native';
+import { useRef, useState } from 'react';
+import { Animated, View, Text, TextInput, TouchableOpacity, Pressable } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Feather } from '@expo/vector-icons';
@@ -10,6 +10,7 @@ import { colors } from '../../src/theme/colors';
 
 export default function OnboardingAmounts() {
   const { mode } = useLocalSearchParams<{ mode: IncomeMode }>();
+  const doneScale = useRef(new Animated.Value(1)).current;
   const [salary, setSalary] = useState('');
   const [freelance, setFreelance] = useState('');
   const [expectedSavings, setExpectedSavings] = useState('');
@@ -119,14 +120,17 @@ export default function OnboardingAmounts() {
           <View style={styles.dotActive} />
         </View>
 
-        <TouchableOpacity
-          style={[styles.doneButton, !canProceed && styles.doneButtonDisabled]}
-          onPress={handleDone}
-          disabled={!canProceed}
-          activeOpacity={0.8}
-        >
-          <Text style={styles.doneLabel}>Start Tracking 🎉</Text>
-        </TouchableOpacity>
+        <Animated.View style={{ transform: [{ scale: doneScale }] }}>
+          <Pressable
+            style={[styles.doneButton, !canProceed && styles.doneButtonDisabled]}
+            onPress={handleDone}
+            disabled={!canProceed}
+            onPressIn={() => Animated.timing(doneScale, { toValue: 0.97, duration: 120, useNativeDriver: true }).start()}
+            onPressOut={() => Animated.timing(doneScale, { toValue: 1, duration: 120, useNativeDriver: true }).start()}
+          >
+            <Text style={styles.doneLabel}>Start Tracking 🎉</Text>
+          </Pressable>
+        </Animated.View>
       </View>
     </LinearGradient>
   );
