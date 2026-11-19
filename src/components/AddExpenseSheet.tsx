@@ -75,7 +75,7 @@ export function AddExpenseSheet() {
     (props: BottomSheetBackdropProps) => (
       <BottomSheetBackdrop
         {...props}
-        pressBehavior={view === 'category-picker' ? 'none' : 'close'}
+        pressBehavior="close"
       />
     ),
     [view]
@@ -101,7 +101,9 @@ export function AddExpenseSheet() {
 
   const categoryPickerHeader = (
     <>
-      <View style={styles.handle} />
+      <Pressable onPress={() => sheetRef.current?.dismiss()} hitSlop={8}>
+        <View style={styles.handle} />
+      </Pressable>
 
       <View style={styles.categoryPickerHeader}>
         <Pressable style={styles.closeButton} onPress={closeToForm}>
@@ -117,7 +119,7 @@ export function AddExpenseSheet() {
       ref={sheetRef}
       snapPoints={['92%']}
       handleComponent={null}
-      enablePanDownToClose={view === 'form'}
+      enablePanDownToClose
       backdropComponent={renderBackdrop}
       keyboardBehavior="interactive"
       keyboardBlurBehavior="restore"
