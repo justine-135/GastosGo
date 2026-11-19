@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { BottomSheetModalProvider } from '@gorhom/bottom-sheet';
 import { Stack, router } from 'expo-router';
 import { useFonts } from 'expo-font';
 import {
@@ -93,13 +94,11 @@ export default function RootLayout() {
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
+      <BottomSheetModalProvider>
       <Stack>
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
         <Stack.Screen name="onboarding" options={{ headerShown: false }} />
-        <Stack.Screen
-          name="add-expense"
-          options={{ presentation: 'modal', headerShown: false }}
-        />
+        <Stack.Screen name="add-expense" options={{ headerShown: false }} />
         <Stack.Screen name="category-picker" options={{ headerShown: false }} />
         <Stack.Screen name="budget-edit" options={{ headerShown: false }} />
         <Stack.Screen name="settings/income-mode" options={{ headerShown: false }} />
@@ -114,6 +113,7 @@ export default function RootLayout() {
           onConfirm={() => setCyclePromptData(null)}
         />
       )}
+      </BottomSheetModalProvider>
     </GestureHandlerRootView>
   );
 }

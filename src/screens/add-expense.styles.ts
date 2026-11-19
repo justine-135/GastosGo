@@ -140,4 +140,48 @@ export const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#fff',
   },
+  categoryPickerHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    paddingTop: 20,
+    paddingBottom: 0,
+  },
+  categoryPickerHeaderTitle: {
+    flex: 1,
+    fontSize: 20,
+    fontWeight: '700',
+    color: colors.navy,
+    marginLeft: 10,
+  },
+  categoryPickerList: {
+    paddingHorizontal: 20,
+    paddingBottom: 32,
+  },
+  categoryPickerSeparator: {
+    height: 1,
+    backgroundColor: colors.grayLight,
+  },
+  categoryPickerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 14,
+    gap: 12,
+  },
+  categoryPickerIconBox: {
+    width: 36,
+    height: 36,
+    borderRadius: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  categoryPickerEmoji: {
+    fontSize: 18,
+  },
+  categoryPickerName: {
+    flex: 1,
+    fontSize: 16,
+    fontWeight: '500',
+    color: colors.navy,
+  },
 });
