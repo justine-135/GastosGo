@@ -98,7 +98,7 @@ export default function RootLayout() {
       <Stack>
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
         <Stack.Screen name="onboarding" options={{ headerShown: false }} />
-        <Stack.Screen name="add-expense" options={{ headerShown: false }} />
+        <Stack.Screen name="add-expense" options={{ presentation: 'transparentModal', headerShown: false }} />
         <Stack.Screen name="category-picker" options={{ headerShown: false }} />
         <Stack.Screen name="budget-edit" options={{ headerShown: false }} />
         <Stack.Screen name="settings/income-mode" options={{ headerShown: false }} />

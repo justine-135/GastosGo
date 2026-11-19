@@ -140,6 +140,15 @@ export const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#fff',
   },
+  slideViewport: {
+    overflow: 'hidden',
+  },
+  slideTrack: {
+    flexDirection: 'row',
+  },
+  slidePage: {
+    width: '100%',
+  },
   categoryPickerHeader: {
     flexDirection: 'row',
     alignItems: 'center',
