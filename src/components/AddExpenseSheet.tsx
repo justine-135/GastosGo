@@ -101,9 +101,8 @@ export function AddExpenseSheet() {
 
   const categoryPickerHeader = (
     <>
-      <Pressable onPress={closeToForm} hitSlop={8}>
-        <View style={styles.handle} />
-      </Pressable>
+      <View style={styles.handle} />
+
       <View style={styles.categoryPickerHeader}>
         <Pressable style={styles.closeButton} onPress={closeToForm}>
           <Feather name="arrow-left" size={14} color={colors.gray} />
@@ -117,6 +116,7 @@ export function AddExpenseSheet() {
     <BottomSheetModal
       ref={sheetRef}
       snapPoints={['92%']}
+      handleComponent={null}
       enablePanDownToClose={view === 'form'}
       backdropComponent={renderBackdrop}
       keyboardBehavior="interactive"
