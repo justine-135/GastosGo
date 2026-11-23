@@ -76,6 +76,8 @@ export function AddExpenseSheet() {
     (props: BottomSheetBackdropProps) => (
       <BottomSheetBackdrop
         {...props}
+        appearsOnIndex={0}
+        disappearsOnIndex={-1}
         pressBehavior="close"
       />
     ),
