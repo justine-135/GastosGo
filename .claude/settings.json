@@ -11,6 +11,10 @@
       "PowerShell(& \"C:\\Users\\Win 10\\.maestro\\maestro\\bin\\maestro.bat\" *)"
     ]
   },
+  "attribution": {
+    "commit": "",
+    "pr": ""
+  },
   "enabledPlugins": {
     "figma@claude-plugins-official": true
   }
