@@ -20,11 +20,13 @@ export const styles = StyleSheet.create({
     paddingHorizontal: 8,
   },
   backButton: {
-    width: 40,
     height: 40,
-    borderRadius: 20,
-    alignItems: 'center',
     justifyContent: 'center',
+    minWidth: 40,
+  },
+  backLabel: {
+    color: colors.brand,
+    textAlign: 'left',
   },
   titleContainer: {
     flex: 1,
