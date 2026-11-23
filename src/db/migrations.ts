@@ -47,7 +47,7 @@ CREATE TABLE IF NOT EXISTS sync_queue (
 
 CREATE TABLE IF NOT EXISTS cycle_snapshots (
   id               TEXT PRIMARY KEY,
-  cycle_start_date TEXT NOT NULL UNIQUE,
+  cycle_start_date TEXT NOT NULL,
   income_mode      TEXT NOT NULL,
   monthly_salary   REAL NOT NULL DEFAULT 0,
   freelance_income REAL NOT NULL DEFAULT 0,
@@ -121,6 +121,22 @@ export function runMigrations(db: DbDriver): void {
   try {
     db.execute(`ALTER TABLE recurring_rules ADD COLUMN payment_method TEXT NOT NULL DEFAULT 'Cash'`);
   } catch { /* already exists */ }
+  const cycleSnapshotIndexes = db.query<{ unique: number }>(`PRAGMA index_list(cycle_snapshots)`);
+  if (cycleSnapshotIndexes.some(idx => idx.unique === 1)) {
+    db.execute(`CREATE TABLE cycle_snapshots_new (
+      id               TEXT PRIMARY KEY,
+      cycle_start_date TEXT NOT NULL,
+      income_mode      TEXT NOT NULL,
+      monthly_salary   REAL NOT NULL DEFAULT 0,
+      freelance_income REAL NOT NULL DEFAULT 0,
+      expected_savings REAL NOT NULL DEFAULT 0,
+      savings_target   REAL NOT NULL DEFAULT 0,
+      created_at       TEXT NOT NULL DEFAULT (datetime('now'))
+    )`);
+    db.execute(`INSERT INTO cycle_snapshots_new SELECT * FROM cycle_snapshots`);
+    db.execute(`DROP TABLE cycle_snapshots`);
+    db.execute(`ALTER TABLE cycle_snapshots_new RENAME TO cycle_snapshots`);
+  }
   const syncQueueCols = db.query<{ name: string; type: string }>(`PRAGMA table_info(sync_queue)`);
   const syncQueueIdType = syncQueueCols.find(col => col.name === 'id')?.type;
   const syncQueueHasRowId = syncQueueCols.some(col => col.name === 'row_id');

@@ -1,6 +1,7 @@
 import { DbDriver } from './driver';
 import { IncomeMode } from './settings';
 import { generateId } from '../utils/generateId';
+import { listExpenses, softDeleteExpense } from './expenses';
 
 export interface CycleSnapshot {
   id: string;
@@ -22,6 +23,10 @@ export interface InsertCycleSnapshotInput {
   savingsTarget: number;
 }
 
+export interface ResetCurrentCycleInput extends InsertCycleSnapshotInput {
+  wipeExpenses: boolean;
+}
+
 export function insertCycleSnapshot(db: DbDriver, input: InsertCycleSnapshotInput): void {
   db.execute(
     `INSERT INTO cycle_snapshots (id, cycle_start_date, income_mode, monthly_salary, freelance_income, expected_savings, savings_target)
@@ -32,6 +37,33 @@ export function insertCycleSnapshot(db: DbDriver, input: InsertCycleSnapshotInpu
 
 export function getLatestCycleSnapshot(db: DbDriver): CycleSnapshot | undefined {
   return db.queryOne<CycleSnapshot>(
-    `SELECT * FROM cycle_snapshots ORDER BY cycle_start_date DESC LIMIT 1`,
+    `SELECT * FROM cycle_snapshots ORDER BY cycle_start_date DESC, rowid DESC LIMIT 1`,
+  );
+}
+
+export function softDeleteCycleExpenses(db: DbDriver, cycleStart: string): void {
+  for (const expense of listExpenses(db, cycleStart)) {
+    softDeleteExpense(db, expense.id);
+  }
+}
+
+export function resetCurrentCycle(db: DbDriver, input: ResetCurrentCycleInput): void {
+  insertCycleSnapshot(db, {
+    cycleStartDate: input.cycleStartDate,
+    incomeMode: input.incomeMode,
+    monthlySalary: input.monthlySalary,
+    freelanceIncome: input.freelanceIncome,
+    expectedSavings: input.expectedSavings,
+    savingsTarget: input.savingsTarget,
+  });
+  if (input.wipeExpenses) {
+    softDeleteCycleExpenses(db, input.cycleStartDate);
+  }
+}
+
+export function getAllCycleSnapshotsForDate(db: DbDriver, cycleStartDate: string): CycleSnapshot[] {
+  return db.query<CycleSnapshot>(
+    `SELECT * FROM cycle_snapshots WHERE cycle_start_date = ? ORDER BY created_at ASC`,
+    [cycleStartDate],
   );
 }

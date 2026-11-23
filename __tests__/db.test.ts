@@ -5,7 +5,7 @@ import { runMigrations } from '../src/db/migrations';
 import { insertExpense, listExpenses, softDeleteExpense, listDeletedExpenses, restoreExpense } from '../src/db/expenses';
 import { seedDefaultCategories, listCategories } from '../src/db/categories';
 import { isFirstLaunch, markLaunched } from '../src/db/firstLaunch';
-import { insertCycleSnapshot, getLatestCycleSnapshot } from '../src/db/cycleSnapshots';
+import { insertCycleSnapshot, getLatestCycleSnapshot, resetCurrentCycle, getAllCycleSnapshotsForDate } from '../src/db/cycleSnapshots';
 
 describe('SQLite query layer', () => {
   let driver: DbDriver;
@@ -166,11 +166,54 @@ describe('SQLite query layer', () => {
       expect(snapshot!.cycle_start_date).toBe('2024-02-01');
     });
 
-    it('rejects duplicate cycle_start_date', () => {
+    it('returns most recently created row when two rows share the same cycle_start_date', () => {
       insertCycleSnapshot(driver, { cycleStartDate: '2024-01-01', incomeMode: 'salary', monthlySalary: 50000, freelanceIncome: 0, expectedSavings: 10000, savingsTarget: 0 });
-      expect(() =>
-        insertCycleSnapshot(driver, { cycleStartDate: '2024-01-01', incomeMode: 'salary', monthlySalary: 60000, freelanceIncome: 0, expectedSavings: 10000, savingsTarget: 0 }),
-      ).toThrow();
+      insertCycleSnapshot(driver, { cycleStartDate: '2024-01-01', incomeMode: 'salary', monthlySalary: 60000, freelanceIncome: 0, expectedSavings: 12000, savingsTarget: 0 });
+      const snapshot = getLatestCycleSnapshot(driver);
+      expect(snapshot!.monthly_salary).toBe(60000);
+      expect(snapshot!.expected_savings).toBe(12000);
+    });
+  });
+
+  describe('resetCurrentCycle', () => {
+    let categoryId: string;
+
+    beforeEach(() => {
+      seedDefaultCategories(driver);
+      categoryId = listCategories(driver)[0].id as string;
+      insertCycleSnapshot(driver, { cycleStartDate: '2024-06-01', incomeMode: 'salary', monthlySalary: 50000, freelanceIncome: 0, expectedSavings: 10000, savingsTarget: 0 });
+    });
+
+    it('preserves old snapshot row as audit trail', () => {
+      resetCurrentCycle(driver, { cycleStartDate: '2024-06-01', incomeMode: 'salary', monthlySalary: 60000, freelanceIncome: 0, expectedSavings: 12000, savingsTarget: 0, wipeExpenses: false });
+      const all = getAllCycleSnapshotsForDate(driver, '2024-06-01');
+      expect(all).toHaveLength(2);
+      expect(all[0].monthly_salary).toBe(50000);
+      expect(all[1].monthly_salary).toBe(60000);
+      expect(getLatestCycleSnapshot(driver)!.monthly_salary).toBe(60000);
+    });
+
+    it('with wipeExpenses:true soft-deletes all current-cycle expenses', () => {
+      insertExpense(driver, { amount: 100, categoryId, paymentMethod: 'Cash', date: '2024-06-05' });
+      insertExpense(driver, { amount: 200, categoryId, paymentMethod: 'GCash', date: '2024-06-15' });
+      resetCurrentCycle(driver, { cycleStartDate: '2024-06-01', incomeMode: 'salary', monthlySalary: 60000, freelanceIncome: 0, expectedSavings: 12000, savingsTarget: 0, wipeExpenses: true });
+      expect(listExpenses(driver, '2024-06-01')).toHaveLength(0);
+      expect(listDeletedExpenses(driver)).toHaveLength(2);
+    });
+
+    it('with wipeExpenses:false leaves expenses untouched', () => {
+      insertExpense(driver, { amount: 100, categoryId, paymentMethod: 'Cash', date: '2024-06-05' });
+      resetCurrentCycle(driver, { cycleStartDate: '2024-06-01', incomeMode: 'salary', monthlySalary: 60000, freelanceIncome: 0, expectedSavings: 12000, savingsTarget: 0, wipeExpenses: false });
+      expect(listExpenses(driver, '2024-06-01')).toHaveLength(1);
+      expect(listDeletedExpenses(driver)).toHaveLength(0);
+    });
+
+    it('with wipeExpenses:true does not soft-delete expenses from prior cycles', () => {
+      insertExpense(driver, { amount: 500, categoryId, paymentMethod: 'Cash', date: '2024-05-20' });
+      insertExpense(driver, { amount: 100, categoryId, paymentMethod: 'Cash', date: '2024-06-05' });
+      resetCurrentCycle(driver, { cycleStartDate: '2024-06-01', incomeMode: 'salary', monthlySalary: 60000, freelanceIncome: 0, expectedSavings: 12000, savingsTarget: 0, wipeExpenses: true });
+      expect(listExpenses(driver)).toHaveLength(1);
+      expect(listExpenses(driver)[0].amount).toBe(500);
     });
   });
 
