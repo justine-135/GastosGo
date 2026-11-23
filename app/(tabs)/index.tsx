@@ -257,15 +257,21 @@ export default function HomeScreen() {
         </Animated.View>
       )}
 
-      {upcomingRules.length > 0 && (
-        <Animated.View style={[styles.billsCard, billsAnim]}>
-          <View style={styles.billsHeader}>
-            <Text style={styles.billsHeaderTitle}>Upcoming Bills</Text>
-            <Pressable onPress={() => router.push('/recurring-rules')}>
-              <Text style={styles.billsSeeAll}>See All &gt;</Text>
-            </Pressable>
-          </View>
-          {upcomingRules.map((rule, index) => {
+      <Animated.View style={[styles.billsCard, billsAnim]}>
+        <View style={styles.billsHeader}>
+          <Text style={styles.billsHeaderTitle}>Upcoming Bills</Text>
+          <Pressable onPress={() => router.push('/recurring-rules')}>
+            <Text style={styles.billsSeeAll}>See All</Text>
+          </Pressable>
+        </View>
+        {upcomingRules.length === 0 ? (
+          <Pressable style={styles.billsEmpty} onPress={() => router.push('/recurring-rules')}>
+            <Text style={styles.billsEmptyEmoji}>🔁</Text>
+            <Text style={styles.billsEmptyText}>No upcoming bills</Text>
+            <Text style={styles.billsEmptyMeta}>Tap to manage recurring rules →</Text>
+          </Pressable>
+        ) : (
+          upcomingRules.map((rule, index) => {
             const category = rule.category_id ? categoriesById[rule.category_id] : undefined;
             const iconBg = `${category?.color ?? '#8E8E93'}22`;
             const due = dueLabel(rule.next_due_date);
@@ -297,9 +303,9 @@ export default function HomeScreen() {
                 </View>
               </View>
             );
-          })}
-        </Animated.View>
-      )}
+          })
+        )}
+      </Animated.View>
 
       <Text style={styles.recentHeader}>Recent</Text>
 

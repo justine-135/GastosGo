@@ -228,6 +228,24 @@ export const styles = StyleSheet.create({
     fontWeight: '600',
     color: colors.brand,
   },
+  billsEmpty: {
+    paddingVertical: 20,
+    alignItems: 'center',
+  },
+  billsEmptyEmoji: {
+    fontSize: 28,
+    marginBottom: 6,
+  },
+  billsEmptyText: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: colors.navy,
+    marginBottom: 2,
+  },
+  billsEmptyMeta: {
+    fontSize: 13,
+    color: colors.gray,
+  },
   billRow: {
     flexDirection: 'row',
     alignItems: 'center',

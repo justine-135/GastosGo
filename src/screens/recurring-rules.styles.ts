@@ -1,5 +1,5 @@
-import { StyleSheet } from 'react-native';
-import { colors, shadows, spacing } from '../theme';
+import { StyleSheet } from "react-native";
+import { colors, shadows, spacing } from "../theme";
 
 export const styles = StyleSheet.create({
   container: {
@@ -7,19 +7,19 @@ export const styles = StyleSheet.create({
     backgroundColor: colors.bg,
   },
   scrollContent: {
-    paddingTop: spacing.navBarHeight + 16,
+    paddingTop: 20,
     paddingBottom: 100,
   },
   ruleCard: {
     marginHorizontal: 20,
     borderRadius: 16,
     backgroundColor: colors.card,
-    overflow: 'hidden',
+    overflow: "hidden",
     ...shadows.sm,
   },
   ruleRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     paddingHorizontal: 20,
     paddingVertical: 14,
   },
@@ -31,8 +31,8 @@ export const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 12,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
     marginRight: 12,
   },
   ruleEmoji: {
@@ -43,7 +43,7 @@ export const styles = StyleSheet.create({
   },
   ruleName: {
     fontSize: 15,
-    fontWeight: '500',
+    fontWeight: "500",
     color: colors.navy,
   },
   ruleMeta: {
@@ -52,13 +52,13 @@ export const styles = StyleSheet.create({
     marginTop: 2,
   },
   ruleRight: {
-    alignItems: 'flex-end',
+    alignItems: "flex-end",
   },
   ruleAmount: {
     fontSize: 15,
-    fontWeight: '600',
+    fontWeight: "600",
     color: colors.navy,
-    fontVariant: ['tabular-nums'],
+    fontVariant: ["tabular-nums"],
   },
   ruleDueDate: {
     fontSize: 12,
@@ -74,32 +74,32 @@ export const styles = StyleSheet.create({
   },
   inactiveBadgeText: {
     fontSize: 10,
-    fontWeight: '600',
+    fontWeight: "600",
     color: colors.gray,
-    textTransform: 'uppercase',
+    textTransform: "uppercase",
   },
   fab: {
-    position: 'absolute',
+    position: "absolute",
     bottom: 32,
     right: 20,
     width: 56,
     height: 56,
     borderRadius: 28,
     backgroundColor: colors.brand,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
     ...shadows.fab,
   },
   emptyState: {
     paddingVertical: 80,
-    alignItems: 'center',
+    alignItems: "center",
   },
   emptyEmoji: {
     fontSize: 48,
   },
   emptyTitle: {
     fontSize: 18,
-    fontWeight: '700',
+    fontWeight: "700",
     color: colors.navy,
     marginTop: 12,
   },

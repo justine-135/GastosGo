@@ -1,7 +1,6 @@
 import React, { useRef } from 'react';
 import { View, Text, Pressable, Animated } from 'react-native';
 import { BlurView } from 'expo-blur';
-import { Feather } from '@expo/vector-icons';
 import { colors, typography } from '../theme';
 import { styles } from './NavBar.styles';
 
@@ -48,7 +47,7 @@ export function NavBar({ title, onBack, rightLabel, onRight }: NavBarProps) {
               accessibilityRole="button"
               accessibilityLabel="Go back"
             >
-              <Feather name="chevron-left" size={24} color={colors.brand} />
+              <Text style={[typography.navRightAction, styles.backLabel]}>Back</Text>
             </Pressable>
           </Animated.View>
         ) : (
