@@ -1,6 +1,7 @@
 import { useCallback, useState } from 'react';
 import { Pressable, ScrollView, Text, View } from 'react-native';
 import { router, useFocusEffect } from 'expo-router';
+import Constants from 'expo-constants';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Feather } from '@expo/vector-icons';
 import { getDb } from '../../src/db';
@@ -142,7 +143,7 @@ export default function SettingsScreen() {
           <Feather name="trending-up" size={22} color={colors.card} />
         </LinearGradient>
         <Text style={styles.footerAppName}>GastosGo</Text>
-        <Text style={styles.footerVersion}>Version 0.1.0</Text>
+        <Text style={styles.footerVersion}>Version {Constants.expoConfig?.version}</Text>
       </View>
     </ScrollView>
   );
