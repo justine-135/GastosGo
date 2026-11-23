@@ -46,5 +46,47 @@ Deno.serve(async () => {
     });
   }
 
-  return Response.json({ sent, skipped });
+  const todayStr = new Date().toISOString().slice(0, 10);
+
+  const { data: staleRules } = await supabase
+    .from("recurring_rules")
+    .select("id, recurrence_day, frequency, next_due_date")
+    .eq("is_active", true)
+    .lte("next_due_date", todayStr);
+
+  for (const rule of staleRules ?? []) {
+    let cursor = rule.next_due_date as string;
+    while (cursor <= todayStr) {
+      const [y, m, d] = cursor.split("-").map(Number);
+      const dayAfter = new Date(y, m - 1, d + 1);
+
+      if (rule.frequency === "weekly") {
+        const dow = dayAfter.getDay();
+        const daysAhead = ((rule.recurrence_day as number) - dow + 7) % 7;
+        const nextDate = new Date(dayAfter);
+        nextDate.setDate(nextDate.getDate() + daysAhead);
+        cursor = nextDate.toISOString().slice(0, 10);
+      } else {
+        let month = dayAfter.getMonth();
+        let year = dayAfter.getFullYear();
+        const maxDay = new Date(year, month + 1, 0).getDate();
+        const clampedDay = Math.min(rule.recurrence_day as number, maxDay);
+        if (clampedDay >= dayAfter.getDate()) {
+          cursor = `${year}-${String(month + 1).padStart(2, "0")}-${String(clampedDay).padStart(2, "0")}`;
+        } else {
+          month++;
+          if (month > 11) { month = 0; year++; }
+          const nextMax = new Date(year, month + 1, 0).getDate();
+          cursor = `${year}-${String(month + 1).padStart(2, "0")}-${String(Math.min(rule.recurrence_day as number, nextMax)).padStart(2, "0")}`;
+        }
+      }
+    }
+
+    await supabase
+      .from("recurring_rules")
+      .update({ next_due_date: cursor, updated_at: new Date().toISOString() })
+      .eq("id", rule.id);
+  }
+
+  return Response.json({ sent, skipped, advanced: staleRules?.length ?? 0 });
 });

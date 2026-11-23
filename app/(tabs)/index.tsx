@@ -1,12 +1,14 @@
 import { useCallback, useRef, useEffect, useState } from 'react';
-import { Alert, Animated, ScrollView, Text, TouchableOpacity, View, ViewStyle } from 'react-native';
-import { useFocusEffect } from 'expo-router';
-import { setOnExpenseSaved } from '../../src/lib/expenseSavedBridge';
+import { Alert, Animated, Pressable, ScrollView, Text, TouchableOpacity, View, ViewStyle } from 'react-native';
+import { router, useFocusEffect } from 'expo-router';
+import { setOnExpenseSaved, notifyExpenseSaved } from '../../src/lib/expenseSavedBridge';
 import { getDb } from '../../src/db';
 import { listExpenses, softDeleteExpense, ExpenseRow } from '../../src/db/expenses';
 import { listCategories, CategoryRow } from '../../src/db/categories';
 import { loadSettings, AppSettings } from '../../src/db/settings';
 import { getLatestCycleSnapshot } from '../../src/db/cycleSnapshots';
+import { listUpcomingRules, RecurringRuleRow, markAsPaid, skipRule } from '../../src/db/recurringRules';
+import { computeMissedCount } from '../../src/utils/computeNextDueDate';
 import { cycleStartDate } from '../../src/utils/cycleDate';
 import { computeGap, GapResult } from '../../src/utils/computeGap';
 import { remainingSpendable, spendingCap, budgetedSpent } from '../../src/utils/computeSpendingCap';
@@ -25,6 +27,7 @@ interface HomeData {
   expenses: ExpenseRow[];
   categoriesById: Record<string, CategoryRow>;
   settings: AppSettings;
+  upcomingRules: RecurringRuleRow[];
 }
 
 function deriveIncome(settings: AppSettings): number {
@@ -98,6 +101,7 @@ export default function HomeScreen() {
       ? remainingSpendable(allCategories, loaded, settings.budgetCycleDay)
       : null;
     const cap = spendingCap(allCategories);
+    const upcomingRules = listUpcomingRules(db, today);
     setHomeData({
       gap,
       income: deriveIncome(settings),
@@ -108,6 +112,7 @@ export default function HomeScreen() {
       expenses: loaded,
       categoriesById: byId,
       settings,
+      upcomingRules,
     });
   }, []);
 
@@ -135,10 +140,11 @@ export default function HomeScreen() {
   const today = todayStr();
   const gapAnim = useEnterAnimation(60);
   const capAnim = useEnterAnimation(120);
+  const billsAnim = useEnterAnimation(180);
 
   if (!homeData) return <View style={styles.container} />;
 
-  const { gap, income, totalExpenses, spendable, cap, categories, expenses, categoriesById } = homeData;
+  const { gap, income, totalExpenses, spendable, cap, categories, expenses, categoriesById, upcomingRules } = homeData;
   const isOnTrack = gap.onTrack;
   const heroColor = isOnTrack ? colors.green : colors.red;
   const ringColor = isOnTrack ? colors.green : colors.red;
@@ -149,6 +155,27 @@ export default function HomeScreen() {
   const spentSoFar = cap - (spendable ?? 0);
   const capPct = cap > 0 ? Math.min(1, spentSoFar / cap) : 0;
   const barFillColor = capPct >= 1 ? colors.red : capPct >= 0.75 ? colors.amber : colors.green;
+
+  function dueLabel(nextDueDate: string): { text: string; color: string } {
+    if (nextDueDate < today) return { text: 'Overdue', color: colors.red };
+    if (nextDueDate === today) return { text: 'Due today', color: colors.amber };
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    const tomorrowStr = tomorrow.toISOString().slice(0, 10);
+    if (nextDueDate === tomorrowStr) return { text: 'Tomorrow', color: colors.navy };
+    return { text: fmtDate(nextDueDate, today), color: colors.gray };
+  }
+
+  function handleMarkAsPaid(ruleId: string) {
+    markAsPaid(getDb(), ruleId);
+    reload();
+    notifyExpenseSaved();
+  }
+
+  function handleSkip(ruleId: string) {
+    skipRule(getDb(), ruleId);
+    reload();
+  }
 
   return (
     <ScrollView
@@ -224,6 +251,50 @@ export default function HomeScreen() {
                 <Text style={[styles.catRemaining, remaining < 0 && { color: colors.red }]}>
                   {fmtPeso(remaining)}
                 </Text>
+              </View>
+            );
+          })}
+        </Animated.View>
+      )}
+
+      {upcomingRules.length > 0 && (
+        <Animated.View style={[styles.billsCard, billsAnim]}>
+          <View style={styles.billsHeader}>
+            <Text style={styles.billsHeaderTitle}>Upcoming Bills</Text>
+            <Pressable onPress={() => router.push('/recurring-rules')}>
+              <Text style={styles.billsSeeAll}>See All &gt;</Text>
+            </Pressable>
+          </View>
+          {upcomingRules.map((rule, index) => {
+            const category = rule.category_id ? categoriesById[rule.category_id] : undefined;
+            const iconBg = `${category?.color ?? '#8E8E93'}22`;
+            const due = dueLabel(rule.next_due_date);
+            const missedCount = computeMissedCount(rule.next_due_date, today, rule.recurrence_day, rule.frequency);
+            return (
+              <View key={rule.id} style={[styles.billRow, index > 0 && styles.billRowSep]}>
+                <View style={[styles.billIcon, { backgroundColor: iconBg }]}>
+                  <Text style={styles.expenseEmoji}>{category?.icon ?? '📦'}</Text>
+                </View>
+                <View style={styles.billMain}>
+                  <Text style={styles.billName}>{rule.name}</Text>
+                  <View style={styles.billMeta}>
+                    <Text style={[styles.billDueLabel, { color: due.color }]}>{due.text}</Text>
+                    {missedCount > 0 && (
+                      <View style={styles.missedBadge}>
+                        <Text style={styles.missedBadgeText}>{missedCount} missed</Text>
+                      </View>
+                    )}
+                  </View>
+                </View>
+                <Text style={styles.billAmount}>{fmtPeso(rule.amount)}</Text>
+                <View style={styles.billActions}>
+                  <Pressable style={styles.billPayButton} onPress={() => handleMarkAsPaid(rule.id)}>
+                    <Text style={styles.billPayText}>Pay</Text>
+                  </Pressable>
+                  <Pressable style={styles.billSkipButton} onPress={() => handleSkip(rule.id)}>
+                    <Text style={styles.billSkipText}>Skip</Text>
+                  </Pressable>
+                </View>
               </View>
             );
           })}
