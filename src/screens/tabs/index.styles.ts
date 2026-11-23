@@ -204,6 +204,110 @@ export const styles = StyleSheet.create({
     textAlign: 'right',
   },
 
+  billsCard: {
+    marginTop: 14,
+    marginHorizontal: 20,
+    borderRadius: 16,
+    backgroundColor: colors.card,
+    padding: 20,
+    ...shadows.sm,
+  },
+  billsHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  billsHeaderTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: colors.navy,
+  },
+  billsSeeAll: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: colors.brand,
+  },
+  billRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 10,
+  },
+  billRowSep: {
+    borderTopWidth: 0.5,
+    borderTopColor: colors.sep,
+  },
+  billIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 10,
+  },
+  billMain: {
+    flex: 1,
+  },
+  billName: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: colors.navy,
+  },
+  billMeta: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginTop: 2,
+  },
+  billDueLabel: {
+    fontSize: 12,
+    fontWeight: '500',
+  },
+  missedBadge: {
+    backgroundColor: colors.redBg,
+    borderRadius: 100,
+    paddingHorizontal: 6,
+    paddingVertical: 1,
+  },
+  missedBadgeText: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: colors.red,
+  },
+  billAmount: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: colors.navy,
+    fontVariant: ['tabular-nums'],
+    marginRight: 10,
+  },
+  billActions: {
+    flexDirection: 'row',
+    gap: 6,
+  },
+  billPayButton: {
+    backgroundColor: colors.brand,
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+  },
+  billPayText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#fff',
+  },
+  billSkipButton: {
+    backgroundColor: colors.grayLight,
+    borderRadius: 8,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+  },
+  billSkipText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: colors.gray,
+  },
+
   recentHeader: {
     fontSize: 20,
     fontWeight: '700',

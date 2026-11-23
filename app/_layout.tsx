@@ -104,6 +104,7 @@ export default function RootLayout() {
         <Stack.Screen name="settings/income-mode" options={{ headerShown: false }} />
         <Stack.Screen name="settings/budget-cycle" options={{ headerShown: false }} />
         <Stack.Screen name="settings/recently-deleted" options={{ headerShown: false }} />
+        <Stack.Screen name="recurring-rules" options={{ headerShown: false }} />
       </Stack>
       {cyclePromptData && (
         <NewCyclePrompt
