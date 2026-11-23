@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Animated, Dimensions, Platform, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
+import { Animated, Dimensions, Keyboard, Platform, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import {
   BottomSheetBackdrop,
   BottomSheetBackdropProps,
@@ -17,6 +17,7 @@ import { todayStr } from '../utils/fmtPeso';
 import { colors } from '../theme/colors';
 import { styles } from '../screens/add-expense.styles';
 import { registerAddExpenseSheet } from '../lib/addExpenseSheet';
+import { notifyExpenseSaved } from '../lib/expenseSavedBridge';
 
 const PAYMENT_METHODS = ['Cash', 'GCash', 'Card', 'Others'];
 const SLIDE_DURATION = 250;
@@ -96,6 +97,7 @@ export function AddExpenseSheet() {
       date,
       notes: notes.trim() || undefined,
     });
+    notifyExpenseSaved();
     sheetRef.current?.dismiss();
   }
 
@@ -136,7 +138,7 @@ export function AddExpenseSheet() {
               <Text style={styles.title}>Add Expense</Text>
             </View>
 
-            <View style={styles.sheetContent}>
+            <Pressable style={styles.sheetContent} onPress={Keyboard.dismiss}>
               <View style={styles.fieldGroup}>
                 <Text style={styles.label}>Amount</Text>
                 <View style={[styles.inputWrap, amountFocused && styles.inputWrapFocused]}>
@@ -236,7 +238,7 @@ export function AddExpenseSheet() {
                   </LinearGradient>
                 </Pressable>
               </Animated.View>
-            </View>
+            </Pressable>
           </View>
 
           {/* Category picker page */}

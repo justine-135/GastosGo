@@ -1,6 +1,7 @@
 import { useCallback, useRef, useEffect, useState } from 'react';
 import { Alert, Animated, ScrollView, Text, TouchableOpacity, View, ViewStyle } from 'react-native';
 import { useFocusEffect } from 'expo-router';
+import { setOnExpenseSaved } from '../../src/lib/expenseSavedBridge';
 import { getDb } from '../../src/db';
 import { listExpenses, softDeleteExpense, ExpenseRow } from '../../src/db/expenses';
 import { listCategories, CategoryRow } from '../../src/db/categories';
@@ -111,6 +112,11 @@ export default function HomeScreen() {
   }, []);
 
   useFocusEffect(reload);
+
+  useEffect(() => {
+    setOnExpenseSaved(reload);
+    return () => setOnExpenseSaved(null);
+  }, [reload]);
 
   const handleDelete = useCallback((expense: ExpenseRow) => {
     Alert.alert('Delete Expense', 'Move this expense to Recently Deleted?', [
