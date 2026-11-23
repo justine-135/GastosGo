@@ -1,11 +1,197 @@
-<svg width="390" height="844" xmlns="http://www.w3.org/2000/svg">
-  <rect width="390" height="844" fill="#1A1A2E"/>
-  <rect x="20" y="60" width="350" height="180" rx="16" fill="#16213E"/>
-  <text x="195" y="130" font-family="system-ui,sans-serif" font-size="14" fill="#8B8FA8" text-anchor="middle">Savings Gap</text>
-  <text x="195" y="175" font-family="system-ui,sans-serif" font-size="40" font-weight="700" fill="#E94560" text-anchor="middle">−₱1,240</text>
-  <text x="195" y="215" font-family="system-ui,sans-serif" font-size="13" fill="#8B8FA8" text-anchor="middle">vs ₱5,000 target</text>
-  <rect x="20" y="260" width="350" height="80" rx="12" fill="#16213E"/>
-  <rect x="20" y="360" width="350" height="80" rx="12" fill="#16213E"/>
-  <rect x="20" y="460" width="350" height="80" rx="12" fill="#16213E"/>
-  <text x="195" y="780" font-family="system-ui,sans-serif" font-size="12" fill="#444" text-anchor="middle">Home — screenshot placeholder</text>
+<svg width="390" height="844" viewBox="0 0 390 844" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <filter id="sh-md" x="-4%" y="-2%" width="108%" height="108%">
+      <feDropShadow dx="0" dy="4" stdDeviation="10" flood-color="#000" flood-opacity="0.09"/>
+      <feDropShadow dx="0" dy="1" stdDeviation="2" flood-color="#000" flood-opacity="0.05"/>
+    </filter>
+    <filter id="sh-sm" x="-2%" y="-2%" width="104%" height="106%">
+      <feDropShadow dx="0" dy="1" stdDeviation="1.5" flood-color="#000" flood-opacity="0.07"/>
+      <feDropShadow dx="0" dy="2" stdDeviation="5" flood-color="#000" flood-opacity="0.05"/>
+    </filter>
+    <filter id="sh-fab" x="-20%" y="-10%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="4" stdDeviation="8" flood-color="#4F6EF7" flood-opacity="0.40"/>
+    </filter>
+    <linearGradient id="fab-grad" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#7389F9"/>
+      <stop offset="100%" stop-color="#4F6EF7"/>
+    </linearGradient>
+    <clipPath id="screen-clip">
+      <rect width="390" height="844" rx="0"/>
+    </clipPath>
+  </defs>
+
+  <!-- Background -->
+  <rect width="390" height="844" fill="#F7F7F9" clip-path="url(#screen-clip)"/>
+
+  <!-- Status Bar -->
+  <text x="24" y="36" font-family="Inter,system-ui,sans-serif" font-size="15" font-weight="700" fill="#111827" letter-spacing="-0.3">9:41</text>
+  <!-- Battery + signal icons (simplified) -->
+  <rect x="336" y="26" width="22" height="11" rx="2" stroke="#111827" stroke-width="1.2" fill="none"/>
+  <rect x="359" y="29.5" width="2" height="4" rx="1" fill="#111827" opacity="0.4"/>
+  <rect x="338" y="28" width="18" height="7" rx="1" fill="#111827"/>
+  <!-- Signal bars -->
+  <rect x="306" y="32" width="3" height="5" rx="0.5" fill="#111827"/>
+  <rect x="311" y="29" width="3" height="8" rx="0.5" fill="#111827"/>
+  <rect x="316" y="26" width="3" height="11" rx="0.5" fill="#111827"/>
+  <rect x="321" y="23" width="3" height="14" rx="0.5" fill="#111827"/>
+
+  <!-- ═══ SAVINGS GAP CARD ═══ -->
+  <rect x="20" y="60" width="350" height="262" rx="24" fill="#FFFFFF" filter="url(#sh-md)"/>
+  <!-- Decorative circle -->
+  <circle cx="330" cy="10" r="90" stroke="#0D9488" stroke-width="22" fill="none" opacity="0.1"/>
+  <!-- Clip the decorative circle to the card area -->
+
+  <!-- Label -->
+  <text x="44" y="100" font-family="Inter,system-ui,sans-serif" font-size="13" font-weight="600" fill="#6B7280" letter-spacing="0.5" text-transform="uppercase">SAVINGS GAP · NOVEMBER 2026</text>
+
+  <!-- Amount -->
+  <text x="44" y="152" font-family="Inter,system-ui,sans-serif" font-size="48" font-weight="800" fill="#0D9488" letter-spacing="-2.5">₱9,500</text>
+
+  <!-- Status pill -->
+  <rect x="44" y="166" width="88" height="24" rx="12" fill="#CCFBF1"/>
+  <text x="58" y="182.5" font-family="Inter,system-ui,sans-serif" font-size="12" font-weight="700" fill="#0D9488">✓ On Track</text>
+  <!-- Status text -->
+  <text x="140" y="183" font-family="Inter,system-ui,sans-serif" font-size="13" fill="#6B7280">Saving ₱9,500 more than expected</text>
+
+  <!-- Divider rows -->
+  <line x1="44" y1="202" x2="346" y2="202" stroke="#000" stroke-opacity="0.07" stroke-width="0.5"/>
+  <text x="44" y="222" font-family="Inter,system-ui,sans-serif" font-size="13" fill="#6B7280">Actual Savings</text>
+  <text x="346" y="222" font-family="Inter,system-ui,sans-serif" font-size="14" font-weight="600" fill="#111827" text-anchor="end">₱16,500</text>
+
+  <line x1="44" y1="236" x2="346" y2="236" stroke="#000" stroke-opacity="0.07" stroke-width="0.5"/>
+  <text x="44" y="256" font-family="Inter,system-ui,sans-serif" font-size="13" fill="#6B7280">Expected Savings</text>
+  <text x="346" y="256" font-family="Inter,system-ui,sans-serif" font-size="14" font-weight="600" fill="#111827" text-anchor="end">₱7,000</text>
+
+  <line x1="44" y1="270" x2="346" y2="270" stroke="#000" stroke-opacity="0.07" stroke-width="0.5"/>
+  <text x="44" y="290" font-family="Inter,system-ui,sans-serif" font-size="13" fill="#6B7280">Total Spent</text>
+  <text x="346" y="290" font-family="Inter,system-ui,sans-serif" font-size="14" font-weight="600" fill="#111827" text-anchor="end">₱18,500</text>
+
+  <!-- ═══ SPENDING CAP CARD ═══ -->
+  <rect x="20" y="336" width="350" height="290" rx="16" fill="#FFFFFF" filter="url(#sh-sm)"/>
+  <!-- Decorative circle bottom-right -->
+  <clipPath id="cap-clip"><rect x="20" y="336" width="350" height="290" rx="16"/></clipPath>
+  <circle cx="380" cy="636" r="90" stroke="#0D9488" stroke-width="24" fill="none" opacity="0.08" clip-path="url(#cap-clip)"/>
+
+  <!-- Header left -->
+  <text x="40" y="362" font-family="Inter,system-ui,sans-serif" font-size="13" font-weight="600" fill="#6B7280" letter-spacing="0.5">SPENDING CAP</text>
+  <text x="40" y="378" font-family="Inter,system-ui,sans-serif" font-size="12" fill="#6B7280">Nov 2026 · 18 of 30 days</text>
+  <!-- Header right -->
+  <text x="350" y="362" font-family="Inter,system-ui,sans-serif" font-size="24" font-weight="800" fill="#111827" text-anchor="end" letter-spacing="-1">₱5,900</text>
+  <text x="350" y="378" font-family="Inter,system-ui,sans-serif" font-size="12" fill="#6B7280" text-anchor="end">of ₱16,500 cap</text>
+
+  <!-- Progress bar -->
+  <rect x="40" y="390" width="310" height="6" rx="3" fill="#F3F4F6"/>
+  <rect x="40" y="390" width="198" height="6" rx="3" fill="#0D9488"/>
+
+  <!-- Category rows -->
+  <!-- Food -->
+  <text x="42" y="420" font-family="Apple Color Emoji,Segoe UI Emoji,sans-serif" font-size="15">🍜</text>
+  <text x="64" y="420" font-family="Inter,system-ui,sans-serif" font-size="13" font-weight="500" fill="#111827">Food</text>
+  <rect x="130" y="414" width="150" height="5" rx="2.5" fill="#F3F4F6"/>
+  <rect x="130" y="414" width="55" height="5" rx="2.5" fill="#0D9488"/>
+  <text x="350" y="420" font-family="Inter,system-ui,sans-serif" font-size="13" font-weight="600" fill="#111827" text-anchor="end">₱3,230</text>
+
+  <!-- Transport -->
+  <text x="42" y="446" font-family="Apple Color Emoji,Segoe UI Emoji,sans-serif" font-size="15">🚌</text>
+  <text x="64" y="446" font-family="Inter,system-ui,sans-serif" font-size="13" font-weight="500" fill="#111827">Transport</text>
+  <rect x="130" y="440" width="150" height="5" rx="2.5" fill="#F3F4F6"/>
+  <rect x="130" y="440" width="60" height="5" rx="2.5" fill="#0D9488"/>
+  <text x="350" y="446" font-family="Inter,system-ui,sans-serif" font-size="13" font-weight="600" fill="#111827" text-anchor="end">₱1,220</text>
+
+  <!-- Entertainment -->
+  <text x="42" y="472" font-family="Apple Color Emoji,Segoe UI Emoji,sans-serif" font-size="15">🎬</text>
+  <text x="64" y="472" font-family="Inter,system-ui,sans-serif" font-size="13" font-weight="500" fill="#111827">Entertainment</text>
+  <rect x="155" y="466" width="125" height="5" rx="2.5" fill="#F3F4F6"/>
+  <rect x="155" y="466" width="123" height="5" rx="2.5" fill="#D97706"/>
+  <text x="350" y="472" font-family="Inter,system-ui,sans-serif" font-size="13" font-weight="600" fill="#111827" text-anchor="end">₱21</text>
+
+  <!-- Utilities -->
+  <text x="42" y="498" font-family="Apple Color Emoji,Segoe UI Emoji,sans-serif" font-size="15">⚡</text>
+  <text x="64" y="498" font-family="Inter,system-ui,sans-serif" font-size="13" font-weight="500" fill="#111827">Utilities</text>
+  <rect x="130" y="492" width="150" height="5" rx="2.5" fill="#F3F4F6"/>
+  <rect x="130" y="492" width="81" height="5" rx="2.5" fill="#D97706"/>
+  <text x="350" y="498" font-family="Inter,system-ui,sans-serif" font-size="13" font-weight="600" fill="#111827" text-anchor="end">₱750</text>
+
+  <!-- Health -->
+  <text x="42" y="524" font-family="Apple Color Emoji,Segoe UI Emoji,sans-serif" font-size="15">💊</text>
+  <text x="64" y="524" font-family="Inter,system-ui,sans-serif" font-size="13" font-weight="500" fill="#111827">Health</text>
+  <rect x="130" y="518" width="150" height="5" rx="2.5" fill="#F3F4F6"/>
+  <rect x="130" y="518" width="69" height="5" rx="2.5" fill="#0D9488"/>
+  <text x="350" y="524" font-family="Inter,system-ui,sans-serif" font-size="13" font-weight="600" fill="#111827" text-anchor="end">₱1,080</text>
+
+  <!-- Shopping -->
+  <text x="42" y="550" font-family="Apple Color Emoji,Segoe UI Emoji,sans-serif" font-size="15">🛍</text>
+  <text x="64" y="550" font-family="Inter,system-ui,sans-serif" font-size="13" font-weight="500" fill="#111827">Shopping</text>
+  <rect x="130" y="544" width="150" height="5" rx="2.5" fill="#F3F4F6"/>
+  <rect x="130" y="544" width="90" height="5" rx="2.5" fill="#D97706"/>
+  <text x="350" y="550" font-family="Inter,system-ui,sans-serif" font-size="13" font-weight="600" fill="#111827" text-anchor="end">₱1,200</text>
+
+  <!-- ═══ RECENT SECTION ═══ -->
+  <text x="20" y="654" font-family="Inter,system-ui,sans-serif" font-size="20" font-weight="700" fill="#111827" letter-spacing="-0.5">Recent</text>
+
+  <rect x="20" y="666" width="350" height="96" rx="16" fill="#FFFFFF" filter="url(#sh-sm)"/>
+
+  <!-- Expense row 1 -->
+  <rect x="34" y="674" width="32" height="32" rx="8" fill="#FF634822"/>
+  <text x="42" y="696" font-family="Apple Color Emoji,Segoe UI Emoji,sans-serif" font-size="14" text-anchor="middle">🍜</text>
+  <text x="76" y="688" font-family="Inter,system-ui,sans-serif" font-size="14" font-weight="500" fill="#111827">Jollibee</text>
+  <text x="76" y="702" font-family="Inter,system-ui,sans-serif" font-size="11" fill="#6B7280">Food · GCash · Today</text>
+  <text x="352" y="694" font-family="Inter,system-ui,sans-serif" font-size="14" font-weight="600" fill="#111827" text-anchor="end">−₱350</text>
+
+  <!-- Separator -->
+  <line x1="76" y1="710" x2="356" y2="710" stroke="#000" stroke-opacity="0.07" stroke-width="0.5"/>
+
+  <!-- Expense row 2 -->
+  <rect x="34" y="718" width="32" height="32" rx="8" fill="#FF634822"/>
+  <text x="42" y="740" font-family="Apple Color Emoji,Segoe UI Emoji,sans-serif" font-size="14" text-anchor="middle">🍜</text>
+  <text x="76" y="732" font-family="Inter,system-ui,sans-serif" font-size="14" font-weight="500" fill="#111827">Groceries — SM</text>
+  <text x="76" y="746" font-family="Inter,system-ui,sans-serif" font-size="11" fill="#6B7280">Food · GCash · Yesterday</text>
+  <text x="352" y="738" font-family="Inter,system-ui,sans-serif" font-size="14" font-weight="600" fill="#111827" text-anchor="end">−₱1,200</text>
+
+  <!-- ═══ TAB BAR ═══ -->
+  <rect x="0" y="761" width="390" height="83" fill="#FFFFFFE0"/>
+  <!-- Top border -->
+  <line x1="0" y1="761" x2="390" y2="761" stroke="#000" stroke-opacity="0.07" stroke-width="0.5"/>
+
+  <!-- Home tab (active) -->
+  <g transform="translate(39,775)">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#4F6EF7" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+      <polyline points="9 22 9 12 15 12 15 22"/>
+    </svg>
+    <text x="12" y="34" font-family="Inter,system-ui,sans-serif" font-size="10" font-weight="500" fill="#4F6EF7" text-anchor="middle">Home</text>
+  </g>
+
+  <!-- History tab -->
+  <g transform="translate(117,775)">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#D1D5DB" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="12" cy="12" r="10"/>
+      <polyline points="12 6 12 12 16 14"/>
+    </svg>
+    <text x="12" y="34" font-family="Inter,system-ui,sans-serif" font-size="10" font-weight="500" fill="#D1D5DB" text-anchor="middle">History</text>
+  </g>
+
+  <!-- FAB + button -->
+  <circle cx="195" cy="785" r="25" fill="url(#fab-grad)" filter="url(#sh-fab)"/>
+  <line x1="195" y1="775" x2="195" y2="795" stroke="white" stroke-width="2.5" stroke-linecap="round"/>
+  <line x1="185" y1="785" x2="205" y2="785" stroke="white" stroke-width="2.5" stroke-linecap="round"/>
+
+  <!-- Budgets tab -->
+  <g transform="translate(249,775)">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#D1D5DB" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <line x1="18" y1="20" x2="18" y2="10"/>
+      <line x1="12" y1="20" x2="12" y2="4"/>
+      <line x1="6" y1="20" x2="6" y2="14"/>
+    </svg>
+    <text x="12" y="34" font-family="Inter,system-ui,sans-serif" font-size="10" font-weight="500" fill="#D1D5DB" text-anchor="middle">Budgets</text>
+  </g>
+
+  <!-- Settings tab -->
+  <g transform="translate(327,775)">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#D1D5DB" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="12" cy="12" r="3"/>
+      <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+    </svg>
+    <text x="12" y="34" font-family="Inter,system-ui,sans-serif" font-size="10" font-weight="500" fill="#D1D5DB" text-anchor="middle">Settings</text>
+  </g>
 </svg>

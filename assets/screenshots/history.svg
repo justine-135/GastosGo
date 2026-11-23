@@ -1,23 +1,143 @@
-<svg width="390" height="844" xmlns="http://www.w3.org/2000/svg">
-  <rect width="390" height="844" fill="#1A1A2E"/>
-  <text x="195" y="80" font-family="system-ui,sans-serif" font-size="20" font-weight="700" fill="#E0E0E0" text-anchor="middle">History</text>
-  <text x="36" y="130" font-family="system-ui,sans-serif" font-size="13" fill="#8B8FA8">Today</text>
-  <rect x="20" y="144" width="350" height="64" rx="10" fill="#16213E"/>
-  <rect x="36" y="160" width="140" height="12" rx="3" fill="#0F3460"/>
-  <rect x="36" y="180" width="80" height="10" rx="3" fill="#0F3460"/>
-  <text x="354" y="175" font-family="system-ui,sans-serif" font-size="14" font-weight="600" fill="#E94560" text-anchor="end">−₱320</text>
-  <rect x="20" y="220" width="350" height="64" rx="10" fill="#16213E"/>
-  <rect x="36" y="236" width="120" height="12" rx="3" fill="#0F3460"/>
-  <rect x="36" y="256" width="90" height="10" rx="3" fill="#0F3460"/>
-  <text x="354" y="251" font-family="system-ui,sans-serif" font-size="14" font-weight="600" fill="#E94560" text-anchor="end">−₱85</text>
-  <text x="36" y="310" font-family="system-ui,sans-serif" font-size="13" fill="#8B8FA8">Yesterday</text>
-  <rect x="20" y="324" width="350" height="64" rx="10" fill="#16213E"/>
-  <rect x="36" y="340" width="160" height="12" rx="3" fill="#0F3460"/>
-  <rect x="36" y="360" width="70" height="10" rx="3" fill="#0F3460"/>
-  <text x="354" y="355" font-family="system-ui,sans-serif" font-size="14" font-weight="600" fill="#E94560" text-anchor="end">−₱1,200</text>
-  <rect x="20" y="400" width="350" height="64" rx="10" fill="#16213E"/>
-  <rect x="36" y="416" width="100" height="12" rx="3" fill="#0F3460"/>
-  <rect x="36" y="436" width="110" height="10" rx="3" fill="#0F3460"/>
-  <text x="354" y="431" font-family="system-ui,sans-serif" font-size="14" font-weight="600" fill="#E94560" text-anchor="end">−₱450</text>
-  <text x="195" y="835" font-family="system-ui,sans-serif" font-size="12" fill="#444" text-anchor="middle">History — screenshot placeholder</text>
+<svg width="390" height="844" viewBox="0 0 390 844" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <clipPath id="screen"><rect width="390" height="844" rx="40"/></clipPath>
+    <linearGradient id="fab-grad" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#7389F9"/>
+      <stop offset="100%" stop-color="#4F6EF7"/>
+    </linearGradient>
+  </defs>
+
+  <g clip-path="url(#screen)">
+    <!-- Background -->
+    <rect width="390" height="844" fill="#F7F7F9"/>
+
+    <!-- Status bar -->
+    <text x="24" y="36" font-family="Inter, -apple-system, BlinkMacSystemFont, sans-serif" font-size="15" font-weight="700" fill="#111827" letter-spacing="-0.3">9:41</text>
+    <text x="366" y="36" font-family="Inter, -apple-system, BlinkMacSystemFont, sans-serif" font-size="13" font-weight="700" fill="#111827" text-anchor="end">100%</text>
+
+    <!-- Header -->
+    <text x="20" y="80" font-family="Inter, -apple-system, BlinkMacSystemFont, sans-serif" font-size="28" font-weight="800" fill="#111827" letter-spacing="-1">History</text>
+    <text x="20" y="100" font-family="Inter, -apple-system, BlinkMacSystemFont, sans-serif" font-size="13" fill="#6B7280">November 2026</text>
+
+    <!-- ═══ TODAY ═══ -->
+    <text x="20" y="136" font-family="Inter, -apple-system, BlinkMacSystemFont, sans-serif" font-size="13" font-weight="600" fill="#6B7280" letter-spacing="0.5">TODAY</text>
+    <rect x="310" y="122" width="60" height="22" rx="11" fill="#F3F4F6"/>
+    <text x="340" y="137" font-family="Inter, -apple-system, BlinkMacSystemFont, sans-serif" font-size="13" font-weight="600" fill="#111827" text-anchor="middle">−₱350</text>
+
+    <!-- Card: Today -->
+    <rect x="20" y="148" width="350" height="56" rx="16" fill="#FFFFFF"/>
+    <!-- Row: Jollibee -->
+    <rect x="34" y="156" width="40" height="40" rx="12" fill="#FF6348" fill-opacity="0.13"/>
+    <text x="54" y="181" font-family="'Segoe UI Emoji', 'Apple Color Emoji', sans-serif" font-size="18" text-anchor="middle">🍜</text>
+    <text x="86" y="175" font-family="Inter, -apple-system, BlinkMacSystemFont, sans-serif" font-size="15" font-weight="500" fill="#111827">Jollibee</text>
+    <text x="86" y="192" font-family="Inter, -apple-system, BlinkMacSystemFont, sans-serif" font-size="12" fill="#6B7280">Food · GCash</text>
+    <text x="356" y="178" font-family="Inter, -apple-system, BlinkMacSystemFont, sans-serif" font-size="15" font-weight="600" fill="#111827" text-anchor="end">−₱350</text>
+
+    <!-- ═══ YESTERDAY ═══ -->
+    <text x="20" y="236" font-family="Inter, -apple-system, BlinkMacSystemFont, sans-serif" font-size="13" font-weight="600" fill="#6B7280" letter-spacing="0.5">YESTERDAY</text>
+    <rect x="298" y="222" width="72" height="22" rx="11" fill="#F3F4F6"/>
+    <text x="334" y="237" font-family="Inter, -apple-system, BlinkMacSystemFont, sans-serif" font-size="13" font-weight="600" fill="#111827" text-anchor="middle">−₱1,380</text>
+
+    <!-- Card: Yesterday -->
+    <rect x="20" y="248" width="350" height="113" rx="16" fill="#FFFFFF"/>
+    <!-- Row: Groceries -->
+    <rect x="34" y="258" width="40" height="40" rx="12" fill="#FF6348" fill-opacity="0.13"/>
+    <text x="54" y="283" font-family="'Segoe UI Emoji', 'Apple Color Emoji', sans-serif" font-size="18" text-anchor="middle">🍜</text>
+    <text x="86" y="277" font-family="Inter, -apple-system, BlinkMacSystemFont, sans-serif" font-size="15" font-weight="500" fill="#111827">Groceries — SM</text>
+    <text x="86" y="294" font-family="Inter, -apple-system, BlinkMacSystemFont, sans-serif" font-size="12" fill="#6B7280">Food · GCash</text>
+    <text x="356" y="280" font-family="Inter, -apple-system, BlinkMacSystemFont, sans-serif" font-size="15" font-weight="600" fill="#111827" text-anchor="end">−₱1,200</text>
+    <!-- Separator -->
+    <line x1="86" y1="306" x2="356" y2="306" stroke="#000000" stroke-opacity="0.07" stroke-width="0.5"/>
+    <!-- Row: Jeepney -->
+    <rect x="34" y="314" width="40" height="40" rx="12" fill="#3B82F6" fill-opacity="0.13"/>
+    <text x="54" y="339" font-family="'Segoe UI Emoji', 'Apple Color Emoji', sans-serif" font-size="18" text-anchor="middle">🚌</text>
+    <text x="86" y="333" font-family="Inter, -apple-system, BlinkMacSystemFont, sans-serif" font-size="15" font-weight="500" fill="#111827">Jeepney &amp; MRT</text>
+    <text x="86" y="350" font-family="Inter, -apple-system, BlinkMacSystemFont, sans-serif" font-size="12" fill="#6B7280">Transport · Cash</text>
+    <text x="356" y="336" font-family="Inter, -apple-system, BlinkMacSystemFont, sans-serif" font-size="15" font-weight="600" fill="#111827" text-anchor="end">−₱180</text>
+
+    <!-- ═══ NOV 16 ═══ -->
+    <text x="20" y="393" font-family="Inter, -apple-system, BlinkMacSystemFont, sans-serif" font-size="13" font-weight="600" fill="#6B7280" letter-spacing="0.5">NOV 16</text>
+    <rect x="310" y="379" width="60" height="22" rx="11" fill="#F3F4F6"/>
+    <text x="340" y="394" font-family="Inter, -apple-system, BlinkMacSystemFont, sans-serif" font-size="13" font-weight="600" fill="#111827" text-anchor="middle">−₱499</text>
+
+    <!-- Card: Nov 16 -->
+    <rect x="20" y="405" width="350" height="56" rx="16" fill="#FFFFFF"/>
+    <rect x="34" y="413" width="40" height="40" rx="12" fill="#8B5CF6" fill-opacity="0.13"/>
+    <text x="54" y="438" font-family="'Segoe UI Emoji', 'Apple Color Emoji', sans-serif" font-size="18" text-anchor="middle">🎬</text>
+    <text x="86" y="432" font-family="Inter, -apple-system, BlinkMacSystemFont, sans-serif" font-size="15" font-weight="500" fill="#111827">Netflix</text>
+    <text x="86" y="449" font-family="Inter, -apple-system, BlinkMacSystemFont, sans-serif" font-size="12" fill="#6B7280">Entertainment · Card</text>
+    <text x="356" y="435" font-family="Inter, -apple-system, BlinkMacSystemFont, sans-serif" font-size="15" font-weight="600" fill="#111827" text-anchor="end">−₱499</text>
+
+    <!-- ═══ NOV 15 ═══ -->
+    <text x="20" y="493" font-family="Inter, -apple-system, BlinkMacSystemFont, sans-serif" font-size="13" font-weight="600" fill="#6B7280" letter-spacing="0.5">NOV 15</text>
+    <rect x="310" y="479" width="60" height="22" rx="11" fill="#F3F4F6"/>
+    <text x="340" y="494" font-family="Inter, -apple-system, BlinkMacSystemFont, sans-serif" font-size="13" font-weight="600" fill="#111827" text-anchor="middle">−₱850</text>
+
+    <!-- Card: Nov 15 -->
+    <rect x="20" y="505" width="350" height="56" rx="16" fill="#FFFFFF"/>
+    <rect x="34" y="513" width="40" height="40" rx="12" fill="#FF6348" fill-opacity="0.13"/>
+    <text x="54" y="538" font-family="'Segoe UI Emoji', 'Apple Color Emoji', sans-serif" font-size="18" text-anchor="middle">🍜</text>
+    <text x="86" y="532" font-family="Inter, -apple-system, BlinkMacSystemFont, sans-serif" font-size="15" font-weight="500" fill="#111827">Dinner with pamilya</text>
+    <text x="86" y="549" font-family="Inter, -apple-system, BlinkMacSystemFont, sans-serif" font-size="12" fill="#6B7280">Food · GCash</text>
+    <text x="356" y="535" font-family="Inter, -apple-system, BlinkMacSystemFont, sans-serif" font-size="15" font-weight="600" fill="#111827" text-anchor="end">−₱850</text>
+
+    <!-- ═══ NOV 14 ═══ -->
+    <text x="20" y="593" font-family="Inter, -apple-system, BlinkMacSystemFont, sans-serif" font-size="13" font-weight="600" fill="#6B7280" letter-spacing="0.5">NOV 14</text>
+    <rect x="300" y="579" width="70" height="22" rx="11" fill="#F3F4F6"/>
+    <text x="335" y="594" font-family="Inter, -apple-system, BlinkMacSystemFont, sans-serif" font-size="13" font-weight="600" fill="#111827" text-anchor="middle">−₱2,500</text>
+
+    <!-- Card: Nov 14 -->
+    <rect x="20" y="605" width="350" height="56" rx="16" fill="#FFFFFF"/>
+    <rect x="34" y="613" width="40" height="40" rx="12" fill="#F59E0B" fill-opacity="0.13"/>
+    <text x="54" y="638" font-family="'Segoe UI Emoji', 'Apple Color Emoji', sans-serif" font-size="18" text-anchor="middle">⚡</text>
+    <text x="86" y="632" font-family="Inter, -apple-system, BlinkMacSystemFont, sans-serif" font-size="15" font-weight="500" fill="#111827">Meralco bill</text>
+    <text x="86" y="649" font-family="Inter, -apple-system, BlinkMacSystemFont, sans-serif" font-size="12" fill="#6B7280">Utilities · Card</text>
+    <text x="356" y="635" font-family="Inter, -apple-system, BlinkMacSystemFont, sans-serif" font-size="15" font-weight="600" fill="#111827" text-anchor="end">−₱2,500</text>
+
+    <!-- ═══ TAB BAR ═══ -->
+    <rect x="0" y="761" width="390" height="83" fill="#FFFFFF" fill-opacity="0.88"/>
+    <line x1="0" y1="761" x2="390" y2="761" stroke="#000000" stroke-opacity="0.07" stroke-width="0.5"/>
+
+    <!-- Home tab -->
+    <g transform="translate(39, 777)">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#D1D5DB" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+        <polyline points="9 22 9 12 15 12 15 22"/>
+      </svg>
+      <text x="12" y="34" font-family="Inter, -apple-system, BlinkMacSystemFont, sans-serif" font-size="10" font-weight="500" fill="#D1D5DB" text-anchor="middle">Home</text>
+    </g>
+
+    <!-- History tab (active) -->
+    <g transform="translate(117, 777)">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#4F6EF7" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="10"/>
+        <polyline points="12 6 12 12 16 14"/>
+      </svg>
+      <text x="12" y="34" font-family="Inter, -apple-system, BlinkMacSystemFont, sans-serif" font-size="10" font-weight="500" fill="#4F6EF7" text-anchor="middle">History</text>
+    </g>
+
+    <!-- FAB -->
+    <circle cx="195" cy="786" r="25" fill="url(#fab-grad)"/>
+    <line x1="195" y1="775" x2="195" y2="797" stroke="white" stroke-width="2.5" stroke-linecap="round"/>
+    <line x1="184" y1="786" x2="206" y2="786" stroke="white" stroke-width="2.5" stroke-linecap="round"/>
+
+    <!-- Budgets tab -->
+    <g transform="translate(273, 777)">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#D1D5DB" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="18" y1="20" x2="18" y2="10"/>
+        <line x1="12" y1="20" x2="12" y2="4"/>
+        <line x1="6" y1="20" x2="6" y2="14"/>
+      </svg>
+      <text x="12" y="34" font-family="Inter, -apple-system, BlinkMacSystemFont, sans-serif" font-size="10" font-weight="500" fill="#D1D5DB" text-anchor="middle">Budgets</text>
+    </g>
+
+    <!-- Settings tab -->
+    <g transform="translate(351, 777)">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#D1D5DB" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="3"/>
+        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+      </svg>
+      <text x="12" y="34" font-family="Inter, -apple-system, BlinkMacSystemFont, sans-serif" font-size="10" font-weight="500" fill="#D1D5DB" text-anchor="middle">Settings</text>
+    </g>
+  </g>
 </svg>
