@@ -101,6 +101,15 @@ export default function SettingsScreen() {
     route: '/recurring-rules',
   };
 
+  const resetCycleRow: SettingsRow = {
+    icon: 'refresh-cw',
+    iconBg: colors.amberBg,
+    iconColor: colors.amber,
+    title: 'Reset Current Cycle',
+    subtitle: '',
+    route: '/settings/reset-cycle',
+  };
+
   const dataRow: SettingsRow = {
     icon: 'trash-2',
     iconBg: colors.redBg,
@@ -124,6 +133,7 @@ export default function SettingsScreen() {
       <Text style={styles.sectionLabel}>Data</Text>
       <View style={styles.card}>
         <ListRow row={recurringRow} isFirst />
+        <ListRow row={resetCycleRow} isFirst={false} />
         <ListRow row={dataRow} isFirst={false} />
       </View>
 
