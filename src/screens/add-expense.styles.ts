@@ -24,14 +24,6 @@ export const styles = StyleSheet.create({
     fontWeight: '700',
     color: colors.navy,
   },
-  closeButton: {
-    width: 30,
-    height: 30,
-    borderRadius: 15,
-    backgroundColor: colors.grayLight,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
   sheetContent: {
     paddingHorizontal: 20,
     paddingBottom: 32,
