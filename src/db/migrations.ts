@@ -91,6 +91,36 @@ export function runMigrations(db: DbDriver): void {
   try {
     db.execute(`ALTER TABLE expenses ADD COLUMN recurring_rule_id TEXT`);
   } catch { /* already exists */ }
+  const rrCols = db.query<{ name: string }>(`PRAGMA table_info(recurring_rules)`).map(c => c.name);
+  if (rrCols.includes('user_id') || !rrCols.includes('recurrence_day')) {
+    db.execute(`DROP TABLE IF EXISTS recurring_rules`);
+    db.execute(`CREATE TABLE recurring_rules (
+      id              TEXT PRIMARY KEY,
+      name            TEXT NOT NULL,
+      amount          REAL NOT NULL,
+      category_id     TEXT REFERENCES categories(id) ON DELETE SET NULL,
+      frequency       TEXT NOT NULL,
+      recurrence_day  INTEGER NOT NULL,
+      next_due_date   TEXT NOT NULL,
+      behaviour       TEXT NOT NULL DEFAULT 'remind_me',
+      is_active       INTEGER NOT NULL DEFAULT 1,
+      payment_method  TEXT NOT NULL DEFAULT 'Cash',
+      created_at      TEXT NOT NULL DEFAULT (datetime('now')),
+      updated_at      TEXT NOT NULL DEFAULT (datetime('now'))
+    )`);
+  }
+  try {
+    db.execute(`ALTER TABLE recurring_rules ADD COLUMN recurrence_day INTEGER NOT NULL DEFAULT 1`);
+  } catch { /* already exists */ }
+  try {
+    db.execute(`ALTER TABLE recurring_rules ADD COLUMN behaviour TEXT NOT NULL DEFAULT 'remind_me'`);
+  } catch { /* already exists */ }
+  try {
+    db.execute(`ALTER TABLE recurring_rules ADD COLUMN is_active INTEGER NOT NULL DEFAULT 1`);
+  } catch { /* already exists */ }
+  try {
+    db.execute(`ALTER TABLE recurring_rules ADD COLUMN payment_method TEXT NOT NULL DEFAULT 'Cash'`);
+  } catch { /* already exists */ }
   const syncQueueCols = db.query<{ name: string; type: string }>(`PRAGMA table_info(sync_queue)`);
   const syncQueueIdType = syncQueueCols.find(col => col.name === 'id')?.type;
   const syncQueueHasRowId = syncQueueCols.some(col => col.name === 'row_id');

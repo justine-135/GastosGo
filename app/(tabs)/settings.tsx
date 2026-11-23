@@ -92,6 +92,15 @@ export default function SettingsScreen() {
     },
   ];
 
+  const recurringRow: SettingsRow = {
+    icon: 'repeat',
+    iconBg: colors.greenBg,
+    iconColor: colors.green,
+    title: 'Recurring Rules',
+    subtitle: '',
+    route: '/recurring-rules',
+  };
+
   const dataRow: SettingsRow = {
     icon: 'trash-2',
     iconBg: colors.redBg,
@@ -114,13 +123,13 @@ export default function SettingsScreen() {
 
       <Text style={styles.sectionLabel}>Data</Text>
       <View style={styles.card}>
-        <ListRow row={dataRow} isFirst />
+        <ListRow row={recurringRow} isFirst />
+        <ListRow row={dataRow} isFirst={false} />
       </View>
 
       <Text style={styles.sectionLabel}>Upcoming</Text>
       <View style={styles.card}>
-        <UpcomingRow icon="repeat" iconBg={colors.greenBg} title="Recurring Rules" isFirst />
-        <UpcomingRow icon="lock" iconBg={colors.grayLight} title="PIN & Biometric Lock" isFirst={false} />
+        <UpcomingRow icon="lock" iconBg={colors.grayLight} title="PIN & Biometric Lock" isFirst />
       </View>
 
       <View style={styles.footer}>

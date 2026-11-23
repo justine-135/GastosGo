@@ -2,14 +2,12 @@ import { useCallback, useRef, useState } from 'react';
 import { Pressable, ScrollView, Text, View } from 'react-native';
 import { router, useFocusEffect } from 'expo-router';
 import { BottomSheetModal } from '@gorhom/bottom-sheet';
-import { Feather } from '@expo/vector-icons';
 import { getDb } from '../src/db';
 import { listRules, RecurringRuleRow } from '../src/db/recurringRules';
 import { listCategories, CategoryRow } from '../src/db/categories';
 import { fmtPeso } from '../src/utils/fmtPeso';
 import { NavBar } from '../src/components/NavBar';
 import { RecurringRuleSheet } from '../src/components/RecurringRuleSheet';
-import { colors } from '../src/theme';
 import { styles } from '../src/screens/recurring-rules.styles';
 
 const DAY_NAMES = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
@@ -48,7 +46,7 @@ export default function RecurringRulesScreen() {
 
   return (
     <View style={styles.container}>
-      <NavBar title="Recurring Rules" onBack={() => router.back()} />
+      <NavBar title="Recurring Rules" onBack={() => router.back()} rightLabel="Add" onRight={openCreate} />
       <ScrollView
         style={styles.container}
         contentContainerStyle={styles.scrollContent}
@@ -58,7 +56,7 @@ export default function RecurringRulesScreen() {
           <View style={styles.emptyState}>
             <Text style={styles.emptyEmoji}>🔁</Text>
             <Text style={styles.emptyTitle}>No recurring rules</Text>
-            <Text style={styles.emptyMeta}>Tap + to add a recurring bill.</Text>
+            <Text style={styles.emptyMeta}>Tap Add to create a recurring bill.</Text>
           </View>
         ) : (
           <View style={styles.ruleCard}>
@@ -91,10 +89,6 @@ export default function RecurringRulesScreen() {
           </View>
         )}
       </ScrollView>
-
-      <Pressable style={styles.fab} onPress={openCreate}>
-        <Feather name="plus" size={28} color="#fff" />
-      </Pressable>
 
       <RecurringRuleSheet sheetRef={sheetRef} editRule={editRule} onSaved={reload} />
     </View>
