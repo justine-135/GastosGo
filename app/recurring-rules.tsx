@@ -7,7 +7,6 @@ import { getDb } from '../src/db';
 import { listRules, RecurringRuleRow } from '../src/db/recurringRules';
 import { listCategories, CategoryRow } from '../src/db/categories';
 import { fmtPeso } from '../src/utils/fmtPeso';
-import { fmtDate, } from '../src/utils/fmtDate';
 import { NavBar } from '../src/components/NavBar';
 import { RecurringRuleSheet } from '../src/components/RecurringRuleSheet';
 import { colors } from '../src/theme';

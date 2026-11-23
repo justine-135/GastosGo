@@ -28,7 +28,7 @@ const SLIDE_DURATION = 250;
 const SCREEN_WIDTH = Dimensions.get('window').width;
 
 interface RecurringRuleSheetProps {
-  sheetRef: React.RefObject<BottomSheetModal>;
+  sheetRef: React.RefObject<BottomSheetModal | null>;
   editRule?: RecurringRuleRow | null;
   onSaved: () => void;
 }
