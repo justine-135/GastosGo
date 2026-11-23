@@ -55,6 +55,21 @@ CREATE TABLE IF NOT EXISTS cycle_snapshots (
   savings_target   REAL NOT NULL DEFAULT 0,
   created_at       TEXT NOT NULL DEFAULT (datetime('now'))
 );
+
+CREATE TABLE IF NOT EXISTS recurring_rules (
+  id              TEXT PRIMARY KEY,
+  name            TEXT NOT NULL,
+  amount          REAL NOT NULL,
+  category_id     TEXT REFERENCES categories(id) ON DELETE SET NULL,
+  frequency       TEXT NOT NULL,
+  recurrence_day  INTEGER NOT NULL,
+  next_due_date   TEXT NOT NULL,
+  behaviour       TEXT NOT NULL DEFAULT 'remind_me',
+  is_active       INTEGER NOT NULL DEFAULT 1,
+  payment_method  TEXT NOT NULL DEFAULT 'Cash',
+  created_at      TEXT NOT NULL DEFAULT (datetime('now')),
+  updated_at      TEXT NOT NULL DEFAULT (datetime('now'))
+);
 `;
 
 export function runMigrations(db: DbDriver): void {
@@ -69,6 +84,12 @@ export function runMigrations(db: DbDriver): void {
   } catch { /* already exists */ }
   try {
     db.execute(`ALTER TABLE expenses ADD COLUMN deleted_at TEXT`);
+  } catch { /* already exists */ }
+  try {
+    db.execute(`ALTER TABLE expenses ADD COLUMN is_recurring INTEGER NOT NULL DEFAULT 0`);
+  } catch { /* already exists */ }
+  try {
+    db.execute(`ALTER TABLE expenses ADD COLUMN recurring_rule_id TEXT`);
   } catch { /* already exists */ }
   const syncQueueCols = db.query<{ name: string; type: string }>(`PRAGMA table_info(sync_queue)`);
   const syncQueueIdType = syncQueueCols.find(col => col.name === 'id')?.type;
