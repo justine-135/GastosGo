@@ -35,7 +35,7 @@ The recurring period (default: calendar month) against which budgets and the sav
 _Avoid_: month, billing period
 
 **Cycle Snapshot**:
-An immutable record created on the first app open of each new Budget Cycle, after the user reviews (and optionally updates) their income figures via a prompt. Captures the confirmed income figures (salary, freelance) and Expected Savings for that cycle. Used to correctly calculate the Savings Gap for past cycles.
+A record created on the first app open of each new Budget Cycle, after the user reviews (and optionally updates) their income figures via a prompt. Captures the confirmed income figures (salary, freelance) and Expected Savings for that cycle. Used to correctly calculate the Savings Gap for past cycles. Multiple snapshots per `cycle_start_date` are allowed after a mid-cycle reset; the latest by insertion order is always authoritative for that cycle. Older rows for the same date are preserved as an audit trail.
 _Avoid_: cycle record, income history, settings snapshot
 
 **Income Mode**:
