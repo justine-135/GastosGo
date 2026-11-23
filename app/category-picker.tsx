@@ -19,7 +19,7 @@ export default function CategoryPickerScreen() {
 
   return (
     <View style={styles.container}>
-      <NavBar title="Category" onBack={() => router.back()} />
+      <NavBar title="Category" />
       <FlatList
         data={categories}
         keyExtractor={(category) => category.id}
