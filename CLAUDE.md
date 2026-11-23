@@ -1,3 +1,11 @@
+## Git workflow
+
+- `dev` is the development branch. `master` is production.
+- At the start of every session, before any file change: `git fetch origin && git checkout -b <type>/<description> origin/dev`. One branch per session.
+- Branch naming: `feat/<description>`, `fix/<description>`, `chore/<description>`.
+- After pushing, open a PR targeting `dev`. CI must pass before the PR merges (auto-merge is enabled on `dev`).
+- Never push directly to `dev` or `master` — PRs only.
+
 ## Code style
 
 - No inline comments mixed with code. If a section needs explanation, create a file under `docs/` explaining it — keep code comment-free.

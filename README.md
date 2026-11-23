@@ -16,6 +16,8 @@ Personal finance tracker for working Filipinos and students. Instead of listing 
 |---------|---------|
 | ![Budgets screen](assets/screenshots/budgets.svg) | ![History screen](assets/screenshots/history.svg) |
 
+> Interactive prototypes live in [`prototype/`](prototype/) — open any `.html` file in a browser.
+
 ---
 
 ## What it does

@@ -76,6 +76,8 @@ export function AddExpenseSheet() {
     (props: BottomSheetBackdropProps) => (
       <BottomSheetBackdrop
         {...props}
+        appearsOnIndex={0}
+        disappearsOnIndex={-1}
         pressBehavior="close"
       />
     ),
@@ -108,9 +110,6 @@ export function AddExpenseSheet() {
       </Pressable>
 
       <View style={styles.categoryPickerHeader}>
-        <Pressable style={styles.closeButton} onPress={closeToForm}>
-          <Feather name="arrow-left" size={14} color={colors.gray} />
-        </Pressable>
         <Text style={styles.categoryPickerHeaderTitle}>Category</Text>
       </View>
     </>
