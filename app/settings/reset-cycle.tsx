@@ -3,8 +3,8 @@ import { Alert, Pressable, ScrollView, Text, TextInput, View } from 'react-nativ
 import { router, useFocusEffect } from 'expo-router';
 import { getDb } from '../../src/db';
 import { loadSettings, IncomeMode } from '../../src/db/settings';
-import { getLatestCycleSnapshot, resetCurrentCycle } from '../../src/db/cycleSnapshots';
-import { listExpenses, softDeleteExpense } from '../../src/db/expenses';
+import { getLatestCycleSnapshot, resetCurrentCycle, softDeleteCycleExpenses } from '../../src/db/cycleSnapshots';
+import { listExpenses, ExpenseRow } from '../../src/db/expenses';
 import { cycleStartDate } from '../../src/utils/cycleDate';
 import { todayStr, fmtPeso } from '../../src/utils/fmtPeso';
 import { NavBar } from '../../src/components/NavBar';
@@ -20,28 +20,28 @@ export default function ResetCycleScreen() {
   const [freelance, setFreelance] = useState('');
   const [expectedSavings, setExpectedSavings] = useState('');
   const [savingsTarget, setSavingsTarget] = useState('');
-  const [currentCycleExpenseCount, setCurrentCycleExpenseCount] = useState(0);
-  const [currentCycleExpenseTotal, setCurrentCycleExpenseTotal] = useState(0);
+  const [currentCycleExpenses, setCurrentCycleExpenses] = useState<ExpenseRow[]>([]);
 
   useFocusEffect(
     useCallback(() => {
       const db = getDb();
       const settings = loadSettings(db);
       const start = cycleStartDate(todayStr(), settings.budgetCycleDay);
+      const snapshot = getLatestCycleSnapshot(db);
       setCycleStart(start);
       setIncomeMode(settings.incomeMode);
-      setSalary(String(settings.monthlySalary));
-      setFreelance(String(settings.freelanceIncome));
-      setExpectedSavings(String(settings.expectedSavings));
-      setSavingsTarget(String(settings.savingsTarget));
+      setSalary(String(snapshot?.monthly_salary ?? settings.monthlySalary));
+      setFreelance(String(snapshot?.freelance_income ?? settings.freelanceIncome));
+      setExpectedSavings(String(snapshot?.expected_savings ?? settings.expectedSavings));
+      setSavingsTarget(String(snapshot?.savings_target ?? settings.savingsTarget));
       setStep('form');
     }, []),
   );
 
-  function loadExpenseCount(start: string) {
-    const expenses = listExpenses(getDb(), start);
-    setCurrentCycleExpenseCount(expenses.length);
-    setCurrentCycleExpenseTotal(expenses.reduce((sum, e) => sum + e.amount, 0));
+  const isTarget = incomeMode === 'target';
+
+  function loadCurrentCycleExpenses(start: string) {
+    setCurrentCycleExpenses(listExpenses(getDb(), start));
   }
 
   function handleReviewChanges() {
@@ -50,8 +50,6 @@ export default function ResetCycleScreen() {
     const oldFreelance = snapshot?.freelance_income ?? 0;
     const oldExpectedSavings = snapshot?.expected_savings ?? 0;
     const oldSavingsTarget = snapshot?.savings_target ?? 0;
-
-    const isTarget = incomeMode === 'target';
     const oldSummary = isTarget
       ? `Savings Target: ${fmtPeso(oldSavingsTarget)}`
       : `Salary: ${fmtPeso(oldSalary)}${incomeMode === 'mixed' ? `\nFreelance: ${fmtPeso(oldFreelance)}` : ''}\nExpected Savings: ${fmtPeso(oldExpectedSavings)}`;
@@ -77,7 +75,7 @@ export default function ResetCycleScreen() {
               savingsTarget: Number(savingsTarget),
               wipeExpenses: false,
             });
-            loadExpenseCount(cycleStart);
+            loadCurrentCycleExpenses(cycleStart);
             setStep('expenses');
           },
         },
@@ -85,29 +83,25 @@ export default function ResetCycleScreen() {
     );
   }
 
+  const expenseTotal = currentCycleExpenses.reduce((sum, e) => sum + e.amount, 0);
+
   function handleClearExpenses() {
     Alert.alert(
       'Clear All Expenses?',
-      `This will send ${currentCycleExpenseCount} expense${currentCycleExpenseCount === 1 ? '' : 's'} (${fmtPeso(currentCycleExpenseTotal)}) to Recently Deleted. You can restore them within 30 days.`,
+      `This will send ${currentCycleExpenses.length} expense${currentCycleExpenses.length === 1 ? '' : 's'} (${fmtPeso(expenseTotal)}) to Recently Deleted. You can restore them within 30 days.`,
       [
         { text: 'Cancel', style: 'cancel' },
         {
           text: 'Clear Expenses',
           style: 'destructive',
           onPress: () => {
-            const db = getDb();
-            const expenses = listExpenses(db, cycleStart);
-            for (const expense of expenses) {
-              softDeleteExpense(db, expense.id);
-            }
+            softDeleteCycleExpenses(getDb(), cycleStart);
             router.back();
           },
         },
       ],
     );
   }
-
-  const isTarget = incomeMode === 'target';
 
   if (step === 'expenses') {
     return (
@@ -116,13 +110,23 @@ export default function ResetCycleScreen() {
         <ScrollView contentContainerStyle={styles.scrollContent}>
           <Text style={styles.sectionLabel}>Income figures updated</Text>
           <Text style={styles.expenseCountText}>
-            {currentCycleExpenseCount === 0
+            {currentCycleExpenses.length === 0
               ? 'No expenses logged this cycle.'
-              : `You have ${currentCycleExpenseCount} expense${currentCycleExpenseCount === 1 ? '' : 's'} (${fmtPeso(currentCycleExpenseTotal)}) logged this cycle. Clear them too?`}
+              : `You have ${currentCycleExpenses.length} expense${currentCycleExpenses.length === 1 ? '' : 's'} (${fmtPeso(expenseTotal)}) logged this cycle. Clear them too?`}
           </Text>
-          {currentCycleExpenseCount > 0 && (
-            <Pressable style={styles.clearButton} onPress={handleClearExpenses}>
-              <Text style={styles.clearButtonLabel}>Clear Expenses</Text>
+          {currentCycleExpenses.length > 0 && (
+            <View style={styles.card}>
+              {currentCycleExpenses.map((expense, index) => (
+                <View key={expense.id} style={[styles.fieldRow, index === 0 && styles.fieldRowFirst]}>
+                  <Text style={styles.fieldLabel}>{expense.date}</Text>
+                  <Text style={styles.currencyPrefix}>{fmtPeso(expense.amount)}</Text>
+                </View>
+              ))}
+            </View>
+          )}
+          {currentCycleExpenses.length > 0 && (
+            <Pressable style={styles.destructiveButton} onPress={handleClearExpenses}>
+              <Text style={styles.destructiveButtonLabel}>Clear Expenses</Text>
             </Pressable>
           )}
           <Pressable style={styles.skipButton} onPress={() => router.back()}>
@@ -200,8 +204,8 @@ export default function ResetCycleScreen() {
             </View>
           )}
         </View>
-        <Pressable style={styles.applyButton} onPress={handleReviewChanges}>
-          <Text style={styles.applyButtonLabel}>Review Changes</Text>
+        <Pressable style={styles.destructiveButton} onPress={handleReviewChanges}>
+          <Text style={styles.destructiveButtonLabel}>Review Changes</Text>
         </Pressable>
         <Text style={styles.warningText}>
           Changes apply to the current cycle only. Past cycles are unaffected.

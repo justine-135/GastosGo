@@ -63,7 +63,7 @@ export const styles = StyleSheet.create({
     color: colors.navy,
     paddingVertical: 0,
   },
-  applyButton: {
+  destructiveButton: {
     marginHorizontal: spacing.screenHPad,
     marginTop: 8,
     paddingVertical: 16,
@@ -71,7 +71,7 @@ export const styles = StyleSheet.create({
     backgroundColor: colors.red,
     alignItems: 'center',
   },
-  applyButtonLabel: {
+  destructiveButtonLabel: {
     fontSize: 16,
     fontWeight: '600',
     fontFamily: 'Inter_600SemiBold',
@@ -91,20 +91,6 @@ export const styles = StyleSheet.create({
     color: colors.navy,
     paddingVertical: 16,
     paddingHorizontal: spacing.screenHPad,
-  },
-  clearButton: {
-    marginHorizontal: spacing.screenHPad,
-    marginTop: 8,
-    paddingVertical: 16,
-    borderRadius: spacing.radiusCard,
-    backgroundColor: colors.red,
-    alignItems: 'center',
-  },
-  clearButtonLabel: {
-    fontSize: 16,
-    fontWeight: '600',
-    fontFamily: 'Inter_600SemiBold',
-    color: colors.card,
   },
   skipButton: {
     marginHorizontal: spacing.screenHPad,

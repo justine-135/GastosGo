@@ -41,6 +41,12 @@ export function getLatestCycleSnapshot(db: DbDriver): CycleSnapshot | undefined 
   );
 }
 
+export function softDeleteCycleExpenses(db: DbDriver, cycleStart: string): void {
+  for (const expense of listExpenses(db, cycleStart)) {
+    softDeleteExpense(db, expense.id);
+  }
+}
+
 export function resetCurrentCycle(db: DbDriver, input: ResetCurrentCycleInput): void {
   insertCycleSnapshot(db, {
     cycleStartDate: input.cycleStartDate,
@@ -51,10 +57,7 @@ export function resetCurrentCycle(db: DbDriver, input: ResetCurrentCycleInput): 
     savingsTarget: input.savingsTarget,
   });
   if (input.wipeExpenses) {
-    const currentCycleExpenses = listExpenses(db, input.cycleStartDate);
-    for (const expense of currentCycleExpenses) {
-      softDeleteExpense(db, expense.id);
-    }
+    softDeleteCycleExpenses(db, input.cycleStartDate);
   }
 }
 
