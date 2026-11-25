@@ -1,12 +1,5 @@
-import { useEffect } from 'react';
-import { useRouter } from 'expo-router';
-import { presentAddExpenseSheet } from '../src/lib/addExpenseSheet';
+import { AddExpenseSheet } from '../src/components/AddExpenseSheet';
 
-export default function AddExpenseRedirect() {
-  const router = useRouter();
-  useEffect(() => {
-    router.back();
-    presentAddExpenseSheet();
-  }, []);
-  return null;
+export default function AddExpenseScreen() {
+  return <AddExpenseSheet />;
 }
