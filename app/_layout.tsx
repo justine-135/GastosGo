@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
-import { BottomSheetModalProvider } from '@gorhom/bottom-sheet';
+
 import { ActionSheetProvider } from '@expo/react-native-action-sheet';
 import { Stack, router } from 'expo-router';
 import { useFonts } from 'expo-font';
@@ -96,7 +96,6 @@ export default function RootLayout() {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <ActionSheetProvider>
-      <BottomSheetModalProvider>
       <Stack screenOptions={{
         headerShown: true,
         headerBlurEffect: 'systemMaterial',
@@ -105,7 +104,8 @@ export default function RootLayout() {
       }}>
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
         <Stack.Screen name="onboarding" options={{ headerShown: false }} />
-        <Stack.Screen name="add-expense" options={{ presentation: 'transparentModal', headerShown: false }} />
+        <Stack.Screen name="add-expense" options={{ presentation: 'formSheet', headerShown: false }} />
+        <Stack.Screen name="recurring-rule-form" options={{ presentation: 'formSheet', headerShown: false }} />
         <Stack.Screen name="category-picker" options={{ title: 'Category' }} />
         <Stack.Screen name="budget-edit" options={{ title: 'Budget' }} />
         <Stack.Screen name="settings/income-mode" options={{ title: 'Income Mode' }} />
@@ -122,7 +122,6 @@ export default function RootLayout() {
           onConfirm={() => setCyclePromptData(null)}
         />
       )}
-      </BottomSheetModalProvider>
       </ActionSheetProvider>
     </GestureHandlerRootView>
   );
