@@ -29,11 +29,16 @@
     "react-native-worklets": "^0.13.0"
   },
   "devDependencies": {
+    "@react-native/jest-preset": "^0.88.1",
+    "@testing-library/jest-native": "^5.4.3",
+    "@testing-library/react-native": "^14.1.0",
     "@types/jest": "^30.0.0",
     "@types/node": "^26.6.6",
     "@types/react": "~19.3.0",
     "@types/sql.js": "^1.4.11",
     "jest": "^30.5.2",
+    "jest-expo": "^58.0.15",
+    "react-test-renderer": "^19.3.1",
     "sql.js": "^1.16.0",
     "ts-jest": "^29.4.15",
     "typescript": "~6.0.3"
@@ -46,16 +51,31 @@
     "test": "jest"
   },
   "jest": {
-    "preset": "ts-jest",
-    "testEnvironment": "node",
-    "testMatch": [
-      "**/__tests__/**/*.test.ts"
-    ],
-    "moduleFileExtensions": [
-      "ts",
-      "tsx",
-      "js",
-      "jsx"
+    "projects": [
+      {
+        "displayName": "unit",
+        "preset": "ts-jest",
+        "testEnvironment": "node",
+        "testMatch": [
+          "**/__tests__/**/*.test.ts"
+        ],
+        "moduleFileExtensions": [
+          "ts",
+          "tsx",
+          "js",
+          "jsx"
+        ]
+      },
+      {
+        "displayName": "component",
+        "preset": "jest-expo",
+        "testMatch": [
+          "**/__tests__/**/*.test.tsx"
+        ],
+        "transformIgnorePatterns": [
+          "node_modules/(?!((jest-)?react-native|@react-native(-community)?)|expo(nent)?|@expo(nent)?/.*|@expo-google-fonts/.*|react-navigation|@react-navigation/.*|@sentry/react-native|native-base|react-native-svg)"
+        ]
+      }
     ]
   },
   "private": true
