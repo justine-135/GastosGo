@@ -1,13 +1,13 @@
 import { useCallback, useRef, useState } from 'react';
 import { Pressable, ScrollView, Text, View } from 'react-native';
-import { router, useFocusEffect } from 'expo-router';
+import { Stack, router, useFocusEffect } from 'expo-router';
 import { BottomSheetModal } from '@gorhom/bottom-sheet';
 import { getDb } from '../src/db';
 import { listRules, RecurringRuleRow } from '../src/db/recurringRules';
 import { listCategories, CategoryRow } from '../src/db/categories';
 import { fmtPeso } from '../src/utils/fmtPeso';
-import { NavBar } from '../src/components/NavBar';
 import { RecurringRuleSheet } from '../src/components/RecurringRuleSheet';
+import { colors } from '../src/theme';
 import { styles } from '../src/screens/recurring-rules.styles';
 
 const DAY_NAMES = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
@@ -46,7 +46,13 @@ export default function RecurringRulesScreen() {
 
   return (
     <View style={styles.container}>
-      <NavBar title="Recurring Rules" onBack={() => router.back()} rightLabel="Add" onRight={openCreate} />
+      <Stack.Screen options={{
+        headerRight: () => (
+          <Pressable onPress={openCreate} hitSlop={8}>
+            <Text style={{ color: colors.brand, fontSize: 17, fontWeight: '600' }}>Add</Text>
+          </Pressable>
+        ),
+      }} />
       <ScrollView
         style={styles.container}
         contentContainerStyle={styles.scrollContent}

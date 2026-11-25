@@ -1,5 +1,5 @@
 import { StyleSheet } from 'react-native';
-import { colors, shadows, spacing } from '../theme';
+import { colors, spacing } from '../theme';
 
 export const styles = StyleSheet.create({
   container: {
@@ -26,19 +26,5 @@ export const styles = StyleSheet.create({
   },
   tabLabelActive: {
     color: colors.brand,
-  },
-  fabSlot: {
-    width: 72,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingBottom: 8,
-  },
-  fab: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
-    alignItems: 'center',
-    justifyContent: 'center',
-    ...shadows.fab,
   },
 });
