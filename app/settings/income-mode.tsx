@@ -1,39 +1,17 @@
-import { useCallback, useRef, useState } from 'react';
-import { Animated, Pressable, ScrollView, Text, View } from 'react-native';
+import { useCallback, useState } from 'react';
+import { ScrollView, Text, View } from 'react-native';
 import { router, useFocusEffect } from 'expo-router';
-import { Feather } from '@expo/vector-icons';
+import SegmentedControl from '@react-native-segmented-control/segmented-control';
 import { getDb } from '../../src/db';
 import { loadSettings, saveSettings, IncomeMode } from '../../src/db/settings';
 import { NavBar } from '../../src/components/NavBar';
 import { colors } from '../../src/theme/colors';
 import { styles } from '../../src/screens/settings/income-mode.styles';
 
-function ModeCard({ mode, isSelected, onSelect }: { mode: typeof MODES[number]; isSelected: boolean; onSelect: () => void }) {
-  const cardScale = useRef(new Animated.Value(1)).current;
-  return (
-    <Animated.View style={{ transform: [{ scale: cardScale }] }}>
-      <Pressable
-        style={[styles.modeCard, isSelected && styles.modeCardSelected]}
-        onPress={onSelect}
-        onPressIn={() => Animated.timing(cardScale, { toValue: 0.98, duration: 120, useNativeDriver: true }).start()}
-        onPressOut={() => Animated.timing(cardScale, { toValue: 1, duration: 120, useNativeDriver: true }).start()}
-      >
-        <View style={[styles.iconSlot, { backgroundColor: mode.iconBg }]}>
-          <Feather name={mode.icon as any} size={22} color={colors.brand} />
-        </View>
-        <View style={styles.modeCardTextGroup}>
-          <Text style={styles.modeCardTitle}>{mode.label}</Text>
-          <Text style={styles.modeCardDesc}>{mode.description}</Text>
-        </View>
-      </Pressable>
-    </Animated.View>
-  );
-}
-
-const MODES: { key: IncomeMode; label: string; description: string; icon: string; iconBg: string }[] = [
-  { key: 'salary', label: 'Salary', description: 'Fixed monthly income', icon: 'dollar-sign', iconBg: colors.brandBg },
-  { key: 'mixed', label: 'Mixed', description: 'Salary + freelance income', icon: 'shuffle', iconBg: colors.amberBg },
-  { key: 'target', label: 'Target', description: 'Set a savings goal, no income logging', icon: 'target', iconBg: colors.greenBg },
+const MODES: { key: IncomeMode; label: string; description: string }[] = [
+  { key: 'salary', label: 'Salary', description: 'Fixed monthly income' },
+  { key: 'mixed', label: 'Mixed', description: 'Salary + freelance income' },
+  { key: 'target', label: 'Target', description: 'Set a savings goal, no income logging' },
 ];
 
 export default function IncomeModeScreen() {
@@ -45,10 +23,14 @@ export default function IncomeModeScreen() {
     }, []),
   );
 
-  function handleSelect(mode: IncomeMode) {
+  function handleSelect(index: number) {
+    const mode = MODES[index].key;
     setSelectedMode(mode);
     saveSettings(getDb(), { incomeMode: mode });
   }
+
+  const selectedIndex = MODES.findIndex((m) => m.key === selectedMode);
+  const selectedDescription = MODES[selectedIndex]?.description ?? '';
 
   return (
     <View style={styles.container}>
@@ -56,9 +38,13 @@ export default function IncomeModeScreen() {
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <Text style={styles.heading}>How do you earn?</Text>
         <Text style={styles.subheading}>This determines how your Savings Gap is calculated.</Text>
-        {MODES.map((mode) => (
-          <ModeCard key={mode.key} mode={mode} isSelected={selectedMode === mode.key} onSelect={() => handleSelect(mode.key)} />
-        ))}
+        <SegmentedControl
+          values={MODES.map((m) => m.label)}
+          selectedIndex={selectedIndex}
+          onChange={(event) => handleSelect(event.nativeEvent.selectedSegmentIndex)}
+          tintColor={colors.brand}
+        />
+        <Text style={styles.modeDescription}>{selectedDescription}</Text>
       </ScrollView>
     </View>
   );

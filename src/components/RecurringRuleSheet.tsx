@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Alert, Animated, Dimensions, Keyboard, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
+import SegmentedControl from '@react-native-segmented-control/segmented-control';
 import {
   BottomSheetBackdrop,
   BottomSheetBackdropProps,
@@ -224,62 +225,37 @@ export function RecurringRuleSheet({ sheetRef, editRule, onSaved }: RecurringRul
 
                 <View style={styles.fieldGroup}>
                   <Text style={styles.label}>Payment Method</Text>
-                  <View style={styles.segmentContainer}>
-                    {PAYMENT_METHODS.map((method) => {
-                      const selected = method === paymentMethod;
-                      return (
-                        <Pressable
-                          key={method}
-                          style={[styles.segment, selected && styles.segmentActive]}
-                          onPress={() => setPaymentMethod(method)}
-                        >
-                          <Text style={selected ? styles.segmentTextActive : styles.segmentText}>{method}</Text>
-                        </Pressable>
-                      );
-                    })}
-                  </View>
+                  <SegmentedControl
+                    values={PAYMENT_METHODS}
+                    selectedIndex={PAYMENT_METHODS.indexOf(paymentMethod)}
+                    onChange={(event) => setPaymentMethod(PAYMENT_METHODS[event.nativeEvent.selectedSegmentIndex])}
+                    tintColor={colors.brand}
+                  />
                 </View>
 
                 <View style={styles.fieldGroup}>
                   <Text style={styles.label}>Frequency</Text>
-                  <View style={styles.segmentContainer}>
-                    {(['monthly', 'weekly'] as const).map((freq) => {
-                      const selected = freq === frequency;
-                      return (
-                        <Pressable
-                          key={freq}
-                          style={[styles.segment, selected && styles.segmentActive]}
-                          onPress={() => {
-                            setFrequency(freq);
-                            setRecurrenceDay(freq === 'monthly' ? 1 : 0);
-                          }}
-                        >
-                          <Text style={selected ? styles.segmentTextActive : styles.segmentText}>
-                            {freq === 'monthly' ? 'Monthly' : 'Weekly'}
-                          </Text>
-                        </Pressable>
-                      );
-                    })}
-                  </View>
+                  <SegmentedControl
+                    values={['Monthly', 'Weekly']}
+                    selectedIndex={frequency === 'monthly' ? 0 : 1}
+                    onChange={(event) => {
+                      const newFreq = event.nativeEvent.selectedSegmentIndex === 0 ? 'monthly' : 'weekly';
+                      setFrequency(newFreq);
+                      setRecurrenceDay(newFreq === 'monthly' ? 1 : 0);
+                    }}
+                    tintColor={colors.brand}
+                  />
                 </View>
 
                 <View style={styles.fieldGroup}>
                   <Text style={styles.label}>{frequency === 'monthly' ? 'Day of Month' : 'Day of Week'}</Text>
                   {frequency === 'weekly' ? (
-                    <View style={styles.segmentContainer}>
-                      {DAY_NAMES.map((dayLabel, dayIndex) => {
-                        const selected = dayIndex === recurrenceDay;
-                        return (
-                          <Pressable
-                            key={dayLabel}
-                            style={[styles.segment, selected && styles.segmentActive]}
-                            onPress={() => setRecurrenceDay(dayIndex)}
-                          >
-                            <Text style={selected ? styles.segmentTextActive : styles.segmentText}>{dayLabel}</Text>
-                          </Pressable>
-                        );
-                      })}
-                    </View>
+                    <SegmentedControl
+                      values={DAY_NAMES}
+                      selectedIndex={recurrenceDay}
+                      onChange={(event) => setRecurrenceDay(event.nativeEvent.selectedSegmentIndex)}
+                      tintColor={colors.brand}
+                    />
                   ) : (
                     <ScrollView horizontal showsHorizontalScrollIndicator={false}>
                       <View style={styles.dayScrollRow}>
