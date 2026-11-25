@@ -1,6 +1,7 @@
 import { useCallback, useState } from 'react';
-import { Alert, Pressable, SectionList, Text, View } from 'react-native';
+import { Pressable, SectionList, Text, View } from 'react-native';
 import { useFocusEffect } from 'expo-router';
+import { useActionSheet } from '@expo/react-native-action-sheet';
 import { getDb } from '../../src/db';
 import { listExpenses, softDeleteExpense, ExpenseRow } from '../../src/db/expenses';
 import { listCategories, CategoryRow } from '../../src/db/categories';
@@ -12,6 +13,7 @@ import { styles } from '../../src/screens/tabs/history.styles';
 type SectionData = { title: string; data: ExpenseRow[] };
 
 export default function HistoryScreen() {
+  const { showActionSheetWithOptions } = useActionSheet();
   const [sections, setSections] = useState<SectionData[]>([]);
   const [categoriesById, setCategoriesById] = useState<Record<string, CategoryRow>>({});
 
@@ -32,23 +34,22 @@ export default function HistoryScreen() {
     }, []),
   );
 
-  function handleDeletePress(expense: ExpenseRow) {
-    Alert.alert(
-      'Delete expense?',
-      `${expense.merchant ?? expense.payment_method} — ${fmtPeso(expense.amount)}`,
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Delete',
-          style: 'destructive',
-          onPress: () => {
-            const db = getDb();
-            softDeleteExpense(db, expense.id);
-            const rawSections = groupByDate(listExpenses(db));
-            setSections(rawSections.map((s) => ({ title: s.date, data: s.expenses })));
-          },
-        },
-      ],
+  function handleExpensePress(expense: ExpenseRow) {
+    const options = ['Edit', 'Delete', 'Cancel'];
+    const destructiveButtonIndex = 1;
+    const cancelButtonIndex = 2;
+    const title = `${expense.merchant ?? expense.payment_method} — ${fmtPeso(expense.amount)}`;
+
+    showActionSheetWithOptions(
+      { options, cancelButtonIndex, destructiveButtonIndex, title },
+      (selectedIndex?: number) => {
+        if (selectedIndex === 1) {
+          const db = getDb();
+          softDeleteExpense(db, expense.id);
+          const rawSections = groupByDate(listExpenses(db));
+          setSections(rawSections.map((s) => ({ title: s.date, data: s.expenses })));
+        }
+      },
     );
   }
 
@@ -99,7 +100,7 @@ export default function HistoryScreen() {
                   isLast && styles.rowLast,
                   pressed && styles.rowPressed,
                 ]}
-                onPress={() => handleDeletePress(expense)}
+                onPress={() => handleExpensePress(expense)}
               >
                 <View
                   style={[
