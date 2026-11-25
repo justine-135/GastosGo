@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { BottomSheetModalProvider } from '@gorhom/bottom-sheet';
+import { ActionSheetProvider } from '@expo/react-native-action-sheet';
 import { Stack, router } from 'expo-router';
 import { useFonts } from 'expo-font';
 import {
@@ -94,6 +95,7 @@ export default function RootLayout() {
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
+      <ActionSheetProvider>
       <BottomSheetModalProvider>
       <Stack>
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
@@ -115,6 +117,7 @@ export default function RootLayout() {
         />
       )}
       </BottomSheetModalProvider>
+      </ActionSheetProvider>
     </GestureHandlerRootView>
   );
 }
