@@ -43,7 +43,7 @@ export default function RecurringRulesScreen() {
       <Stack.Screen options={{
         headerRight: () => (
           <Pressable onPress={openCreate} hitSlop={8}>
-            <Text style={{ color: colors.brand, fontSize: 17, fontWeight: '600' }}>Add</Text>
+            <Text style={styles.headerActionText}>Add</Text>
           </Pressable>
         ),
       }} />

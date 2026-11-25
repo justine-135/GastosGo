@@ -36,7 +36,7 @@ export default function BudgetEditScreen() {
         title: category.name,
         headerRight: () => (
           <Pressable onPress={handleSave} hitSlop={8}>
-            <Text style={{ color: colors.brand, fontSize: 17, fontWeight: '600' }}>Save</Text>
+            <Text style={styles.headerActionText}>Save</Text>
           </Pressable>
         ),
       }} />

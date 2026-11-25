@@ -56,9 +56,11 @@
         "displayName": "unit",
         "preset": "ts-jest",
         "testEnvironment": "node",
+        "roots": ["<rootDir>"],
         "testMatch": [
-          "**/__tests__/**/*.test.ts"
+          "<rootDir>/__tests__/**/*.test.ts"
         ],
+        "testPathIgnorePatterns": ["/node_modules/", "/.claude/"],
         "moduleFileExtensions": [
           "ts",
           "tsx",
@@ -69,9 +71,11 @@
       {
         "displayName": "component",
         "preset": "jest-expo",
+        "roots": ["<rootDir>"],
         "testMatch": [
-          "**/__tests__/**/*.test.tsx"
+          "<rootDir>/__tests__/**/*.test.tsx"
         ],
+        "testPathIgnorePatterns": ["/node_modules/", "/.claude/"],
         "transformIgnorePatterns": [
           "node_modules/(?!((jest-)?react-native|@react-native(-community)?)|expo(nent)?|@expo(nent)?/.*|@expo-google-fonts/.*|react-navigation|@react-navigation/.*|@sentry/react-native|native-base|react-native-svg)"
         ]
