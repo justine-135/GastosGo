@@ -3,7 +3,6 @@ import { FlatList, Pressable, Text, View } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { getDb } from '../src/db';
 import { listCategories } from '../src/db/categories';
-import { NavBar } from '../src/components/NavBar';
 import { callback } from '../src/lib/categoryPickerBridge';
 import { styles } from '../src/screens/category-picker.styles';
 
@@ -19,7 +18,6 @@ export default function CategoryPickerScreen() {
 
   return (
     <View style={styles.container}>
-      <NavBar title="Category" />
       <FlatList
         data={categories}
         keyExtractor={(category) => category.id}

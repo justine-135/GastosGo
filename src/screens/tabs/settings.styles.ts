@@ -1,12 +1,11 @@
 import { StyleSheet } from 'react-native';
 import { colors } from '../../theme/colors';
-import { shadows } from '../../theme/shadows';
 import { spacing } from '../../theme/spacing';
 
 export const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.bg,
+    backgroundColor: colors.systemGroupedBg,
   },
   scrollContent: {
     paddingTop: spacing.navBarHeight + 16,
@@ -32,11 +31,10 @@ export const styles = StyleSheet.create({
   },
   card: {
     backgroundColor: colors.card,
-    borderRadius: spacing.radiusCard,
+    borderRadius: 12,
     marginHorizontal: spacing.screenHPad,
     marginBottom: 16,
     overflow: 'hidden',
-    ...shadows.sm,
   },
   row: {
     flexDirection: 'row',
@@ -45,9 +43,10 @@ export const styles = StyleSheet.create({
     paddingHorizontal: spacing.screenHPad,
     gap: 14,
   },
-  rowBorder: {
-    borderTopWidth: 0.5,
-    borderTopColor: colors.sep,
+  rowSeparator: {
+    height: StyleSheet.hairlineWidth,
+    backgroundColor: colors.sep,
+    marginLeft: spacing.screenHPad + 36 + 14,
   },
   iconSlot: {
     width: 36,

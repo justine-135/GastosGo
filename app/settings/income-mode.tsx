@@ -4,7 +4,6 @@ import { router, useFocusEffect } from 'expo-router';
 import SegmentedControl from '@react-native-segmented-control/segmented-control';
 import { getDb } from '../../src/db';
 import { loadSettings, saveSettings, IncomeMode } from '../../src/db/settings';
-import { NavBar } from '../../src/components/NavBar';
 import { colors } from '../../src/theme/colors';
 import { styles } from '../../src/screens/settings/income-mode.styles';
 
@@ -34,7 +33,6 @@ export default function IncomeModeScreen() {
 
   return (
     <View style={styles.container}>
-      <NavBar title="Income Mode" onBack={() => router.back()} />
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <Text style={styles.heading}>How do you earn?</Text>
         <Text style={styles.subheading}>This determines how your Savings Gap is calculated.</Text>

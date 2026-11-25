@@ -7,7 +7,6 @@ import { getLatestCycleSnapshot, resetCurrentCycle, softDeleteCycleExpenses } fr
 import { listExpenses, ExpenseRow } from '../../src/db/expenses';
 import { cycleStartDate } from '../../src/utils/cycleDate';
 import { todayStr, fmtPeso } from '../../src/utils/fmtPeso';
-import { NavBar } from '../../src/components/NavBar';
 import { styles } from '../../src/screens/settings/reset-cycle.styles';
 
 type Step = 'form' | 'expenses';
@@ -106,7 +105,6 @@ export default function ResetCycleScreen() {
   if (step === 'expenses') {
     return (
       <View style={styles.container}>
-        <NavBar title="Reset Current Cycle" onBack={() => router.back()} />
         <ScrollView contentContainerStyle={styles.scrollContent}>
           <Text style={styles.sectionLabel}>Income figures updated</Text>
           <Text style={styles.expenseCountText}>
@@ -139,7 +137,6 @@ export default function ResetCycleScreen() {
 
   return (
     <View style={styles.container}>
-      <NavBar title="Reset Current Cycle" onBack={() => router.back()} />
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <Text style={styles.sectionLabel}>Update figures for this cycle</Text>
         <View style={styles.card}>
