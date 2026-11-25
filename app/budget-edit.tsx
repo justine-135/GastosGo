@@ -1,6 +1,7 @@
 import { useCallback, useState } from 'react';
 import { Pressable, ScrollView, Switch, Text, TextInput, View } from 'react-native';
 import { Stack, useLocalSearchParams, router } from 'expo-router';
+import * as Haptics from 'expo-haptics';
 import { getDb } from '../src/db';
 import { listCategories, updateCategoryBudget } from '../src/db/categories';
 import { colors } from '../src/theme';
@@ -72,7 +73,7 @@ export default function BudgetEditScreen() {
           </View>
           <Switch
             value={carryoverEnabled}
-            onValueChange={setCarryoverEnabled}
+            onValueChange={(value) => { Haptics.selectionAsync(); setCarryoverEnabled(value); }}
             trackColor={{ false: colors.gray2, true: colors.green }}
             thumbColor={colors.card}
           />

@@ -1,6 +1,7 @@
 import { useCallback, useState } from 'react';
 import { Pressable, SectionList, Text, View } from 'react-native';
 import { useFocusEffect } from 'expo-router';
+import * as Haptics from 'expo-haptics';
 import { useActionSheet } from '@expo/react-native-action-sheet';
 import { getDb } from '../../src/db';
 import { listExpenses, softDeleteExpense, ExpenseRow } from '../../src/db/expenses';
@@ -44,6 +45,7 @@ export default function HistoryScreen() {
       { options, cancelButtonIndex, destructiveButtonIndex, title },
       (selectedIndex?: number) => {
         if (selectedIndex === 1) {
+          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
           const db = getDb();
           softDeleteExpense(db, expense.id);
           const rawSections = groupByDate(listExpenses(db));

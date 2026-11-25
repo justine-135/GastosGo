@@ -1,6 +1,7 @@
 import React, { useRef } from 'react';
 import { View, Text, Pressable, Animated } from 'react-native';
 import { BlurView } from 'expo-blur';
+import * as Haptics from 'expo-haptics';
 import { Feather } from '@expo/vector-icons';
 import { type BottomTabBarProps, type BottomTabViewRoute } from 'expo-router/build/layouts/Tabs';
 import { colors, typography } from '../theme';
@@ -66,6 +67,7 @@ export function TabBar({ state, navigateToTab }: BottomTabBarProps) {
   function handleTabPress(routeName: string) {
     const targetRoute = state.routes.find((route: BottomTabViewRoute) => route.name === routeName);
     if (!targetRoute) return;
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     navigateToTab(targetRoute.key);
   }
 

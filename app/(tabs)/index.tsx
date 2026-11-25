@@ -1,6 +1,7 @@
 import { useCallback, useRef, useEffect, useState } from 'react';
 import { Alert, Animated, Pressable, ScrollView, Text, TouchableOpacity, View, ViewStyle } from 'react-native';
 import { router, useFocusEffect } from 'expo-router';
+import * as Haptics from 'expo-haptics';
 import { setOnExpenseSaved, notifyExpenseSaved } from '../../src/lib/expenseSavedBridge';
 import { getDb } from '../../src/db';
 import { listExpenses, softDeleteExpense, ExpenseRow } from '../../src/db/expenses';
@@ -130,6 +131,7 @@ export default function HomeScreen() {
         text: 'Delete',
         style: 'destructive',
         onPress: () => {
+          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
           softDeleteExpense(getDb(), expense.id);
           reload();
         },

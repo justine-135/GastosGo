@@ -1,6 +1,7 @@
 import { useCallback, useState } from 'react';
 import { Alert, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import { router, useFocusEffect } from 'expo-router';
+import * as Haptics from 'expo-haptics';
 import { getDb } from '../../src/db';
 import { loadSettings, IncomeMode } from '../../src/db/settings';
 import { getLatestCycleSnapshot, resetCurrentCycle, softDeleteCycleExpenses } from '../../src/db/cycleSnapshots';
@@ -65,6 +66,7 @@ export default function ResetCycleScreen() {
           text: 'Apply Reset',
           style: 'destructive',
           onPress: () => {
+            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
             resetCurrentCycle(getDb(), {
               cycleStartDate: cycleStart,
               incomeMode,
@@ -94,6 +96,7 @@ export default function ResetCycleScreen() {
           text: 'Clear Expenses',
           style: 'destructive',
           onPress: () => {
+            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
             softDeleteCycleExpenses(getDb(), cycleStart);
             router.back();
           },
