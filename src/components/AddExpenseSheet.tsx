@@ -1,6 +1,7 @@
 import { useMemo, useRef, useState } from 'react';
 import { Animated, Dimensions, Keyboard, Platform, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import { useRouter } from 'expo-router';
+import SegmentedControl from '@react-native-segmented-control/segmented-control';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Feather } from '@expo/vector-icons';
@@ -121,22 +122,12 @@ export function AddExpenseSheet() {
 
             <View style={styles.fieldGroup}>
               <Text style={styles.label}>Payment Method</Text>
-              <View style={styles.segmentContainer}>
-                {PAYMENT_METHODS.map((method) => {
-                  const selected = method === paymentMethod;
-                  return (
-                    <Pressable
-                      key={method}
-                      style={[styles.segment, selected && styles.segmentActive]}
-                      onPress={() => setPaymentMethod(method)}
-                    >
-                      <Text style={selected ? styles.segmentTextActive : styles.segmentText}>
-                        {method}
-                      </Text>
-                    </Pressable>
-                  );
-                })}
-              </View>
+              <SegmentedControl
+                values={PAYMENT_METHODS}
+                selectedIndex={PAYMENT_METHODS.indexOf(paymentMethod)}
+                onChange={(event) => setPaymentMethod(PAYMENT_METHODS[event.nativeEvent.selectedSegmentIndex])}
+                tintColor={colors.brand}
+              />
             </View>
 
             <View style={styles.fieldGroup}>
