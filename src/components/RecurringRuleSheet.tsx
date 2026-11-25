@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Alert, Animated, Dimensions, Keyboard, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import SegmentedControl from '@react-native-segmented-control/segmented-control';
+import * as Haptics from 'expo-haptics';
 import {
   BottomSheetBackdrop,
   BottomSheetBackdropProps,
@@ -228,7 +229,7 @@ export function RecurringRuleSheet({ sheetRef, editRule, onSaved }: RecurringRul
                   <SegmentedControl
                     values={PAYMENT_METHODS}
                     selectedIndex={PAYMENT_METHODS.indexOf(paymentMethod)}
-                    onChange={(event) => setPaymentMethod(PAYMENT_METHODS[event.nativeEvent.selectedSegmentIndex])}
+                    onChange={(event) => { Haptics.selectionAsync(); setPaymentMethod(PAYMENT_METHODS[event.nativeEvent.selectedSegmentIndex]); }}
                     tintColor={colors.brand}
                   />
                 </View>
@@ -239,6 +240,7 @@ export function RecurringRuleSheet({ sheetRef, editRule, onSaved }: RecurringRul
                     values={['Monthly', 'Weekly']}
                     selectedIndex={frequency === 'monthly' ? 0 : 1}
                     onChange={(event) => {
+                      Haptics.selectionAsync();
                       const newFreq = event.nativeEvent.selectedSegmentIndex === 0 ? 'monthly' : 'weekly';
                       setFrequency(newFreq);
                       setRecurrenceDay(newFreq === 'monthly' ? 1 : 0);
@@ -253,7 +255,7 @@ export function RecurringRuleSheet({ sheetRef, editRule, onSaved }: RecurringRul
                     <SegmentedControl
                       values={DAY_NAMES}
                       selectedIndex={recurrenceDay}
-                      onChange={(event) => setRecurrenceDay(event.nativeEvent.selectedSegmentIndex)}
+                      onChange={(event) => { Haptics.selectionAsync(); setRecurrenceDay(event.nativeEvent.selectedSegmentIndex); }}
                       tintColor={colors.brand}
                     />
                   ) : (

@@ -2,6 +2,7 @@ import { useCallback, useState } from 'react';
 import { ScrollView, Text, View } from 'react-native';
 import { router, useFocusEffect } from 'expo-router';
 import SegmentedControl from '@react-native-segmented-control/segmented-control';
+import * as Haptics from 'expo-haptics';
 import { getDb } from '../../src/db';
 import { loadSettings, saveSettings, IncomeMode } from '../../src/db/settings';
 import { colors } from '../../src/theme/colors';
@@ -39,7 +40,7 @@ export default function IncomeModeScreen() {
         <SegmentedControl
           values={MODES.map((m) => m.label)}
           selectedIndex={selectedIndex}
-          onChange={(event) => handleSelect(event.nativeEvent.selectedSegmentIndex)}
+          onChange={(event) => { Haptics.selectionAsync(); handleSelect(event.nativeEvent.selectedSegmentIndex); }}
           tintColor={colors.brand}
         />
         <Text style={styles.modeDescription}>{selectedDescription}</Text>

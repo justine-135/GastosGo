@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Animated, Dimensions, Keyboard, Platform, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import SegmentedControl from '@react-native-segmented-control/segmented-control';
+import * as Haptics from 'expo-haptics';
 import {
   BottomSheetBackdrop,
   BottomSheetBackdropProps,
@@ -173,7 +174,7 @@ export function AddExpenseSheet() {
                 <SegmentedControl
                   values={PAYMENT_METHODS}
                   selectedIndex={PAYMENT_METHODS.indexOf(paymentMethod)}
-                  onChange={(event) => setPaymentMethod(PAYMENT_METHODS[event.nativeEvent.selectedSegmentIndex])}
+                  onChange={(event) => { Haptics.selectionAsync(); setPaymentMethod(PAYMENT_METHODS[event.nativeEvent.selectedSegmentIndex]); }}
                   tintColor={colors.brand}
                 />
               </View>
