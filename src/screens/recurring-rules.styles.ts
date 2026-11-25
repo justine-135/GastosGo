@@ -108,4 +108,9 @@ export const styles = StyleSheet.create({
     color: colors.gray,
     marginTop: 4,
   },
+  headerActionText: {
+    color: colors.brand,
+    fontSize: 17,
+    fontWeight: '600',
+  },
 });

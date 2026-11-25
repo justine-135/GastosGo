@@ -4,7 +4,6 @@ import { router, useFocusEffect } from 'expo-router';
 import { Feather } from '@expo/vector-icons';
 import { getDb } from '../../src/db';
 import { loadSettings, saveSettings } from '../../src/db/settings';
-import { NavBar } from '../../src/components/NavBar';
 import { colors } from '../../src/theme/colors';
 import { styles } from '../../src/screens/settings/budget-cycle.styles';
 
@@ -41,7 +40,6 @@ export default function BudgetCycleScreen() {
 
   return (
     <View style={styles.container}>
-      <NavBar title="Budget Cycle" onBack={() => router.back()} />
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <Text style={styles.sectionLabel}>Cycle starts on day</Text>
         <View style={styles.card}>

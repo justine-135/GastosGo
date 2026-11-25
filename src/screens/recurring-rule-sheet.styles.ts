@@ -1,6 +1,5 @@
 import { StyleSheet } from 'react-native';
 import { colors } from '../theme/colors';
-import { shadows } from '../theme/shadows';
 
 export const styles = StyleSheet.create({
   handle: {
@@ -83,33 +82,6 @@ export const styles = StyleSheet.create({
     flex: 1,
     fontSize: 16,
     color: colors.gray2,
-  },
-  segmentContainer: {
-    backgroundColor: colors.grayLight,
-    borderRadius: 10,
-    padding: 2,
-    flexDirection: 'row',
-    gap: 2,
-  },
-  segment: {
-    flex: 1,
-    paddingVertical: 10,
-    alignItems: 'center',
-    borderRadius: 8,
-  },
-  segmentActive: {
-    backgroundColor: '#fff',
-    ...shadows.sm,
-  },
-  segmentText: {
-    fontSize: 13,
-    fontWeight: '500',
-    color: colors.gray,
-  },
-  segmentTextActive: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: colors.navy,
   },
   dayScrollRow: {
     flexDirection: 'row',

@@ -1,13 +1,11 @@
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useState } from 'react';
 import { Pressable, ScrollView, Text, View } from 'react-native';
-import { router, useFocusEffect } from 'expo-router';
-import { BottomSheetModal } from '@gorhom/bottom-sheet';
+import { Stack, router, useFocusEffect } from 'expo-router';
 import { getDb } from '../src/db';
 import { listRules, RecurringRuleRow } from '../src/db/recurringRules';
 import { listCategories, CategoryRow } from '../src/db/categories';
 import { fmtPeso } from '../src/utils/fmtPeso';
-import { NavBar } from '../src/components/NavBar';
-import { RecurringRuleSheet } from '../src/components/RecurringRuleSheet';
+import { colors } from '../src/theme';
 import { styles } from '../src/screens/recurring-rules.styles';
 
 const DAY_NAMES = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
@@ -18,10 +16,8 @@ function frequencyLabel(rule: RecurringRuleRow): string {
 }
 
 export default function RecurringRulesScreen() {
-  const sheetRef = useRef<BottomSheetModal>(null);
   const [rules, setRules] = useState<RecurringRuleRow[]>([]);
   const [categoriesById, setCategoriesById] = useState<Record<string, CategoryRow>>({});
-  const [editRule, setEditRule] = useState<RecurringRuleRow | null>(null);
 
   const reload = useCallback(() => {
     const db = getDb();
@@ -35,18 +31,22 @@ export default function RecurringRulesScreen() {
   useFocusEffect(reload);
 
   function openCreate() {
-    setEditRule(null);
-    sheetRef.current?.present();
+    router.push('/recurring-rule-form');
   }
 
   function openEdit(rule: RecurringRuleRow) {
-    setEditRule(rule);
-    sheetRef.current?.present();
+    router.push({ pathname: '/recurring-rule-form', params: { ruleId: rule.id } });
   }
 
   return (
     <View style={styles.container}>
-      <NavBar title="Recurring Rules" onBack={() => router.back()} rightLabel="Add" onRight={openCreate} />
+      <Stack.Screen options={{
+        headerRight: () => (
+          <Pressable onPress={openCreate} hitSlop={8}>
+            <Text style={styles.headerActionText}>Add</Text>
+          </Pressable>
+        ),
+      }} />
       <ScrollView
         style={styles.container}
         contentContainerStyle={styles.scrollContent}
@@ -89,8 +89,6 @@ export default function RecurringRulesScreen() {
           </View>
         )}
       </ScrollView>
-
-      <RecurringRuleSheet sheetRef={sheetRef} editRule={editRule} onSaved={reload} />
     </View>
   );
 }

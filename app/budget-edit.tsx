@@ -1,9 +1,9 @@
 import { useCallback, useState } from 'react';
-import { ScrollView, Switch, Text, TextInput, View } from 'react-native';
-import { useLocalSearchParams, router } from 'expo-router';
+import { Pressable, ScrollView, Switch, Text, TextInput, View } from 'react-native';
+import { Stack, useLocalSearchParams, router } from 'expo-router';
+import * as Haptics from 'expo-haptics';
 import { getDb } from '../src/db';
 import { listCategories, updateCategoryBudget } from '../src/db/categories';
-import { NavBar } from '../src/components/NavBar';
 import { colors } from '../src/theme';
 import { styles } from '../src/screens/budget-edit.styles';
 
@@ -32,12 +32,14 @@ export default function BudgetEditScreen() {
 
   return (
     <View style={styles.container}>
-      <NavBar
-        title={category.name}
-        onBack={() => router.back()}
-        rightLabel="Save"
-        onRight={handleSave}
-      />
+      <Stack.Screen options={{
+        title: category.name,
+        headerRight: () => (
+          <Pressable onPress={handleSave} hitSlop={8}>
+            <Text style={styles.headerActionText}>Save</Text>
+          </Pressable>
+        ),
+      }} />
       <ScrollView contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled">
         <Text style={styles.fieldLabel}>Category Name</Text>
         <View style={[styles.nameWrap, nameFocused && styles.nameWrapFocused]}>
@@ -71,7 +73,7 @@ export default function BudgetEditScreen() {
           </View>
           <Switch
             value={carryoverEnabled}
-            onValueChange={setCarryoverEnabled}
+            onValueChange={(value) => { Haptics.selectionAsync(); setCarryoverEnabled(value); }}
             trackColor={{ false: colors.gray2, true: colors.green }}
             thumbColor={colors.card}
           />

@@ -5,7 +5,6 @@ import { getDb } from '../../src/db';
 import { listDeletedExpenses, restoreExpense, softDeleteExpense, ExpenseRow } from '../../src/db/expenses';
 import { listCategories, CategoryRow } from '../../src/db/categories';
 import { fmtPeso } from '../../src/utils/fmtPeso';
-import { NavBar } from '../../src/components/NavBar';
 import { styles } from '../../src/screens/settings/recently-deleted.styles';
 
 export default function RecentlyDeletedScreen() {
@@ -34,7 +33,6 @@ export default function RecentlyDeletedScreen() {
 
   return (
     <View style={styles.container}>
-      <NavBar title="Recently Deleted" onBack={() => router.back()} />
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <Text style={styles.infoText}>Items are kept for 30 days.</Text>
         {deletedExpenses.length === 0 ? (

@@ -1,13 +1,13 @@
 import { useCallback, useState } from 'react';
 import { Alert, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import { router, useFocusEffect } from 'expo-router';
+import * as Haptics from 'expo-haptics';
 import { getDb } from '../../src/db';
 import { loadSettings, IncomeMode } from '../../src/db/settings';
 import { getLatestCycleSnapshot, resetCurrentCycle, softDeleteCycleExpenses } from '../../src/db/cycleSnapshots';
 import { listExpenses, ExpenseRow } from '../../src/db/expenses';
 import { cycleStartDate } from '../../src/utils/cycleDate';
 import { todayStr, fmtPeso } from '../../src/utils/fmtPeso';
-import { NavBar } from '../../src/components/NavBar';
 import { styles } from '../../src/screens/settings/reset-cycle.styles';
 
 type Step = 'form' | 'expenses';
@@ -66,6 +66,7 @@ export default function ResetCycleScreen() {
           text: 'Apply Reset',
           style: 'destructive',
           onPress: () => {
+            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
             resetCurrentCycle(getDb(), {
               cycleStartDate: cycleStart,
               incomeMode,
@@ -95,6 +96,7 @@ export default function ResetCycleScreen() {
           text: 'Clear Expenses',
           style: 'destructive',
           onPress: () => {
+            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
             softDeleteCycleExpenses(getDb(), cycleStart);
             router.back();
           },
@@ -106,7 +108,6 @@ export default function ResetCycleScreen() {
   if (step === 'expenses') {
     return (
       <View style={styles.container}>
-        <NavBar title="Reset Current Cycle" onBack={() => router.back()} />
         <ScrollView contentContainerStyle={styles.scrollContent}>
           <Text style={styles.sectionLabel}>Income figures updated</Text>
           <Text style={styles.expenseCountText}>
@@ -139,7 +140,6 @@ export default function ResetCycleScreen() {
 
   return (
     <View style={styles.container}>
-      <NavBar title="Reset Current Cycle" onBack={() => router.back()} />
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <Text style={styles.sectionLabel}>Update figures for this cycle</Text>
         <View style={styles.card}>
