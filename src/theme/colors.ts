@@ -14,6 +14,7 @@ export const colors = {
   goldBg: '#FEF3C7',
 
   bg: '#F7F7F9',
+  systemGroupedBg: '#F2F2F7',
   card: '#FFFFFF',
   navy: '#111827',
   gray: '#6B7280',

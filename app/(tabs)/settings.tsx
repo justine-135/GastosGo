@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react';
+import { Fragment, useCallback, useState } from 'react';
 import { Pressable, ScrollView, Text, View } from 'react-native';
 import { router, useFocusEffect } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -23,12 +23,11 @@ interface SettingsRow {
   route: string;
 }
 
-function ListRow({ row, isFirst }: { row: SettingsRow; isFirst: boolean }) {
+function ListRow({ row }: { row: SettingsRow }) {
   return (
     <Pressable
       style={({ pressed }) => [
         styles.row,
-        !isFirst && styles.rowBorder,
         pressed && { backgroundColor: colors.grayLight },
       ]}
       onPress={() => router.push(row.route as any)}
@@ -45,9 +44,9 @@ function ListRow({ row, isFirst }: { row: SettingsRow; isFirst: boolean }) {
   );
 }
 
-function UpcomingRow({ icon, iconBg, title, isFirst }: { icon: string; iconBg: string; title: string; isFirst: boolean }) {
+function UpcomingRow({ icon, iconBg, title }: { icon: string; iconBg: string; title: string }) {
   return (
-    <View style={[styles.row, !isFirst && styles.rowBorder]}>
+    <View style={styles.row}>
       <View style={[styles.iconSlot, { backgroundColor: iconBg }]}>
         <Feather name={icon as any} size={18} color={colors.gray} />
       </View>
@@ -126,20 +125,25 @@ export default function SettingsScreen() {
       <Text style={styles.sectionLabel}>Income & Budget</Text>
       <View style={styles.card}>
         {incomeBudgetRows.map((settingsRow, index) => (
-          <ListRow key={settingsRow.route} row={settingsRow} isFirst={index === 0} />
+          <Fragment key={settingsRow.route}>
+            {index > 0 && <View style={styles.rowSeparator} />}
+            <ListRow row={settingsRow} />
+          </Fragment>
         ))}
       </View>
 
       <Text style={styles.sectionLabel}>Data</Text>
       <View style={styles.card}>
-        <ListRow row={recurringRow} isFirst />
-        <ListRow row={resetCycleRow} isFirst={false} />
-        <ListRow row={dataRow} isFirst={false} />
+        <ListRow row={recurringRow} />
+        <View style={styles.rowSeparator} />
+        <ListRow row={resetCycleRow} />
+        <View style={styles.rowSeparator} />
+        <ListRow row={dataRow} />
       </View>
 
       <Text style={styles.sectionLabel}>Upcoming</Text>
       <View style={styles.card}>
-        <UpcomingRow icon="lock" iconBg={colors.grayLight} title="PIN & Biometric Lock" isFirst />
+        <UpcomingRow icon="lock" iconBg={colors.grayLight} title="PIN & Biometric Lock" />
       </View>
 
       <View style={styles.footer}>
