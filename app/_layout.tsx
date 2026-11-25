@@ -95,16 +95,22 @@ export default function RootLayout() {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <BottomSheetModalProvider>
-      <Stack>
+      <Stack screenOptions={{
+        headerShown: true,
+        headerBlurEffect: 'systemMaterial',
+        headerTransparent: true,
+        headerLargeTitle: false,
+      }}>
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
         <Stack.Screen name="onboarding" options={{ headerShown: false }} />
         <Stack.Screen name="add-expense" options={{ presentation: 'transparentModal', headerShown: false }} />
-        <Stack.Screen name="category-picker" options={{ headerShown: false }} />
-        <Stack.Screen name="budget-edit" options={{ headerShown: false }} />
-        <Stack.Screen name="settings/income-mode" options={{ headerShown: false }} />
-        <Stack.Screen name="settings/budget-cycle" options={{ headerShown: false }} />
-        <Stack.Screen name="settings/recently-deleted" options={{ headerShown: false }} />
-        <Stack.Screen name="recurring-rules" options={{ headerShown: false }} />
+        <Stack.Screen name="category-picker" options={{ title: 'Category' }} />
+        <Stack.Screen name="budget-edit" options={{ title: 'Budget' }} />
+        <Stack.Screen name="settings/income-mode" options={{ title: 'Income Mode' }} />
+        <Stack.Screen name="settings/budget-cycle" options={{ title: 'Budget Cycle' }} />
+        <Stack.Screen name="settings/recently-deleted" options={{ title: 'Recently Deleted' }} />
+        <Stack.Screen name="settings/reset-cycle" options={{ title: 'Reset Current Cycle' }} />
+        <Stack.Screen name="recurring-rules" options={{ title: 'Recurring Rules' }} />
       </Stack>
       {cyclePromptData && (
         <NewCyclePrompt
